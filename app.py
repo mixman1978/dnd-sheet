@@ -17,6 +17,28 @@ from engine.storage import list_characters, load_character, save_character
 
 st.set_page_config(page_title="DnD Sheet", page_icon="🎲", layout="wide")
 
+
+def inject_compact_css() -> None:
+    st.markdown(
+        """
+        <style>
+        .block-container { padding-top: 1rem; padding-bottom: 1rem; }
+        [data-testid="stSidebarContent"] { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        [data-testid="stVerticalBlock"] > div { gap: 0.35rem; }
+        h1, h2, h3 { margin: 0.4rem 0 0.6rem 0; }
+        label { margin-bottom: 0.1rem; }
+        [data-testid="stTabs"] { margin-top: 0.25rem; }
+        [data-testid="stTabBar"] { margin-bottom: 0.25rem; }
+        [data-testid="stMetric"] { padding: 0.5rem 0.75rem; }
+        .stButton > button { padding: 0.35rem 0.75rem; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+inject_compact_css()
+
 # Classi: IT, ma Warlock resta "Warlock"
 CLASSI = {
     "barbarian": "Barbaro",
@@ -44,6 +66,18 @@ LEGACY = {
     "Cleric": "cleric",
     "Fighter": "fighter",
 }
+
+
+def hit_die_max(hit_die_type: str) -> int:
+    try:
+        return int(str(hit_die_type).lstrip("d"))
+    except ValueError:
+        return 8
+
+
+def hit_die_avg(hit_die_type: str) -> int:
+    averages = {"d6": 4, "d8": 5, "d10": 6, "d12": 7}
+    return averages.get(str(hit_die_type), 5)
 
 
 def sync_widgets_from_pg(force: bool = False) -> None:
@@ -87,6 +121,21 @@ def sync_widgets_from_pg(force: bool = False) -> None:
         pg["hit_dice_total"] = 1
     if "hit_dice_remaining" not in pg:
         pg["hit_dice_remaining"] = int(pg.get("hit_dice_total", 1))
+    if "level" not in pg:
+        pg["level"] = int(pg.get("livello", 1) or 1)
+    if "hp_method" not in pg:
+        pg["hp_method"] = "Medio"
+    if "hp_rolls" not in pg:
+        pg["hp_rolls"] = ""
+    if "hp_first_level" not in pg:
+        pg["hp_first_level"] = hit_die_max(pg.get("hit_die_type", "d8"))
+    pg["hit_dice_total"] = int(pg.get("level", pg.get("hit_dice_total", 1)) or 1)
+    remaining = int(pg.get("hit_dice_remaining", pg["hit_dice_total"]))
+    if remaining > pg["hit_dice_total"]:
+        remaining = pg["hit_dice_total"]
+    if remaining < 0:
+        remaining = 0
+    pg["hit_dice_remaining"] = remaining
     if force or "ui_nome" not in st.session_state:
         st.session_state["ui_nome"] = str(pg.get("nome", ""))
     if force or "ui_livello" not in st.session_state:
@@ -159,9 +208,25 @@ def sync_widgets_from_pg(force: bool = False) -> None:
         st.session_state["ui_hit_die_type"] = hit_die_type
     if force or "ui_hit_dice_total" not in st.session_state:
         st.session_state["ui_hit_dice_total"] = int(pg.get("hit_dice_total", 1))
+    else:
+        st.session_state["ui_hit_dice_total"] = int(pg.get("hit_dice_total", 1))
     if force or "ui_hit_dice_remaining" not in st.session_state:
         st.session_state["ui_hit_dice_remaining"] = int(
             pg.get("hit_dice_remaining", pg.get("hit_dice_total", 1))
+        )
+    else:
+        st.session_state["ui_hit_dice_remaining"] = int(
+            pg.get("hit_dice_remaining", pg.get("hit_dice_total", 1))
+        )
+    if force or "ui_level" not in st.session_state:
+        st.session_state["ui_level"] = int(pg.get("level", 1))
+    if force or "ui_hp_method" not in st.session_state:
+        st.session_state["ui_hp_method"] = str(pg.get("hp_method", "Medio"))
+    if force or "ui_hp_rolls" not in st.session_state:
+        st.session_state["ui_hp_rolls"] = str(pg.get("hp_rolls", ""))
+    if force or "ui_hp_first_level" not in st.session_state:
+        st.session_state["ui_hp_first_level"] = int(
+            pg.get("hp_first_level", hit_die_max(pg.get("hit_die_type", "d8")))
         )
 
 
@@ -198,6 +263,10 @@ if "pg" not in st.session_state:
         "hit_die_type": "d8",
         "hit_dice_total": 1,
         "hit_dice_remaining": 1,
+        "level": 1,
+        "hp_method": "Medio",
+        "hp_rolls": "",
+        "hp_first_level": hit_die_max("d8"),
     }
 if "current_slug" not in st.session_state:
     st.session_state.current_slug = None
@@ -242,6 +311,16 @@ if "hit_dice_total" not in st.session_state.pg:
     st.session_state.pg["hit_dice_total"] = 1
 if "hit_dice_remaining" not in st.session_state.pg:
     st.session_state.pg["hit_dice_remaining"] = int(st.session_state.pg.get("hit_dice_total", 1))
+if "level" not in st.session_state.pg:
+    st.session_state.pg["level"] = int(st.session_state.pg.get("livello", 1) or 1)
+if "hp_method" not in st.session_state.pg:
+    st.session_state.pg["hp_method"] = "Medio"
+if "hp_rolls" not in st.session_state.pg:
+    st.session_state.pg["hp_rolls"] = ""
+if "hp_first_level" not in st.session_state.pg:
+    st.session_state.pg["hp_first_level"] = hit_die_max(
+        st.session_state.pg.get("hit_die_type", "d8")
+    )
 missing_base_keys = any(f"stats_base_{k}" not in st.session_state for k in CARATTERISTICHE)
 if st.session_state.get("_sync_ui_from_pg") or missing_base_keys or not all(
     k in st.session_state
@@ -302,6 +381,10 @@ with st.sidebar:
                 "hit_die_type": "d8",
                 "hit_dice_total": 1,
                 "hit_dice_remaining": 1,
+                "level": 1,
+                "hp_method": "Medio",
+                "hp_rolls": "",
+                "hp_first_level": hit_die_max("d8"),
             }
             st.session_state.current_slug = None
             st.session_state["_sync_ui_from_pg"] = True
@@ -358,6 +441,14 @@ with st.sidebar:
                     loaded["hit_dice_total"] = 1
                 if "hit_dice_remaining" not in loaded:
                     loaded["hit_dice_remaining"] = int(loaded.get("hit_dice_total", 1))
+                if "level" not in loaded:
+                    loaded["level"] = int(loaded.get("livello", 1) or 1)
+                if "hp_method" not in loaded:
+                    loaded["hp_method"] = "Medio"
+                if "hp_rolls" not in loaded:
+                    loaded["hp_rolls"] = ""
+                if "hp_first_level" not in loaded:
+                    loaded["hp_first_level"] = hit_die_max(loaded.get("hit_die_type", "d8"))
                 st.session_state.pg = loaded
                 st.session_state.current_slug = scelta
                 st.session_state["_sync_ui_from_pg"] = True
@@ -435,7 +526,10 @@ with st.sidebar:
             ["(nessuno)", "Preset consigliato (Point Buy 27)"],
             index=0,
         )
-        if st.button("Applica preset", use_container_width=True) and preset_choice != "(nessuno)":
+        apply_cols = st.columns([2, 1])
+        with apply_cols[1]:
+            apply_preset = st.button("Applica", use_container_width=True)
+        if apply_preset and preset_choice != "(nessuno)":
             st.session_state.pg["stats_base"] = preset.copy()
             st.session_state.pg["stat_method"] = "preset_point_buy"
             st.success("Preset applicato.")
@@ -443,7 +537,11 @@ with st.sidebar:
             st.rerun()
 
     st.number_input("Livello", min_value=1, max_value=20, key="ui_livello")
-    st.session_state.pg["livello"] = int(st.session_state.get("ui_livello", 1))
+    sidebar_level = int(st.session_state.get("ui_livello", 1))
+    st.session_state.pg["livello"] = sidebar_level
+    st.session_state.pg["level"] = sidebar_level
+    if "ui_level" in st.session_state and st.session_state.get("ui_level") != sidebar_level:
+        st.session_state["ui_level"] = sidebar_level
 
     bc = bonus_competenza(int(st.session_state.pg["livello"]))
     st.info(f"Bonus Competenza: {fmt_bonus(bc)}")
@@ -451,68 +549,79 @@ with st.sidebar:
     st.divider()
 
     # Export / Import
-    st.download_button(
-        "⬇️ Esporta JSON",
-        data=json.dumps(st.session_state.pg, ensure_ascii=False, indent=2),
-        file_name=f"{st.session_state.pg.get('nome','personaggio')}.json",
-        mime="application/json",
-        use_container_width=True,
-    )
+    with st.expander("Import/Export", expanded=False):
+        st.download_button(
+            "⬇️ Esporta JSON",
+            data=json.dumps(st.session_state.pg, ensure_ascii=False, indent=2),
+            file_name=f"{st.session_state.pg.get('nome','personaggio')}.json",
+            mime="application/json",
+            use_container_width=True,
+        )
 
-    up = st.file_uploader("⬆️ Importa JSON", type=["json"])
-    if up is not None:
-        try:
-            imported = json.loads(up.read().decode("utf-8"))
-            if not isinstance(imported, dict):
-                raise ValueError("Il JSON deve essere un oggetto.")
-            if imported.get("classe") in LEGACY:
-                imported["classe"] = LEGACY[imported["classe"]]
-            if "stats_base" not in imported:
-                if "stats" in imported:
-                    imported["stats_base"] = {
-                        k: int(imported["stats"].get(k, 10)) for k in CARATTERISTICHE
+        up = st.file_uploader("⬆️ Importa JSON", type=["json"])
+        if up is not None:
+            try:
+                imported = json.loads(up.read().decode("utf-8"))
+                if not isinstance(imported, dict):
+                    raise ValueError("Il JSON deve essere un oggetto.")
+                if imported.get("classe") in LEGACY:
+                    imported["classe"] = LEGACY[imported["classe"]]
+                if "stats_base" not in imported:
+                    if "stats" in imported:
+                        imported["stats_base"] = {
+                            k: int(imported["stats"].get(k, 10)) for k in CARATTERISTICHE
+                        }
+                    else:
+                        imported["stats_base"] = {k: 10 for k in CARATTERISTICHE}
+                if "asi_bonus" not in imported:
+                    imported["asi_bonus"] = {k: 0 for k in CARATTERISTICHE}
+                if "lineage" not in imported:
+                    imported["lineage"] = "none"
+                if "saving_throws_proficient" not in imported:
+                    imported["saving_throws_proficient"] = {k: False for k in CARATTERISTICHE}
+                if "skills" not in imported:
+                    imported["skills"] = {
+                        skill: {"proficient": False, "expertise": False}
+                        for skills in SKILLS_BY_STAT.values()
+                        for skill in skills
                     }
-                else:
-                    imported["stats_base"] = {k: 10 for k in CARATTERISTICHE}
-            if "asi_bonus" not in imported:
-                imported["asi_bonus"] = {k: 0 for k in CARATTERISTICHE}
-            if "lineage" not in imported:
-                imported["lineage"] = "none"
-            if "saving_throws_proficient" not in imported:
-                imported["saving_throws_proficient"] = {k: False for k in CARATTERISTICHE}
-            if "skills" not in imported:
-                imported["skills"] = {
-                    skill: {"proficient": False, "expertise": False}
-                    for skills in SKILLS_BY_STAT.values()
-                    for skill in skills
-                }
-            if "hp_max" not in imported:
-                imported["hp_max"] = 1
-            if "hp_current" not in imported:
-                imported["hp_current"] = int(imported.get("hp_max", 1))
-            if "hp_temp" not in imported:
-                imported["hp_temp"] = 0
-            if "ac_base" not in imported:
-                imported["ac_base"] = 10
-            if "ac_bonus" not in imported:
-                imported["ac_bonus"] = 0
-            if "iniziativa_bonus" not in imported:
-                imported["iniziativa_bonus"] = 0
-            if "speed_walk" not in imported:
-                imported["speed_walk"] = 9
-            if "hit_die_type" not in imported:
-                imported["hit_die_type"] = "d8"
-            if "hit_dice_total" not in imported:
-                imported["hit_dice_total"] = 1
-            if "hit_dice_remaining" not in imported:
-                imported["hit_dice_remaining"] = int(imported.get("hit_dice_total", 1))
-            st.session_state.pg = imported
-            st.session_state.current_slug = None
-            st.success("Import completato.")
-            st.session_state["_sync_ui_from_pg"] = True
-            st.rerun()
-        except Exception as exc:
-            st.error(f"Errore durante l'import: {exc}")
+                if "hp_max" not in imported:
+                    imported["hp_max"] = 1
+                if "hp_current" not in imported:
+                    imported["hp_current"] = int(imported.get("hp_max", 1))
+                if "hp_temp" not in imported:
+                    imported["hp_temp"] = 0
+                if "ac_base" not in imported:
+                    imported["ac_base"] = 10
+                if "ac_bonus" not in imported:
+                    imported["ac_bonus"] = 0
+                if "iniziativa_bonus" not in imported:
+                    imported["iniziativa_bonus"] = 0
+                if "speed_walk" not in imported:
+                    imported["speed_walk"] = 9
+                if "hit_die_type" not in imported:
+                    imported["hit_die_type"] = "d8"
+                if "hit_dice_total" not in imported:
+                    imported["hit_dice_total"] = 1
+                if "hit_dice_remaining" not in imported:
+                    imported["hit_dice_remaining"] = int(imported.get("hit_dice_total", 1))
+                if "level" not in imported:
+                    imported["level"] = int(imported.get("livello", 1) or 1)
+                if "hp_method" not in imported:
+                    imported["hp_method"] = "Medio"
+                if "hp_rolls" not in imported:
+                    imported["hp_rolls"] = ""
+                if "hp_first_level" not in imported:
+                    imported["hp_first_level"] = hit_die_max(
+                        imported.get("hit_die_type", "d8")
+                    )
+                st.session_state.pg = imported
+                st.session_state.current_slug = None
+                st.success("Import completato.")
+                st.session_state["_sync_ui_from_pg"] = True
+                st.rerun()
+            except Exception as exc:
+                st.error(f"Errore durante l'import: {exc}")
 
 st.header("Scheda")
 st.subheader("Caratteristiche")
@@ -525,17 +634,12 @@ for col, key in zip(cols, ["for", "des", "cos", "int", "sag", "car"], strict=Tru
         bonus = int(st.session_state.pg["asi_bonus"].get(key, 0))
         total = base_value + bonus
         mod = mod_caratteristica(total)
-        bonus_text = fmt_bonus(bonus)
-        bonus_line = (
-            f"Base {base_value} \u2022 Bonus {bonus_text}" if bonus != 0 else f"Base {base_value}"
-        )
         st.markdown(f"**{label}**")
         st.markdown(
             f"""
             <div style="border:1px solid #ddd;border-radius:10px;padding:12px;text-align:center;">
               <div style="font-size:28px;font-weight:700;line-height:1;">{total}</div>
               <div style="margin-top:6px;font-weight:600;">Mod {fmt_bonus(mod)}</div>
-              <div style="margin-top:4px;font-size:12px;color:#666;">{bonus_line}</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -552,7 +656,7 @@ for col, key in zip(cols, ["for", "des", "cos", "int", "sag", "car"], strict=Tru
 
 totals = total_stats(st.session_state.pg["stats_base"], st.session_state.pg["asi_bonus"])
 st.session_state.pg["stats"] = totals
-st.caption("Base + Bonus = Totale (usato per i calcoli)")
+st.caption("Base + Bonus = Totale")
 
 bc = bonus_competenza(int(st.session_state.pg["livello"]))
 tabs = st.tabs(["Tiri Salvezza", "Abilità", "Combattimento"])
@@ -669,28 +773,137 @@ with tabs[2]:
     else:
         percezione_bonus = sag_mod
     passive_perception = 10 + percezione_bonus
-    st.subheader(f"AC totale: {ac_total}")
-    st.subheader(f"Iniziativa: {fmt_bonus(init_total)}")
-    st.subheader(f"Percezione passiva: {passive_perception}")
-    st.write(f"Velocità: {int(st.session_state.pg.get('speed_walk', 9))} m")
+    metric_cols = st.columns(3)
+    with metric_cols[0]:
+        st.metric("AC totale", ac_total)
+    with metric_cols[1]:
+        st.metric("Iniziativa", fmt_bonus(init_total))
+    with metric_cols[2]:
+        st.metric("Percezione passiva", passive_perception)
 
-    col_hp, col_ac, col_init = st.columns(3)
+    row_quick = st.columns(2)
+    with row_quick[0]:
+        st.number_input("Velocità (m)", min_value=0, key="ui_speed_walk")
+    with row_quick[1]:
+        st.number_input("Bonus Iniziativa", min_value=0, key="ui_init_bonus")
+
+    st.subheader("Punti Ferita")
+    pf_col1, pf_col2, pf_col3 = st.columns(3)
+    with pf_col1:
+        st.number_input("Livello", min_value=1, max_value=20, key="ui_level")
+    with pf_col2:
+        st.selectbox("Metodo", ["Medio", "Tiro"], key="ui_hp_method")
+        if st.session_state.get("ui_hp_method", "Medio") == "Tiro":
+            st.text_input("Tiri HP (livelli 2+)", key="ui_hp_rolls", placeholder="es: 6,5,7")
+    with pf_col3:
+        st.number_input("HP 1° livello", min_value=1, key="ui_hp_first_level")
+
+    btn_col, cap_col = st.columns([1, 2])
+    with btn_col:
+        calc_hp = st.button("Calcola HP Max")
+    with cap_col:
+        level_preview = int(st.session_state.get("ui_level", 1))
+        hit_die_preview = str(st.session_state.get("ui_hit_die_type", "d8"))
+        hp_method_preview = str(st.session_state.get("ui_hp_method", "Medio"))
+        inc_preview = (
+            f"{max(level_preview - 1, 0)}×max(1, {hit_die_avg(hit_die_preview)}+COS)"
+            if hp_method_preview == "Medio"
+            else "somma max(1, tiro+COS)"
+        )
+        cos_preview = int(st.session_state.pg.get("stats", {}).get("cos", 10))
+        mod_cos_preview = mod_caratteristica(cos_preview)
+        cap_col.caption(
+            f"HP = max(1, base+COS) + {inc_preview}"
+        )
+
+    if calc_hp:
+        level = int(st.session_state.get("ui_level", 1))
+        hp_method = str(st.session_state.get("ui_hp_method", "Medio"))
+        hp_rolls = str(st.session_state.get("ui_hp_rolls", ""))
+        hp_first_level = int(
+            st.session_state.get(
+                "ui_hp_first_level",
+                hit_die_max(st.session_state.pg.get("hit_die_type", "d8")),
+            )
+        )
+        hit_die_type = str(st.session_state.get("ui_hit_die_type", "d8"))
+        cos_total = int(st.session_state.pg.get("stats", {}).get("cos", 10))
+        mod_cos = mod_caratteristica(cos_total)
+
+        gain1 = max(1, hp_first_level + mod_cos)
+        inc = 0
+        if level > 1:
+            if hp_method == "Medio":
+                per_level_gain = max(1, hit_die_avg(hit_die_type) + mod_cos)
+                inc = (level - 1) * per_level_gain
+            else:
+                rolls = []
+                for token in hp_rolls.split(","):
+                    token = token.strip()
+                    if not token:
+                        continue
+                    try:
+                        rolls.append(int(token))
+                    except ValueError:
+                        continue
+                for idx in range(level - 1):
+                    r = rolls[idx] if idx < len(rolls) else 0
+                    inc += max(1, r + mod_cos)
+        hp_max_calc = max(1, gain1 + inc)
+
+        old_hp_max = int(st.session_state.pg.get("hp_max", 1))
+        old_current = int(st.session_state.pg.get("hp_current", old_hp_max))
+        was_full = old_current == old_hp_max
+
+        st.session_state.pg["hp_max"] = hp_max_calc
+        st.session_state["ui_hp_max"] = hp_max_calc
+
+        if was_full:
+            new_current = hp_max_calc
+        else:
+            new_current = min(old_current, hp_max_calc)
+        new_current = max(0, new_current)
+        st.session_state.pg["hp_current"] = new_current
+        if "ui_hp_current" in st.session_state:
+            st.session_state["ui_hp_current"] = new_current
+
+    col_hp, col_hp2, col_hp3 = st.columns(3)
     with col_hp:
         st.number_input("HP Max", min_value=1, key="ui_hp_max")
+    with col_hp2:
         st.number_input("HP Attuali", min_value=0, key="ui_hp_current")
+    with col_hp3:
         st.number_input("HP Temp", min_value=0, key="ui_hp_temp")
+
+    col_ac, col_ac2 = st.columns(2)
     with col_ac:
         st.number_input("CA Base", min_value=0, key="ui_ac_base")
+    with col_ac2:
         st.number_input("Bonus CA", min_value=0, key="ui_ac_bonus")
-    with col_init:
-        st.number_input("Bonus Iniziativa", min_value=0, key="ui_init_bonus")
-        st.number_input("Velocità (m)", min_value=0, key="ui_speed_walk")
 
-    col_hd1, col_hd2 = st.columns(2)
+    auto_total_preview = int(st.session_state.get("ui_level", st.session_state.pg.get("level", 1)))
+    st.session_state.pg["hit_dice_total"] = auto_total_preview
+    st.session_state["ui_hit_dice_total"] = auto_total_preview
+    remaining_preview = int(st.session_state.get("ui_hit_dice_remaining", auto_total_preview))
+    if remaining_preview > auto_total_preview:
+        remaining_preview = auto_total_preview
+    if remaining_preview < 0:
+        remaining_preview = 0
+    st.session_state.pg["hit_dice_remaining"] = remaining_preview
+    st.session_state["ui_hit_dice_remaining"] = remaining_preview
+
+    st.subheader("Dadi Vita")
+    col_hd1, col_hd2, col_hd3 = st.columns(3)
     with col_hd1:
         st.selectbox("Tipo Dado Vita", ["d6", "d8", "d10", "d12"], key="ui_hit_die_type")
-        st.number_input("Dadi Vita Totali", min_value=1, key="ui_hit_dice_total")
     with col_hd2:
+        st.number_input(
+            "Dadi Vita Totali",
+            min_value=1,
+            key="ui_hit_dice_total",
+            disabled=True,
+        )
+    with col_hd3:
         st.number_input("Dadi Vita Rimasti", min_value=0, key="ui_hit_dice_remaining")
 
     st.session_state.pg["hp_max"] = int(st.session_state.get("ui_hp_max", 1))
@@ -703,9 +916,29 @@ with tabs[2]:
     st.session_state.pg["iniziativa_bonus"] = int(st.session_state.get("ui_init_bonus", 0))
     st.session_state.pg["speed_walk"] = int(st.session_state.get("ui_speed_walk", 9))
     st.session_state.pg["hit_die_type"] = str(st.session_state.get("ui_hit_die_type", "d8"))
-    st.session_state.pg["hit_dice_total"] = int(st.session_state.get("ui_hit_dice_total", 1))
-    st.session_state.pg["hit_dice_remaining"] = int(
-        st.session_state.get("ui_hit_dice_remaining", st.session_state.pg["hit_dice_total"])
+    auto_total = int(st.session_state.get("ui_level", st.session_state.pg.get("level", 1)))
+    st.session_state.pg["hit_dice_total"] = auto_total
+    st.session_state["ui_hit_dice_total"] = auto_total
+    remaining = int(st.session_state.get("ui_hit_dice_remaining", auto_total))
+    if remaining > auto_total:
+        remaining = auto_total
+    if remaining < 0:
+        remaining = 0
+    st.session_state.pg["hit_dice_remaining"] = remaining
+    if "ui_hit_dice_remaining" in st.session_state:
+        st.session_state["ui_hit_dice_remaining"] = remaining
+    combat_level = int(st.session_state.get("ui_level", st.session_state.pg.get("level", 1)))
+    st.session_state.pg["level"] = combat_level
+    st.session_state.pg["livello"] = combat_level
+    if "ui_livello" in st.session_state and st.session_state.get("ui_livello") != combat_level:
+        st.session_state["ui_livello"] = combat_level
+    st.session_state.pg["hp_method"] = str(st.session_state.get("ui_hp_method", "Medio"))
+    st.session_state.pg["hp_rolls"] = str(st.session_state.get("ui_hp_rolls", ""))
+    st.session_state.pg["hp_first_level"] = int(
+        st.session_state.get(
+            "ui_hp_first_level",
+            hit_die_max(st.session_state.pg.get("hit_die_type", "d8")),
+        )
     )
 
 st.subheader("Incantatore")
