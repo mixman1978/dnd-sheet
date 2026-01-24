@@ -66,6 +66,19 @@ def inject_compact_css():
         /* Tabs più compatti */
         button[role="tab"] { padding: 0.25rem 0.6rem !important; }
 
+        /* Topbar sticky */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid #eee;
+            padding: 0.35rem 0.25rem;
+            margin-bottom: 0.6rem;
+            backdrop-filter: blur(6px);
+        }
+        .topbar-inner { max-width: 1200px; margin: 0 auto; }
+
         /* Nascondi “decorazioni” Streamlit */
         #MainMenu { visibility: hidden; }
         footer { visibility: hidden; }
@@ -98,6 +111,17 @@ CLASSI = {
 LABELS = list(CLASSI.values())
 LABEL_TO_SLUG = {v: k for k, v in CLASSI.items()}
 STAT_LABEL_TO_KEY = {v: k for k, v in STATS_LABELS.items()}
+ALIGNMENTS = [
+    "Legale Buono",
+    "Neutrale Buono",
+    "Caotico Buono",
+    "Legale Neutrale",
+    "Neutrale",
+    "Caotico Neutrale",
+    "Legale Malvagio",
+    "Neutrale Malvagio",
+    "Caotico Malvagio",
+]
 
 # Migrazione eventuale (se in vecchi JSON avevi "Warlock" ecc.)
 LEGACY = {
@@ -168,19 +192,23 @@ def sync_widgets_from_pg(force: bool = False) -> None:
             pg["level"] = 1
     else:
         pg["level"] = int(pg.get("level", 1) or 1)
+    if "alignment" not in pg:
+        pg["alignment"] = "Neutrale"
     if "hp_method" not in pg:
         pg["hp_method"] = "Medio"
     if "hp_rolls" not in pg:
         pg["hp_rolls"] = ""
     if "hp_first_level" not in pg:
         pg["hp_first_level"] = hit_die_max(pg.get("hit_die_type", "d8"))
-    old_total = int(pg.get("hit_dice_total", pg["level"]))
+    level_for_total = int(st.session_state.get("ui_level", pg["level"]))
+    pg["level"] = level_for_total
+    old_total = int(pg.get("hit_dice_total", level_for_total))
     ui_remaining = st.session_state.get("ui_hit_dice_remaining")
     if ui_remaining is None or force:
         old_remaining = int(pg.get("hit_dice_remaining", old_total))
     else:
         old_remaining = int(ui_remaining)
-    new_total = int(pg["level"])
+    new_total = level_for_total
     if old_remaining == old_total:
         new_remaining = new_total
     else:
@@ -221,6 +249,8 @@ def sync_widgets_from_pg(force: bool = False) -> None:
             "custom_2_1": "Personalizzato (+2/+1)",
         }.get(pg.get("lineage", "none"), "Nessuno")
         st.session_state["ui_lineage"] = lineage_label
+    if force or "ui_alignment" not in st.session_state:
+        st.session_state["ui_alignment"] = str(pg.get("alignment", "Neutrale"))
     if force or "ui_vhuman_a" not in st.session_state or "ui_vhuman_b" not in st.session_state:
         vhuman_stats = [k for k, v in pg["asi_bonus"].items() if int(v) == 1]
         a = vhuman_stats[0] if len(vhuman_stats) > 0 else "for"
@@ -284,9 +314,6 @@ def _on_saving_throw_change(stat_key: str) -> None:
     pg.setdefault("saving_throws_proficient", {})
     pg["saving_throws_proficient"][stat_key] = bool(st.session_state.get(f"st_prof_{stat_key}", False))
 
-st.title("🎲 DnD Sheet")
-st.caption("Local-first: i personaggi si salvano in file JSON nella cartella db/characters/.")
-
 # Stato iniziale
 if "pg" not in st.session_state:
     st.session_state.pg = {
@@ -309,6 +336,7 @@ if "pg" not in st.session_state:
         "hp_method": "Medio",
         "hp_rolls": "",
         "hp_first_level": hit_die_max("d8"),
+        "alignment": "Neutrale",
     }
 if "current_slug" not in st.session_state:
     st.session_state.current_slug = None
@@ -375,6 +403,7 @@ if st.session_state.get("_sync_ui_from_pg") or missing_base_keys or not all(
         "ui_nome",
         "ui_classe_label",
         "ui_lineage",
+        "ui_alignment",
         "ui_hp_max",
         "ui_hp_current",
         "ui_hp_temp",
@@ -435,6 +464,7 @@ with st.sidebar:
                 "hp_method": "Medio",
                 "hp_rolls": "",
                 "hp_first_level": hit_die_max("d8"),
+                "alignment": "Neutrale",
             }
             st.session_state.current_slug = None
             st.session_state["_sync_ui_from_pg"] = True
@@ -499,74 +529,14 @@ with st.sidebar:
                     loaded["hp_rolls"] = ""
                 if "hp_first_level" not in loaded:
                     loaded["hp_first_level"] = hit_die_max(loaded.get("hit_die_type", "d8"))
+                if "alignment" not in loaded:
+                    loaded["alignment"] = "Neutrale"
                 st.session_state.pg = loaded
                 st.session_state.current_slug = scelta
                 st.session_state["_sync_ui_from_pg"] = True
             st.rerun()
 
     st.divider()
-
-    # Editor campi base
-    st.text_input("Nome", key="ui_nome")
-    st.session_state.pg["nome"] = st.session_state.get("ui_nome", "")
-
-    st.selectbox("Classe", LABELS, key="ui_classe_label")
-    selected_label = st.session_state["ui_classe_label"]
-    prev_slug = st.session_state.pg.get("classe")
-    st.session_state.pg["classe"] = LABEL_TO_SLUG[selected_label]
-    if (
-        st.session_state.pg["classe"] != prev_slug
-        and st.session_state.pg.get("saving_throws_auto", True)
-    ):
-        profs = set(SAVING_THROW_PROF_BY_CLASS.get(st.session_state.pg["classe"], []))
-        st.session_state.pg["saving_throws_proficient"] = {
-            k: (k in profs) for k in CARATTERISTICHE
-        }
-        st.session_state["_sync_ui_from_pg"] = True
-        st.rerun()
-
-    st.subheader("Razza/Lineage")
-    lineage_labels = [
-        "Nessuno",
-        "Umano (+1 a tutto)",
-        "Umano Variante (+1 +1)",
-        "Personalizzato (+2/+1)",
-    ]
-    st.selectbox("Lineage", lineage_labels, key="ui_lineage")
-    lineage_slug = {
-        "Nessuno": "none",
-        "Umano (+1 a tutto)": "human",
-        "Umano Variante (+1 +1)": "vhuman",
-        "Personalizzato (+2/+1)": "custom_2_1",
-    }[st.session_state["ui_lineage"]]
-    st.session_state.pg["lineage"] = lineage_slug
-
-    if lineage_slug == "none":
-        st.session_state.pg["asi_bonus"] = {k: 0 for k in CARATTERISTICHE}
-    elif lineage_slug == "human":
-        st.session_state.pg["asi_bonus"] = {k: 1 for k in CARATTERISTICHE}
-    elif lineage_slug == "vhuman":
-        labels = [STATS_LABELS[k] for k in CARATTERISTICHE]
-        st.selectbox("Bonus +1 (1)", labels, key="ui_vhuman_a")
-        vhuman_a = st.session_state["ui_vhuman_a"]
-        vhuman_b_options = [l for l in labels if l != vhuman_a]
-        st.selectbox("Bonus +1 (2)", vhuman_b_options, key="ui_vhuman_b")
-        vhuman_b = st.session_state["ui_vhuman_b"]
-        asi = {k: 0 for k in CARATTERISTICHE}
-        asi[STAT_LABEL_TO_KEY[vhuman_a]] = 1
-        asi[STAT_LABEL_TO_KEY[vhuman_b]] = 1
-        st.session_state.pg["asi_bonus"] = asi
-    elif lineage_slug == "custom_2_1":
-        labels = [STATS_LABELS[k] for k in CARATTERISTICHE]
-        st.selectbox("Bonus +2", labels, key="ui_custom_plus2")
-        plus2 = st.session_state["ui_custom_plus2"]
-        plus1_options = [l for l in labels if l != plus2]
-        st.selectbox("Bonus +1", plus1_options, key="ui_custom_plus1")
-        plus1 = st.session_state["ui_custom_plus1"]
-        asi = {k: 0 for k in CARATTERISTICHE}
-        asi[STAT_LABEL_TO_KEY[plus2]] = 2
-        asi[STAT_LABEL_TO_KEY[plus1]] = 1
-        st.session_state.pg["asi_bonus"] = asi
 
     class_slug = st.session_state.pg.get("classe")
     preset = CLASS_PRESETS_POINT_BUY.get(class_slug)
@@ -657,6 +627,8 @@ with st.sidebar:
                     imported["hp_first_level"] = hit_die_max(
                         imported.get("hit_die_type", "d8")
                     )
+                if "alignment" not in imported:
+                    imported["alignment"] = "Neutrale"
                 st.session_state.pg = imported
                 st.session_state.current_slug = None
                 st.success("Import completato.")
@@ -665,7 +637,101 @@ with st.sidebar:
             except Exception as exc:
                 st.error(f"Errore durante l'import: {exc}")
 
+lineage_labels = [
+    "Nessuno",
+    "Umano (+1 a tutto)",
+    "Umano Variante (+1 +1)",
+    "Personalizzato (+2/+1)",
+]
+
+st.markdown('<div class="topbar"><div class="topbar-inner">', unsafe_allow_html=True)
+top_cols = st.columns([2, 2, 2, 1, 2])
+with top_cols[0]:
+    st.text_input("Nome", key="ui_nome", placeholder="Nome PG", label_visibility="collapsed")
+with top_cols[1]:
+    st.selectbox(
+        "Razza/Lineage",
+        lineage_labels,
+        key="ui_lineage",
+        label_visibility="collapsed",
+    )
+with top_cols[2]:
+    st.selectbox("Classe", LABELS, key="ui_classe_label", label_visibility="collapsed")
+with top_cols[3]:
+    st.number_input(
+        "Lv",
+        min_value=1,
+        max_value=20,
+        step=1,
+        key="ui_level",
+        label_visibility="collapsed",
+    )
+with top_cols[4]:
+    st.selectbox(
+        "Allineamento",
+        ALIGNMENTS,
+        key="ui_alignment",
+        label_visibility="collapsed",
+    )
+st.markdown("</div></div>", unsafe_allow_html=True)
+
+st.session_state.pg["nome"] = st.session_state.get("ui_nome", "")
+selected_label = st.session_state.get("ui_classe_label", LABELS[0])
+prev_slug = st.session_state.pg.get("classe")
+st.session_state.pg["classe"] = LABEL_TO_SLUG[selected_label]
+if (
+    st.session_state.pg["classe"] != prev_slug
+    and st.session_state.pg.get("saving_throws_auto", True)
+):
+    profs = set(SAVING_THROW_PROF_BY_CLASS.get(st.session_state.pg["classe"], []))
+    st.session_state.pg["saving_throws_proficient"] = {k: (k in profs) for k in CARATTERISTICHE}
+    st.session_state["_sync_ui_from_pg"] = True
+    st.rerun()
+
+lineage_slug = {
+    "Nessuno": "none",
+    "Umano (+1 a tutto)": "human",
+    "Umano Variante (+1 +1)": "vhuman",
+    "Personalizzato (+2/+1)": "custom_2_1",
+}[st.session_state.get("ui_lineage", "Nessuno")]
+st.session_state.pg["lineage"] = lineage_slug
+st.session_state.pg["alignment"] = st.session_state.get("ui_alignment", "Neutrale")
+st.session_state.pg["level"] = int(st.session_state.get("ui_level", st.session_state.pg.get("level", 1)))
+
+bc = bonus_competenza(int(st.session_state.pg["level"]))
+st.caption(f"Bonus Competenza: {fmt_bonus(bc)}")
+
+st.title("🎲 DnD Sheet")
+st.caption("Local-first: i personaggi si salvano in file JSON nella cartella db/characters/.")
+
 st.header("Scheda")
+
+if st.session_state.pg.get("lineage") == "none":
+    st.session_state.pg["asi_bonus"] = {k: 0 for k in CARATTERISTICHE}
+elif st.session_state.pg.get("lineage") == "human":
+    st.session_state.pg["asi_bonus"] = {k: 1 for k in CARATTERISTICHE}
+elif st.session_state.pg.get("lineage") == "vhuman":
+    labels = [STATS_LABELS[k] for k in CARATTERISTICHE]
+    st.selectbox("Bonus +1 (1)", labels, key="ui_vhuman_a")
+    vhuman_a = st.session_state["ui_vhuman_a"]
+    vhuman_b_options = [l for l in labels if l != vhuman_a]
+    st.selectbox("Bonus +1 (2)", vhuman_b_options, key="ui_vhuman_b")
+    vhuman_b = st.session_state["ui_vhuman_b"]
+    asi = {k: 0 for k in CARATTERISTICHE}
+    asi[STAT_LABEL_TO_KEY[vhuman_a]] = 1
+    asi[STAT_LABEL_TO_KEY[vhuman_b]] = 1
+    st.session_state.pg["asi_bonus"] = asi
+elif st.session_state.pg.get("lineage") == "custom_2_1":
+    labels = [STATS_LABELS[k] for k in CARATTERISTICHE]
+    st.selectbox("Bonus +2", labels, key="ui_custom_plus2")
+    plus2 = st.session_state["ui_custom_plus2"]
+    plus1_options = [l for l in labels if l != plus2]
+    st.selectbox("Bonus +1", plus1_options, key="ui_custom_plus1")
+    plus1 = st.session_state["ui_custom_plus1"]
+    asi = {k: 0 for k in CARATTERISTICHE}
+    asi[STAT_LABEL_TO_KEY[plus2]] = 2
+    asi[STAT_LABEL_TO_KEY[plus1]] = 1
+    st.session_state.pg["asi_bonus"] = asi
 st.subheader("Caratteristiche")
 cols = st.columns(6)
 for col, key in zip(cols, ["for", "des", "cos", "int", "sag", "car"], strict=True):
@@ -832,7 +898,7 @@ with tabs[2]:
     st.subheader("Punti Ferita")
     pf_col1, pf_col2, pf_col3 = st.columns(3)
     with pf_col1:
-        st.number_input("Livello", min_value=1, max_value=20, key="ui_level")
+        st.caption(f"Livello: {int(st.session_state.pg.get('level', 1))}")
     with pf_col2:
         st.selectbox("Metodo", ["Medio", "Tiro"], key="ui_hp_method")
         if st.session_state.get("ui_hp_method", "Medio") == "Tiro":
@@ -841,7 +907,7 @@ with tabs[2]:
         st.number_input("HP 1° livello", min_value=1, key="ui_hp_first_level")
 
     if st.session_state.get("ui_hp_method", "Medio") == "Tiro":
-        level_warn = int(st.session_state.get("ui_level", 1))
+        level_warn = int(st.session_state.pg.get("level", 1))
         needed = max(0, level_warn - 1)
         rolls_valid = []
         for token in str(st.session_state.get("ui_hp_rolls", "")).split(","):
@@ -863,7 +929,7 @@ with tabs[2]:
     with btn_col:
         calc_hp = st.button("Calcola HP Max")
     with cap_col:
-        level_preview = int(st.session_state.get("ui_level", 1))
+        level_preview = int(st.session_state.pg.get("level", 1))
         hit_die_preview = str(st.session_state.get("ui_hit_die_type", "d8"))
         hp_method_preview = str(st.session_state.get("ui_hp_method", "Medio"))
         inc_preview = (
@@ -878,7 +944,7 @@ with tabs[2]:
         )
 
     if calc_hp:
-        level = int(st.session_state.get("ui_level", 1))
+        level = int(st.session_state.pg.get("level", 1))
         hp_method = str(st.session_state.get("ui_hp_method", "Medio"))
         hp_rolls = str(st.session_state.get("ui_hp_rolls", ""))
         hp_first_level = int(
@@ -942,7 +1008,7 @@ with tabs[2]:
     with col_ac2:
         st.number_input("Bonus CA", min_value=-20, max_value=20, key="ui_ac_bonus")
 
-    hit_dice_total = int(st.session_state.get("ui_level", st.session_state.pg.get("level", 1)))
+    hit_dice_total = int(st.session_state.pg.get("level", 1))
     old_total = int(st.session_state.pg.get("hit_dice_total", hit_dice_total))
     old_remaining = int(
         st.session_state.get(
@@ -982,11 +1048,8 @@ with tabs[2]:
     st.session_state.pg["iniziativa_bonus"] = int(st.session_state.get("ui_init_bonus", 0))
     st.session_state.pg["speed_walk"] = int(st.session_state.get("ui_speed_walk", 9))
     st.session_state.pg["hit_die_type"] = str(st.session_state.get("ui_hit_die_type", "d8"))
-    combat_level = int(st.session_state.get("ui_level", st.session_state.pg.get("level", 1)))
-    st.session_state.pg["level"] = combat_level
-    st.session_state.pg["hit_dice_total"] = combat_level
-    remaining = int(st.session_state.get("ui_hit_dice_remaining", combat_level))
-    remaining = max(0, min(remaining, combat_level))
+    remaining = int(st.session_state.get("ui_hit_dice_remaining", hit_dice_total))
+    remaining = max(0, min(remaining, hit_dice_total))
     st.session_state.pg["hit_dice_remaining"] = remaining
     st.session_state.pg["hp_method"] = str(st.session_state.get("ui_hp_method", "Medio"))
     st.session_state.pg["hp_rolls"] = str(st.session_state.get("ui_hp_rolls", ""))
