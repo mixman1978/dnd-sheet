@@ -82,7 +82,7 @@ def inject_compact_css():
         /* Nascondi “decorazioni” Streamlit */
         #MainMenu { visibility: hidden; }
         footer { visibility: hidden; }
-        header { visibility: hidden; }
+       /* header { visibility: hidden; } */
         </style>
         """,
         unsafe_allow_html=True,
@@ -430,6 +430,9 @@ if st.session_state.pg.get("classe") in LEGACY:
     st.session_state.pg["classe"] = LEGACY[st.session_state.pg["classe"]]
 
 with st.sidebar:
+    st.title("🎲 DnD Sheet")
+    st.caption("Local-first: i personaggi si salvano in file JSON nella cartella db/characters/.")
+
     st.header("Personaggio")
 
     salvati = list_characters()
@@ -700,9 +703,6 @@ st.session_state.pg["level"] = int(st.session_state.get("ui_level", st.session_s
 
 bc = bonus_competenza(int(st.session_state.pg["level"]))
 st.caption(f"Bonus Competenza: {fmt_bonus(bc)}")
-
-st.title("🎲 DnD Sheet")
-st.caption("Local-first: i personaggi si salvano in file JSON nella cartella db/characters/.")
 
 st.header("Scheda")
 
