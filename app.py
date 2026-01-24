@@ -18,23 +18,63 @@ from engine.storage import list_characters, load_character, save_character
 st.set_page_config(page_title="DnD Sheet", page_icon="🎲", layout="wide")
 
 
-def inject_compact_css() -> None:
+def inject_compact_css():
     st.markdown(
         """
         <style>
-        .block-container { padding-top: 1rem; padding-bottom: 1rem; }
-        [data-testid="stSidebarContent"] { padding-top: 0.75rem; padding-bottom: 0.75rem; }
-        [data-testid="stVerticalBlock"] > div { gap: 0.35rem; }
-        h1, h2, h3 { margin: 0.4rem 0 0.6rem 0; }
-        label { margin-bottom: 0.1rem; }
-        [data-testid="stTabs"] { margin-top: 0.25rem; }
-        [data-testid="stTabBar"] { margin-bottom: 0.25rem; }
-        [data-testid="stMetric"] { padding: 0.5rem 0.75rem; }
-        .stButton > button { padding: 0.35rem 0.75rem; }
+        /* Container generale */
+        .block-container {
+            padding-top: 0.6rem !important;
+            padding-bottom: 0.6rem !important;
+            max-width: 1200px !important; /* alza/abbassa a gusto */
+        }
+
+        /* Sidebar più stretta e compatta */
+        [data-testid="stSidebar"] { width: 260px !important; }
+        [data-testid="stSidebarContent"] {
+            padding-top: 0.6rem !important;
+            padding-bottom: 0.6rem !important;
+        }
+
+        /* Riduci spazi tra blocchi */
+        [data-testid="stVerticalBlock"] { gap: 0.35rem !important; }
+        [data-testid="stHorizontalBlock"] { gap: 0.6rem !important; }
+
+        /* Titoli più stretti */
+        h1 { margin: 0.2rem 0 0.4rem 0 !important; }
+        h2 { margin: 0.2rem 0 0.4rem 0 !important; }
+        h3 { margin: 0.2rem 0 0.35rem 0 !important; }
+        p  { margin: 0.15rem 0 !important; }
+
+        /* Label dei widget */
+        label { margin-bottom: 0.05rem !important; }
+
+        /* Input: riduci altezza (funziona bene su number_input/text_input/selectbox) */
+        div[data-baseweb="input"] input {
+            height: 32px !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        div[data-baseweb="select"] > div {
+            min-height: 32px !important;
+        }
+
+        /* Metric più compatte */
+        [data-testid="stMetric"] { padding: 0.25rem 0.25rem !important; }
+        [data-testid="stMetricValue"] { font-size: 1.35rem !important; }
+
+        /* Tabs più compatti */
+        button[role="tab"] { padding: 0.25rem 0.6rem !important; }
+
+        /* Nascondi “decorazioni” Streamlit */
+        #MainMenu { visibility: hidden; }
+        footer { visibility: hidden; }
+        header { visibility: hidden; }
         </style>
         """,
         unsafe_allow_html=True,
     )
+
 
 
 inject_compact_css()
@@ -535,10 +575,9 @@ with st.sidebar:
             "Preset consigliato",
             ["(nessuno)", "Preset consigliato (Point Buy 27)"],
             index=0,
+            label_visibility="collapsed",
         )
-        apply_cols = st.columns([2, 1])
-        with apply_cols[1]:
-            apply_preset = st.button("Applica", use_container_width=True)
+        apply_preset = st.button("✅ Applica preset", use_container_width=True)
         if apply_preset and preset_choice != "(nessuno)":
             st.session_state.pg["stats_base"] = preset.copy()
             st.session_state.pg["stat_method"] = "preset_point_buy"
