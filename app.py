@@ -67,6 +67,26 @@ def sync_widgets_from_pg(force: bool = False) -> None:
             for skills in SKILLS_BY_STAT.values()
             for skill in skills
         }
+    if "hp_max" not in pg:
+        pg["hp_max"] = 1
+    if "hp_current" not in pg:
+        pg["hp_current"] = int(pg.get("hp_max", 1))
+    if "hp_temp" not in pg:
+        pg["hp_temp"] = 0
+    if "ac_base" not in pg:
+        pg["ac_base"] = 10
+    if "ac_bonus" not in pg:
+        pg["ac_bonus"] = 0
+    if "iniziativa_bonus" not in pg:
+        pg["iniziativa_bonus"] = 0
+    if "speed_walk" not in pg:
+        pg["speed_walk"] = 9
+    if "hit_die_type" not in pg:
+        pg["hit_die_type"] = "d8"
+    if "hit_dice_total" not in pg:
+        pg["hit_dice_total"] = 1
+    if "hit_dice_remaining" not in pg:
+        pg["hit_dice_remaining"] = int(pg.get("hit_dice_total", 1))
     if force or "ui_nome" not in st.session_state:
         st.session_state["ui_nome"] = str(pg.get("nome", ""))
     if force or "ui_livello" not in st.session_state:
@@ -118,6 +138,31 @@ def sync_widgets_from_pg(force: bool = False) -> None:
             plus1 = "des" if plus2 != "des" else "for"
         st.session_state["ui_custom_plus2"] = STATS_LABELS.get(plus2, plus2.upper())
         st.session_state["ui_custom_plus1"] = STATS_LABELS.get(plus1, plus1.upper())
+    if force or "ui_hp_max" not in st.session_state:
+        st.session_state["ui_hp_max"] = int(pg.get("hp_max", 1))
+    if force or "ui_hp_current" not in st.session_state:
+        st.session_state["ui_hp_current"] = int(pg.get("hp_current", pg.get("hp_max", 1)))
+    if force or "ui_hp_temp" not in st.session_state:
+        st.session_state["ui_hp_temp"] = int(pg.get("hp_temp", 0))
+    if force or "ui_ac_base" not in st.session_state:
+        st.session_state["ui_ac_base"] = int(pg.get("ac_base", 10))
+    if force or "ui_ac_bonus" not in st.session_state:
+        st.session_state["ui_ac_bonus"] = int(pg.get("ac_bonus", 0))
+    if force or "ui_init_bonus" not in st.session_state:
+        st.session_state["ui_init_bonus"] = int(pg.get("iniziativa_bonus", 0))
+    if force or "ui_speed_walk" not in st.session_state:
+        st.session_state["ui_speed_walk"] = int(pg.get("speed_walk", 9))
+    if force or "ui_hit_die_type" not in st.session_state:
+        hit_die_type = str(pg.get("hit_die_type", "d8"))
+        if hit_die_type not in ["d6", "d8", "d10", "d12"]:
+            hit_die_type = "d8"
+        st.session_state["ui_hit_die_type"] = hit_die_type
+    if force or "ui_hit_dice_total" not in st.session_state:
+        st.session_state["ui_hit_dice_total"] = int(pg.get("hit_dice_total", 1))
+    if force or "ui_hit_dice_remaining" not in st.session_state:
+        st.session_state["ui_hit_dice_remaining"] = int(
+            pg.get("hit_dice_remaining", pg.get("hit_dice_total", 1))
+        )
 
 
 def _on_skill_prof_change(skill: str) -> None:
@@ -143,6 +188,16 @@ if "pg" not in st.session_state:
         "stats_base": {"for": 10, "des": 10, "cos": 10, "int": 10, "sag": 10, "car": 10},
         "asi_bonus": {"for": 0, "des": 0, "cos": 0, "int": 0, "sag": 0, "car": 0},
         "lineage": "none",
+        "hp_max": 1,
+        "hp_current": 1,
+        "hp_temp": 0,
+        "ac_base": 10,
+        "ac_bonus": 0,
+        "iniziativa_bonus": 0,
+        "speed_walk": 9,
+        "hit_die_type": "d8",
+        "hit_dice_total": 1,
+        "hit_dice_remaining": 1,
     }
 if "current_slug" not in st.session_state:
     st.session_state.current_slug = None
@@ -167,9 +222,45 @@ if "skills" not in st.session_state.pg:
         for skills in SKILLS_BY_STAT.values()
         for skill in skills
     }
+if "hp_max" not in st.session_state.pg:
+    st.session_state.pg["hp_max"] = 1
+if "hp_current" not in st.session_state.pg:
+    st.session_state.pg["hp_current"] = int(st.session_state.pg.get("hp_max", 1))
+if "hp_temp" not in st.session_state.pg:
+    st.session_state.pg["hp_temp"] = 0
+if "ac_base" not in st.session_state.pg:
+    st.session_state.pg["ac_base"] = 10
+if "ac_bonus" not in st.session_state.pg:
+    st.session_state.pg["ac_bonus"] = 0
+if "iniziativa_bonus" not in st.session_state.pg:
+    st.session_state.pg["iniziativa_bonus"] = 0
+if "speed_walk" not in st.session_state.pg:
+    st.session_state.pg["speed_walk"] = 9
+if "hit_die_type" not in st.session_state.pg:
+    st.session_state.pg["hit_die_type"] = "d8"
+if "hit_dice_total" not in st.session_state.pg:
+    st.session_state.pg["hit_dice_total"] = 1
+if "hit_dice_remaining" not in st.session_state.pg:
+    st.session_state.pg["hit_dice_remaining"] = int(st.session_state.pg.get("hit_dice_total", 1))
 missing_base_keys = any(f"stats_base_{k}" not in st.session_state for k in CARATTERISTICHE)
 if st.session_state.get("_sync_ui_from_pg") or missing_base_keys or not all(
-    k in st.session_state for k in ("ui_nome", "ui_livello", "ui_classe_label", "ui_lineage")
+    k in st.session_state
+    for k in (
+        "ui_nome",
+        "ui_livello",
+        "ui_classe_label",
+        "ui_lineage",
+        "ui_hp_max",
+        "ui_hp_current",
+        "ui_hp_temp",
+        "ui_ac_base",
+        "ui_ac_bonus",
+        "ui_init_bonus",
+        "ui_speed_walk",
+        "ui_hit_die_type",
+        "ui_hit_dice_total",
+        "ui_hit_dice_remaining",
+    )
 ):
     sync_widgets_from_pg(force=bool(st.session_state.get("_sync_ui_from_pg")))
     st.session_state["_sync_ui_from_pg"] = False
@@ -201,6 +292,16 @@ with st.sidebar:
                     for skills in SKILLS_BY_STAT.values()
                     for skill in skills
                 },
+                "hp_max": 1,
+                "hp_current": 1,
+                "hp_temp": 0,
+                "ac_base": 10,
+                "ac_bonus": 0,
+                "iniziativa_bonus": 0,
+                "speed_walk": 9,
+                "hit_die_type": "d8",
+                "hit_dice_total": 1,
+                "hit_dice_remaining": 1,
             }
             st.session_state.current_slug = None
             st.session_state["_sync_ui_from_pg"] = True
@@ -237,6 +338,26 @@ with st.sidebar:
                         for skills in SKILLS_BY_STAT.values()
                         for skill in skills
                     }
+                if "hp_max" not in loaded:
+                    loaded["hp_max"] = 1
+                if "hp_current" not in loaded:
+                    loaded["hp_current"] = int(loaded.get("hp_max", 1))
+                if "hp_temp" not in loaded:
+                    loaded["hp_temp"] = 0
+                if "ac_base" not in loaded:
+                    loaded["ac_base"] = 10
+                if "ac_bonus" not in loaded:
+                    loaded["ac_bonus"] = 0
+                if "iniziativa_bonus" not in loaded:
+                    loaded["iniziativa_bonus"] = 0
+                if "speed_walk" not in loaded:
+                    loaded["speed_walk"] = 9
+                if "hit_die_type" not in loaded:
+                    loaded["hit_die_type"] = "d8"
+                if "hit_dice_total" not in loaded:
+                    loaded["hit_dice_total"] = 1
+                if "hit_dice_remaining" not in loaded:
+                    loaded["hit_dice_remaining"] = int(loaded.get("hit_dice_total", 1))
                 st.session_state.pg = loaded
                 st.session_state.current_slug = scelta
                 st.session_state["_sync_ui_from_pg"] = True
@@ -365,6 +486,26 @@ with st.sidebar:
                     for skills in SKILLS_BY_STAT.values()
                     for skill in skills
                 }
+            if "hp_max" not in imported:
+                imported["hp_max"] = 1
+            if "hp_current" not in imported:
+                imported["hp_current"] = int(imported.get("hp_max", 1))
+            if "hp_temp" not in imported:
+                imported["hp_temp"] = 0
+            if "ac_base" not in imported:
+                imported["ac_base"] = 10
+            if "ac_bonus" not in imported:
+                imported["ac_bonus"] = 0
+            if "iniziativa_bonus" not in imported:
+                imported["iniziativa_bonus"] = 0
+            if "speed_walk" not in imported:
+                imported["speed_walk"] = 9
+            if "hit_die_type" not in imported:
+                imported["hit_die_type"] = "d8"
+            if "hit_dice_total" not in imported:
+                imported["hit_dice_total"] = 1
+            if "hit_dice_remaining" not in imported:
+                imported["hit_dice_remaining"] = int(imported.get("hit_dice_total", 1))
             st.session_state.pg = imported
             st.session_state.current_slug = None
             st.success("Import completato.")
@@ -414,7 +555,7 @@ st.session_state.pg["stats"] = totals
 st.caption("Base + Bonus = Totale (usato per i calcoli)")
 
 bc = bonus_competenza(int(st.session_state.pg["livello"]))
-tabs = st.tabs(["Tiri Salvezza", "Abilità"])
+tabs = st.tabs(["Tiri Salvezza", "Abilità", "Combattimento"])
 
 with tabs[0]:
     st.subheader("Tiri Salvezza")
@@ -511,6 +652,61 @@ with tabs[1]:
             mod = mod_caratteristica(int(st.session_state.pg["stats"].get(stat_key, 10)))
             total = mod + (2 * bc if exp else (bc if prof else 0))
             st.write(fmt_bonus(total))
+
+with tabs[2]:
+    st.subheader("Combattimento")
+    ac_total = int(st.session_state.pg.get("ac_base", 10)) + int(
+        st.session_state.pg.get("ac_bonus", 0)
+    )
+    des_mod = mod_caratteristica(int(st.session_state.pg["stats"].get("des", 10)))
+    init_total = des_mod + int(st.session_state.pg.get("iniziativa_bonus", 0))
+    sag_mod = mod_caratteristica(int(st.session_state.pg["stats"].get("sag", 10)))
+    percezione = st.session_state.pg.get("skills", {}).get("Percezione")
+    if percezione:
+        prof = bool(percezione.get("proficient", False))
+        exp = bool(percezione.get("expertise", False)) and prof
+        percezione_bonus = sag_mod + (2 * bc if exp else (bc if prof else 0))
+    else:
+        percezione_bonus = sag_mod
+    passive_perception = 10 + percezione_bonus
+    st.subheader(f"AC totale: {ac_total}")
+    st.subheader(f"Iniziativa: {fmt_bonus(init_total)}")
+    st.subheader(f"Percezione passiva: {passive_perception}")
+    st.write(f"Velocità: {int(st.session_state.pg.get('speed_walk', 9))} m")
+
+    col_hp, col_ac, col_init = st.columns(3)
+    with col_hp:
+        st.number_input("HP Max", min_value=1, key="ui_hp_max")
+        st.number_input("HP Attuali", min_value=0, key="ui_hp_current")
+        st.number_input("HP Temp", min_value=0, key="ui_hp_temp")
+    with col_ac:
+        st.number_input("CA Base", min_value=0, key="ui_ac_base")
+        st.number_input("Bonus CA", min_value=0, key="ui_ac_bonus")
+    with col_init:
+        st.number_input("Bonus Iniziativa", min_value=0, key="ui_init_bonus")
+        st.number_input("Velocità (m)", min_value=0, key="ui_speed_walk")
+
+    col_hd1, col_hd2 = st.columns(2)
+    with col_hd1:
+        st.selectbox("Tipo Dado Vita", ["d6", "d8", "d10", "d12"], key="ui_hit_die_type")
+        st.number_input("Dadi Vita Totali", min_value=1, key="ui_hit_dice_total")
+    with col_hd2:
+        st.number_input("Dadi Vita Rimasti", min_value=0, key="ui_hit_dice_remaining")
+
+    st.session_state.pg["hp_max"] = int(st.session_state.get("ui_hp_max", 1))
+    st.session_state.pg["hp_current"] = int(
+        st.session_state.get("ui_hp_current", st.session_state.pg["hp_max"])
+    )
+    st.session_state.pg["hp_temp"] = int(st.session_state.get("ui_hp_temp", 0))
+    st.session_state.pg["ac_base"] = int(st.session_state.get("ui_ac_base", 10))
+    st.session_state.pg["ac_bonus"] = int(st.session_state.get("ui_ac_bonus", 0))
+    st.session_state.pg["iniziativa_bonus"] = int(st.session_state.get("ui_init_bonus", 0))
+    st.session_state.pg["speed_walk"] = int(st.session_state.get("ui_speed_walk", 9))
+    st.session_state.pg["hit_die_type"] = str(st.session_state.get("ui_hit_die_type", "d8"))
+    st.session_state.pg["hit_dice_total"] = int(st.session_state.get("ui_hit_dice_total", 1))
+    st.session_state.pg["hit_dice_remaining"] = int(
+        st.session_state.get("ui_hit_dice_remaining", st.session_state.pg["hit_dice_total"])
+    )
 
 st.subheader("Incantatore")
 spell_ability = SPELLCASTING_ABILITY_BY_CLASS.get(st.session_state.pg.get("classe"))
