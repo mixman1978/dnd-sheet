@@ -215,3 +215,5 @@ __marimo__/
 .fseventsd
 # --- VS Code ---
 .vscode/
+# ----Database----
+db/characters/*.json
