@@ -15,7 +15,7 @@ from engine.rules import (
 from engine.storage import list_characters, load_character, save_character
 
 
-st.set_page_config(page_title="DnD Sheet", page_icon="🎲", layout="wide")
+st.set_page_config(page_title="DnD Sheet", page_icon="🎲", layout="wide", initial_sidebar_state="expanded")
 
 
 def inject_compact_css():
