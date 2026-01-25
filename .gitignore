@@ -215,5 +215,13 @@ __marimo__/
 .fseventsd
 # --- VS Code ---
 .vscode/
-# ----Database----
-db/characters/*.json
+# ---- D&D Sheet: dati locali (NON committare) ----
+db/*
+!db/.gitkeep
+!db/datasets/
+!db/datasets/**
+
+# SQLite (wal/shm)
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
