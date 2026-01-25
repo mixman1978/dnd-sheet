@@ -13,8 +13,10 @@ I dataset **non devono** contenere testo copiato dai manuali (PHB, Xanathar, Tas
 - I nomi degli incantesimi sono in **italiano**.
 
 ## File attesi
-- `spells_it.json` → incantesimi (nomi IT, descrizioni parafrasate)
-- `monsters_it.json` → mostri (nomi IT, dati riassunti/strutturati)
+- `spells_srd_it.json` → spell SRD (IT) estratte e normalizzate (dataset “finale” usato per l’import)
+- `spells_srd_it_raw.json` → output grezzo di debug (ignorato da git)
+- `ATTRIBUTION_SRD.md` → attribuzione SRD / note licenza e fonti
+- (futuro) `monsters_*.json` → bestiario strutturato/riassunto
 
 > Suggerimento: tieni questi file “puliti” e coerenti. Il DB locale si può rigenerare in qualunque momento re-importando.
 
