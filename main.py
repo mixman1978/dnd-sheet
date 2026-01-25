@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 
 from nicegui import app, ui
+from fastapi.responses import FileResponse
 
 from engine.rules import (
     STATS, STAT_LABEL, CLASSES, LINEAGES, LINEAGE_BONUS, ALIGNMENTS,
@@ -16,6 +17,14 @@ from engine.storage import list_characters, load_character, save_character
 # -------------------------
 BASE_DIR = Path(__file__).resolve().parent
 app.add_static_files('/static', str(BASE_DIR / 'static'))
+
+@app.get('/favicon.ico', include_in_schema=False)
+def favicon_ico():
+    return FileResponse(BASE_DIR / 'static' / 'favicon.ico')
+
+@app.get('/apple-touch-icon.png', include_in_schema=False)
+def apple_touch():
+    return FileResponse(BASE_DIR / 'static' / 'apple-touch-icon.png')
 
 
 DEFAULT_PG = {
@@ -42,8 +51,9 @@ def index():
 
     # Favicon + Apple Touch (Safari/iOS)
     ui.add_head_html("""
-<link rel="icon" href="/static/favicon.ico" sizes="any">
-<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 """)
 
     pg = new_pg()
