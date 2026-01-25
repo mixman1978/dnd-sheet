@@ -214,9 +214,8 @@ def index():
     # -------------------------
     with ui.header().classes("bg-[#0b1220] text-white"):
         with ui.row().classes("w-full items-center justify-between px-4"):
-            with ui.row().classes("items-center gap-3"):
-                ui.image("/static/logo_dark.png").props("fit=contain").style("height:28px; display:block;")
-
+            with ui.row().classes("items-center gap-3 flex-nowrap"):
+                ui.image("/static/logo.png").props("fit=contain").classes("h-auto w-40 shrink-0")
                 menu_btn = ui.button(icon="menu").props("flat color=white")
                 menu = ui.menu()
 
@@ -230,6 +229,7 @@ def index():
                     ui.menu_item("⬇ Export", on_click=export_dialog.open)
 
                 menu_btn.on("click", lambda: menu.open())
+                
 
             with ui.row().classes("items-center gap-2 flex-wrap justify-end"):
                 ui.input(
