@@ -1,11 +1,17 @@
 from __future__ import annotations
-
-import json
+import json,sys
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from engine.db import connect, ensure_schema
 
 DATASET = Path("db/datasets/spells_srd_it.json")
+
+
+
 
 # mapping class_code -> nome italiano (per tabella classes)
 # (lo ampliamo dopo quando aggiungiamo PHB/Tasha/Xanathar extra)
