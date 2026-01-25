@@ -27,7 +27,7 @@ def new_pg() -> dict:
 def index():
     ui.colors(primary="#0b1220")
     ui.add_head_html("""
-<link rel="icon" type="image/png" href="/static/favicon.png">
+<link rel="icon" type="image/png" href="/static/favicon-32.png">
 """)
 
     pg = new_pg()
