@@ -132,3 +132,38 @@ def saving_throws(classe: str) -> list[str]:
 
     name = _normalize_class_name(classe)
     return SAVING_THROWS_BY_CLASS.get(name, [])
+
+def class_skill_choices(classe: str) -> dict | None:
+    """Ritorna le scelte abilità della classe, es:
+    {"choose": 2, "from": ["Arcano", "Indagare", ...]}
+
+    Priorità:
+    1) DB (class_details.skill_choices_json) usando classes.name_it oppure classes.code
+    2) None se non disponibile
+    """
+    try:
+        conn = connect()
+        try:
+            ensure_schema(conn)
+            name = _normalize_class_name(classe)
+            code = _class_code(classe)
+            row = conn.execute(
+                """
+                SELECT cd.skill_choices_json
+                FROM classes c
+                JOIN class_details cd ON cd.class_code = c.code
+                WHERE c.name_it = ? OR c.code = ?
+                """,
+                (name, code or name),
+            ).fetchone()
+
+            if row and row[0]:
+                data = json.loads(row[0])
+                if isinstance(data, dict):
+                    return data
+        finally:
+            conn.close()
+    except Exception:
+        pass
+
+    return None

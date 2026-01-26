@@ -75,13 +75,18 @@ SKILLS = {
     "Intrattenere": "car",
 }
 
-# Lineage: bonus (semplice per partire)
+# Lineage: bonus (SRD classico)
 LINEAGES = [
     "Nessuno",
     "Umano (+1 a tutto)",
     "Elfo (+2 DES)",
     "Nano (+2 COS)",
+    "Halfling (+2 DES)",
+    "Gnomo (+2 INT)",
     "Mezzelfo (+2 CAR, +1 due)",
+    "Mezzorco (+2 FOR, +1 COS)",
+    "Tiefling (+2 CAR, +1 INT)",
+    "Dragonide (+2 FOR, +1 CAR)",
 ]
 
 LINEAGE_BONUS = {
@@ -89,9 +94,15 @@ LINEAGE_BONUS = {
     "Umano (+1 a tutto)": {"for": 1, "des": 1, "cos": 1, "int": 1, "sag": 1, "car": 1},
     "Elfo (+2 DES)": {"des": 2},
     "Nano (+2 COS)": {"cos": 2},
-    # Per ora lo teniamo “base” (poi lo rendiamo configurabile)
+    "Halfling (+2 DES)": {"des": 2},
+    "Gnomo (+2 INT)": {"int": 2},
+    # Mezzelfo: base +2 CAR, i due +1 li gestiamo in main.py
     "Mezzelfo (+2 CAR, +1 due)": {"car": 2},
+    "Mezzorco (+2 FOR, +1 COS)": {"for": 2, "cos": 1},
+    "Tiefling (+2 CAR, +1 INT)": {"car": 2, "int": 1},
+    "Dragonide (+2 FOR, +1 CAR)": {"for": 2, "car": 1},
 }
+
 
 SPELLCASTING_ABILITY_BY_CLASS = {
     "Bardo": "car",
