@@ -159,6 +159,55 @@ def upsert_spell_classes(conn, spell_id: int, classes: list[str]) -> None:
             (spell_id, code),
         )
 
+def verify_spells_import(conn, spells: list[dict]) -> None:
+    # Slug attesi dal dataset
+    expected = {s.get("slug") for s in spells if isinstance(s, dict) and s.get("slug")}
+    expected.discard(None)
+
+    # Slug presenti in DB
+    db_slugs = {row[0] for row in conn.execute("SELECT slug FROM spells").fetchall()}
+
+    missing_in_db = sorted(expected - db_slugs)
+    extra_in_db = sorted(db_slugs - expected)
+
+    print("\n--- VERIFICA IMPORT SPELL ---")
+    print(f"Dataset: {len(expected)} slug unici")
+    print(f"DB:      {len(db_slugs)} slug unici")
+
+    if missing_in_db:
+        print(f"❌ Mancano nel DB: {len(missing_in_db)}")
+        for slug in missing_in_db[:20]:
+            print("  -", slug)
+        if len(missing_in_db) > 20:
+            print("  ... (altri non mostrati)")
+    else:
+        print("✅ Nessuna spell mancante nel DB")
+
+    if extra_in_db:
+        print(f"⚠️ Extra nel DB (presenti ma non nel dataset): {len(extra_in_db)}")
+        for slug in extra_in_db[:20]:
+            print("  -", slug)
+        if len(extra_in_db) > 20:
+            print("  ... (altri non mostrati)")
+    else:
+        print("✅ Nessuna spell extra nel DB")
+
+    # Controllo duplicati slug nel DB (non dovrebbe succedere se slug è UNIQUE)
+    dupes = conn.execute("""
+        SELECT slug, COUNT(*) AS c
+        FROM spells
+        GROUP BY slug
+        HAVING c > 1
+        ORDER BY c DESC
+    """).fetchall()
+    if dupes:
+        print("❌ Duplicati nel DB (slug ripetuti):")
+        for slug, c in dupes[:20]:
+            print(f"  - {slug}: {c}")
+    else:
+        print("✅ Nessun duplicato di slug nel DB")
+
+
 def main() -> None:
     if not DATASET.exists():
         raise SystemExit(f"Dataset non trovato: {DATASET}")
@@ -200,7 +249,7 @@ def main() -> None:
             imported += 1
 
         conn.commit()
-
+    verify_spells_import(conn, spells)
     print(f"OK: importate/aggiornate {imported} spell nel DB. Descrizioni ripulite: {fixed_desc}.")
 
 
