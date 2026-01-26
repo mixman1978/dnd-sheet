@@ -21,14 +21,13 @@ pip install -r requirements.txt
 è necessario che nella cartella db non ci sia il file dnd_sheet.sqlite3
 
 ```bash
-# importazione delle taballe
+# importazione delle tabelle
 python scripts/import_spells_srd.py
 
 # seed tabelle base
 python scripts/seed_classes.py
 
-# bestiario: genera dataset da SRD/CC e importa
-python scripts/convert_monsters_cc_srd_to_dataset.py
+# bestiario: import del bestiario
 python scripts/import_monsters_srd.py
 
 ```
