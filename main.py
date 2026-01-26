@@ -8,7 +8,7 @@ from engine.rules import (
     STATS, STAT_LABEL, CLASSES, LINEAGES, LINEAGE_BONUS, ALIGNMENTS,
     SAVING_THROWS_BY_CLASS, SKILLS, SPELLCASTING_ABILITY_BY_CLASS,
 )
-from engine.calc import mod, prof_bonus, total_stats, hp_max, spellcasting_ability
+from engine.calc import mod, prof_bonus, total_stats, hp_max, hit_die, spellcasting_ability, saving_throws
 from engine.storage import list_characters, load_character, save_character
 
 
@@ -68,6 +68,9 @@ def index():
         totals = total_stats(base, bonus)
         con_mod = mod(totals["cos"])
         pb = prof_bonus(pg["level"])
+        # HP Max sempre calcolati in automatico (step 1: dado vita + COS)
+        hpmax_auto = int(hp_max(pg["level"], pg["classe"], con_mod, pg["hp_method"]))
+        pg["hp_max"] = hpmax_auto
 
         ui.label("Caratteristiche").classes("text-2xl font-bold")
 
@@ -107,19 +110,7 @@ def index():
                         on_change=lambda e: (pg.__setitem__("hp_method", e.value), render_sheet.refresh()),
                     ).props("dense outlined").classes("w-32")
 
-                    ui.button(
-                        "Calcola HP Max",
-                        on_click=lambda: (
-                            pg.__setitem__(
-                                "hp_max",
-                                int(hp_max(pg["level"], pg["classe"], con_mod, pg["hp_method"])),
-                            ),
-                            render_sheet.refresh(),
-                        ),
-                    ).props("outline")
-
-                hpmax = int(pg.get("hp_max", 0))
-                ui.label(f"HP Max: {hpmax}").classes("text-lg font-bold")
+                ui.label(f"HP Max: {hpmax_auto}").classes("text-lg font-bold")
 
                 with ui.row().classes("gap-2"):
                     ui.number(
@@ -138,7 +129,7 @@ def index():
 
             with ui.card().classes("w-80"):
                 ui.label("Dadi Vita").classes("font-bold")
-                d = {"Warlock": 8}.get(pg["classe"], 8)
+                d = hit_die(pg["classe"])
                 ui.label(f"d{d} × {pg['level']}").classes("text-lg font-bold")
 
         ui.separator()
@@ -155,6 +146,32 @@ def index():
 
         with ui.expansion("Debug JSON", icon="code").classes("w-full"):
             ui.code(json.dumps(pg, ensure_ascii=False, indent=2), language="json")
+        
+        ui.separator()
+
+        with ui.card().classes("w-80"):
+            ui.label("Tiri Salvezza").classes("font-bold")
+
+            st_prof = saving_throws(pg["classe"])
+            pg["saving_throws_proficient"] = st_prof
+
+            with ui.row().classes("w-full justify-between"):
+                def render_col(stats_subset):
+                    with ui.column().classes("gap-2"):
+                        for s in stats_subset:
+                            bonus = mod(totals[s]) + (pb if s in st_prof else 0)
+                            with ui.row().classes("items-center justify-between w-36"):
+                                ui.label(STAT_LABEL[s]).classes("text-lg")
+                                if s in st_prof:
+                                    ui.icon("check").classes("text-lg")
+                                else:
+                                    ui.label("").classes("w-6")  # spacer
+                                ui.label(f"{bonus:+d}").classes("text-lg font-bold")
+
+                render_col(STATS[:3])
+                render_col(STATS[3:])
+
+
 
     # -------------------------
     # Dialogs
@@ -236,35 +253,35 @@ def index():
                     value=pg["nome"],
                     placeholder="Nome PG",
                 ).props('dense outlined dark input-class="text-white"').classes("w-48") \
-                 .on("update:model-value", lambda e: pg.__setitem__("nome", e.value))
+                 .on("update:model-value", lambda e: pg.__setitem__("nome", e.args))
 
                 ui.select(
                     LINEAGES,
                     value=pg["lineage"],
                 ).props('dense outlined dark options-dense popup-content-class="bg-[#0b1220] text-white"') \
                  .classes("w-52") \
-                 .on("update:model-value", lambda e: (pg.__setitem__("lineage", e.value), render_sheet.refresh()))
+                 .on("update:model-value", lambda e: (pg.__setitem__("lineage", e.args), render_sheet.refresh()))
 
                 ui.select(
                     CLASSES,
                     value=pg["classe"],
                 ).props('dense outlined dark options-dense popup-content-class="bg-[#0b1220] text-white"') \
                  .classes("w-44") \
-                 .on("update:model-value", lambda e: (pg.__setitem__("classe", e.value), render_sheet.refresh()))
+                 .on("update:model-value", lambda e: (pg.__setitem__("classe", e.args), render_sheet.refresh()))
 
                 ui.number(
                     value=pg["level"],
                     min=1,
                     max=20,
                 ).props('dense outlined dark input-class="text-white"').classes("w-24") \
-                 .on("update:model-value", lambda e: (pg.__setitem__("level", int(e.value or 1)), render_sheet.refresh()))
+                 .on("update:model-value", lambda e: (pg.__setitem__("level", int(e.args or 1)), render_sheet.refresh()))
 
                 ui.select(
                     ALIGNMENTS,
                     value=pg["alignment"],
                 ).props('dense outlined dark options-dense popup-content-class="bg-[#0b1220] text-white"') \
                  .classes("w-56") \
-                 .on("update:model-value", lambda e: pg.__setitem__("alignment", e.value))
+                 .on("update:model-value", lambda e: pg.__setitem__("alignment", e.args))
 
     # -------------------------
     # Page content

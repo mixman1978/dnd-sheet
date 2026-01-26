@@ -1,0 +1,5037 @@
+[
+  {
+    "code": "barbarian",
+    "name_it": "Barbaro",
+    "hit_die": 12,
+    "armor_proficiencies": [
+      "Armature leggere",
+      "Armature medie",
+      "Scudi"
+    ],
+    "weapon_proficiencies": [
+      "Armi semplici",
+      "Armi marziali"
+    ],
+    "tool_proficiencies": [],
+    "saving_throws": [
+      "for",
+      "con"
+    ],
+    "skill_choices": {
+      "choose": 2,
+      "from": [
+        "Addestrare Animali",
+        "Atletica",
+        "Intimidire",
+        "Natura",
+        "Percezione",
+        "Sopravvivenza"
+      ]
+    },
+    "starting_equipment": [
+      {
+        "choose_one": [
+          "una grande ascia",
+          "una qualsiasi arma marziale da mischia"
+        ]
+      },
+      {
+        "choose_one": [
+          "due asce",
+          "una qualsiasi arma semplice"
+        ]
+      },
+      "dotazione da esploratore",
+      "quattro giavellotti"
+    ],
+    "description": "Un guerriero feroce che canalizza la rabbia in battaglia. È resistente, infligge colpi potenti e prospera in prima linea.",
+    "source": "SRD 5.1 CC",
+    "levels": [
+      {
+        "level": 1,
+        "prof_bonus": 2,
+        "features": [
+          "ira",
+          "difesa_senza_armatura"
+        ]
+      },
+      {
+        "level": 2,
+        "prof_bonus": 2,
+        "features": [
+          "attacco_sconsiderato",
+          "senso_del_pericolo"
+        ]
+      },
+      {
+        "level": 3,
+        "prof_bonus": 2,
+        "features": [
+          "cammino_del_barbaro"
+        ]
+      },
+      {
+        "level": 4,
+        "prof_bonus": 2,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 5,
+        "prof_bonus": 3,
+        "features": [
+          "attacco_extra",
+          "movimento_rapido"
+        ]
+      },
+      {
+        "level": 6,
+        "prof_bonus": 3,
+        "features": []
+      },
+      {
+        "level": 7,
+        "prof_bonus": 3,
+        "features": [
+          "istinto_ferino"
+        ]
+      },
+      {
+        "level": 8,
+        "prof_bonus": 3,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 9,
+        "prof_bonus": 4,
+        "features": [
+          "critico_brutale"
+        ]
+      },
+      {
+        "level": 10,
+        "prof_bonus": 4,
+        "features": []
+      },
+      {
+        "level": 11,
+        "prof_bonus": 4,
+        "features": [
+          "ira_implacabile"
+        ]
+      },
+      {
+        "level": 12,
+        "prof_bonus": 4,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 13,
+        "prof_bonus": 5,
+        "features": [
+          "critico_brutale"
+        ]
+      },
+      {
+        "level": 14,
+        "prof_bonus": 5,
+        "features": []
+      },
+      {
+        "level": 15,
+        "prof_bonus": 5,
+        "features": [
+          "ira_persistente"
+        ]
+      },
+      {
+        "level": 16,
+        "prof_bonus": 5,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 17,
+        "prof_bonus": 6,
+        "features": [
+          "critico_brutale"
+        ]
+      },
+      {
+        "level": 18,
+        "prof_bonus": 6,
+        "features": [
+          "potere_indomito"
+        ]
+      },
+      {
+        "level": 19,
+        "prof_bonus": 6,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 20,
+        "prof_bonus": 6,
+        "features": [
+          "campione_primitivo"
+        ]
+      }
+    ],
+    "features": [
+      {
+        "feature_key": "ira",
+        "level": 1,
+        "name_it": "Ira",
+        "description": "In combattimento puoi entrare in ira come azione bonus. Finché dura ottieni vantaggi come bonus ai danni in mischia con Forza e resistenze; termina se svieni o non attacchi/subisci danni per un turno. Numero di utilizzi e bonus aumentano col livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "difesa_senza_armatura",
+        "level": 1,
+        "name_it": "Difesa Senza Armatura",
+        "description": "Quando non indossi armatura, la tua CA è pari a 10 + Des + Cos. Puoi usare uno scudo e continuare a beneficiare di questo privilegio.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "attacco_sconsiderato",
+        "level": 2,
+        "name_it": "Attacco Sconsiderato",
+        "description": "Nel tuo turno puoi ottenere vantaggio ai tiri per colpire in mischia basati su Forza, ma fino all’inizio del tuo prossimo turno anche gli attacchi contro di te hanno vantaggio.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "senso_del_pericolo",
+        "level": 2,
+        "name_it": "Senso del Pericolo",
+        "description": "Hai vantaggio ai tiri salvezza su Des contro effetti che puoi vedere (come trappole e incantesimi), purché non sia accecato, assordato o incapacitato.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "cammino_del_barbaro",
+        "level": 3,
+        "name_it": "Cammino del Barbaro",
+        "description": "Scegli un cammino (archetipo) che definisce il tuo stile di furia. Fornisce privilegi al 3°, 6°, 10° e 14° livello (dipendono dal cammino scelto).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "attacco_extra",
+        "level": 5,
+        "name_it": "Attacco Extra",
+        "description": "Quando usi l’azione di Attacco nel tuo turno, attacchi due volte invece di una.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "movimento_rapido",
+        "level": 5,
+        "name_it": "Movimento Rapido",
+        "description": "La tua velocità aumenta di 3 m quando non indossi armatura pesante.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "istinto_ferino",
+        "level": 7,
+        "name_it": "Istinto Ferino",
+        "description": "Hai vantaggio alle prove di iniziativa. Inoltre, se vieni sorpreso e non sei incapacitato, puoi agire nel primo turno entrando in ira prima di compiere qualsiasi altra azione.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "critico_brutale",
+        "level": 9,
+        "name_it": "Critico Brutale",
+        "description": "Quando ottieni un colpo critico con un’arma in mischia, aggiungi dadi extra al danno. Il numero di dadi extra aumenta ai livelli superiori.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "ira_implacabile",
+        "level": 11,
+        "name_it": "Ira Implacabile",
+        "description": "Se scendi a 0 PF mentre sei in ira e non muori sul colpo, puoi effettuare un TS su Cos per scendere a 1 PF invece. La CD aumenta ogni volta che lo usi e si azzera con un riposo breve o lungo.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "ira_persistente",
+        "level": 15,
+        "name_it": "Ira Persistente",
+        "description": "La tua ira termina solo se svieni o se scegli di terminarla volontariamente.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "potere_indomito",
+        "level": 18,
+        "name_it": "Potere Indomito",
+        "description": "Se il tuo totale in una prova di Forza è inferiore al tuo punteggio di Forza, puoi usare quel punteggio come totale.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "campione_primitivo",
+        "level": 20,
+        "name_it": "Campione Primitivo",
+        "description": "I tuoi punteggi di Forza e Costituzione aumentano di 4 (massimo 24).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "asi",
+        "level": 4,
+        "name_it": "Aumento dei Punteggi di Caratteristica",
+        "description": "Aumenti due punteggi di caratteristica di 1, oppure un punteggio di 2 (massimo 20). In alternativa, puoi scegliere un talento se l’opzione è in uso.",
+        "source": "SRD 5.1 CC"
+      }
+    ]
+  },
+  {
+    "code": "bard",
+    "name_it": "Bardo",
+    "hit_die": 8,
+    "armor_proficiencies": [
+      "Armature leggere"
+    ],
+    "weapon_proficiencies": [
+      "Armi semplici",
+      "Balestre a mano",
+      "Spade lunghe",
+      "Spade corte",
+      "Rapiere"
+    ],
+    "tool_proficiencies": [
+      "Strumenti musicali (tre a scelta)"
+    ],
+    "saving_throws": [
+      "des",
+      "car"
+    ],
+    "skill_choices": {
+      "choose": 3,
+      "from": [
+        "Acrobazia",
+        "Addestrare Animali",
+        "Arcano",
+        "Atletica",
+        "Furtività",
+        "Indagare",
+        "Inganno",
+        "Intimidire",
+        "Intuizione",
+        "Intrattenere",
+        "Medicina",
+        "Natura",
+        "Percezione",
+        "Persuasione",
+        "Religione",
+        "Rapidità di Mano",
+        "Sopravvivenza",
+        "Storia"
+      ]
+    },
+    "starting_equipment": [
+      {
+        "choose_one": [
+          "una rapiera",
+          "una spada lunga",
+          "una qualsiasi arma semplice"
+        ]
+      },
+      {
+        "choose_one": [
+          "un pacchetto da diplomatico",
+          "un pacchetto da intrattenitore"
+        ]
+      },
+      {
+        "choose_one": [
+          "un liuto",
+          "un altro strumento musicale"
+        ]
+      },
+      "armatura di cuoio",
+      "un pugnale"
+    ],
+    "description": "Un artista e avventuriero che intreccia magia, talento e conoscenza per ispirare alleati e ostacolare nemici.",
+    "source": "SRD 5.1 CC",
+    "spellcasting": {
+      "ability": "car",
+      "type": "full"
+    },
+    "levels": [
+      {
+        "level": 1,
+        "prof_bonus": 2,
+        "features": [
+          "incantesimi",
+          "ispirazione_bardica"
+        ],
+        "cantrips_known": 2,
+        "spells_known": 4,
+        "spell_slots_by_level": [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 2,
+        "prof_bonus": 2,
+        "features": [
+          "tuttofare",
+          "canto_di_riposo"
+        ],
+        "cantrips_known": 2,
+        "spells_known": 5,
+        "spell_slots_by_level": [
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 3,
+        "prof_bonus": 2,
+        "features": [
+          "collegio_bardico",
+          "competenza_superiore"
+        ],
+        "cantrips_known": 2,
+        "spells_known": 6,
+        "spell_slots_by_level": [
+          4,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 4,
+        "prof_bonus": 2,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 3,
+        "spells_known": 7,
+        "spell_slots_by_level": [
+          4,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 5,
+        "prof_bonus": 3,
+        "features": [
+          "fonte_d_ispirazione"
+        ],
+        "cantrips_known": 3,
+        "spells_known": 8,
+        "spell_slots_by_level": [
+          4,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 6,
+        "prof_bonus": 3,
+        "features": [
+          "controincanto"
+        ],
+        "cantrips_known": 3,
+        "spells_known": 9,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 7,
+        "prof_bonus": 3,
+        "features": [],
+        "cantrips_known": 3,
+        "spells_known": 10,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 8,
+        "prof_bonus": 3,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 3,
+        "spells_known": 11,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 9,
+        "prof_bonus": 4,
+        "features": [],
+        "cantrips_known": 3,
+        "spells_known": 12,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 10,
+        "prof_bonus": 4,
+        "features": [
+          "segreti_magici",
+          "competenza_superiore"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 14,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 11,
+        "prof_bonus": 4,
+        "features": [],
+        "cantrips_known": 4,
+        "spells_known": 15,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 12,
+        "prof_bonus": 4,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 15,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 13,
+        "prof_bonus": 5,
+        "features": [],
+        "cantrips_known": 4,
+        "spells_known": 16,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 14,
+        "prof_bonus": 5,
+        "features": [
+          "segreti_magici"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 18,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 15,
+        "prof_bonus": 5,
+        "features": [],
+        "cantrips_known": 4,
+        "spells_known": 19,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "level": 16,
+        "prof_bonus": 5,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 19,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "level": 17,
+        "prof_bonus": 6,
+        "features": [],
+        "cantrips_known": 4,
+        "spells_known": 20,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 18,
+        "prof_bonus": 6,
+        "features": [
+          "segreti_magici"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 22,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 19,
+        "prof_bonus": 6,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 22,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 20,
+        "prof_bonus": 6,
+        "features": [
+          "ispirazione_superiore"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 22,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          2,
+          2,
+          1,
+          1
+        ]
+      }
+    ],
+    "features": [
+      {
+        "feature_key": "incantesimi",
+        "level": 1,
+        "name_it": "Incantesimi",
+        "description": "Ottieni capacità di lanciare incantesimi da bardo. Conosci trucchetti e un numero di incantesimi da bardo; usi Carisma come caratteristica da incantatore.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "ispirazione_bardica",
+        "level": 1,
+        "name_it": "Ispirazione Bardica",
+        "description": "Come azione bonus scegli una creatura entro 18 m che può sentirti: ottiene un dado d’ispirazione (d6) da aggiungere a una prova, tiro per colpire o TS. Il dado migliora con il livello e gli usi dipendono dal tuo Carisma.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "tuttofare",
+        "level": 2,
+        "name_it": "Tuttofare",
+        "description": "Aggiungi metà del tuo bonus di competenza (arrotondato per difetto) alle prove di caratteristica in cui non sei competente.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "canto_di_riposo",
+        "level": 2,
+        "name_it": "Canto di Riposo",
+        "description": "Durante un riposo breve, chi spende dadi vita per recuperare PF recupera PF extra. Il dado migliora con il livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "competenza_superiore",
+        "level": 3,
+        "name_it": "Competenza Superiore",
+        "description": "Scegli due abilità in cui sei competente: raddoppi il bonus di competenza per le prove relative. Ottieni due ulteriori competenze superiori al 10° livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "collegio_bardico",
+        "level": 3,
+        "name_it": "Collegio Bardico",
+        "description": "Scegli un collegio (archetipo) che ti concede privilegi al 3°, 6° e 14° livello (dipendono dal collegio scelto).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "fonte_d_ispirazione",
+        "level": 5,
+        "name_it": "Fonte d'Ispirazione",
+        "description": "Recuperi tutti gli usi di Ispirazione Bardica con un riposo breve o lungo.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "controincanto",
+        "level": 6,
+        "name_it": "Controincanto",
+        "description": "Come azione puoi avviare una performance che offre vantaggio ai TS contro essere affascinati o spaventati alle creature che possono sentirti.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "segreti_magici",
+        "level": 10,
+        "name_it": "Segreti Magici",
+        "description": "Impari incantesimi da altre liste (non solo bardo). Ne ottieni altri al 14° e 18° livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "ispirazione_superiore",
+        "level": 20,
+        "name_it": "Ispirazione Superiore",
+        "description": "Se inizi un combattimento senza usi di Ispirazione Bardica, ne recuperi 1.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "asi",
+        "level": 4,
+        "name_it": "Aumento dei Punteggi di Caratteristica",
+        "description": "Aumenti due punteggi di caratteristica di 1, oppure un punteggio di 2 (massimo 20). In alternativa, puoi scegliere un talento se l’opzione è in uso.",
+        "source": "SRD 5.1 CC"
+      }
+    ]
+  },
+  {
+    "code": "cleric",
+    "name_it": "Chierico",
+    "hit_die": 8,
+    "armor_proficiencies": [
+      "Armature leggere",
+      "Armature medie",
+      "Scudi"
+    ],
+    "weapon_proficiencies": [
+      "Armi semplici"
+    ],
+    "tool_proficiencies": [],
+    "saving_throws": [
+      "sag",
+      "car"
+    ],
+    "skill_choices": {
+      "choose": 2,
+      "from": [
+        "Storia",
+        "Intuizione",
+        "Medicina",
+        "Persuasione",
+        "Religione"
+      ]
+    },
+    "starting_equipment": [
+      {
+        "choose_one": [
+          "una mazza",
+          "un martello da guerra (se competente)"
+        ]
+      },
+      {
+        "choose_one": [
+          "un'armatura a scaglie",
+          "armatura di cuoio",
+          "cotta di maglia (se competente)"
+        ]
+      },
+      {
+        "choose_one": [
+          "una balestra leggera e 20 quadrelli",
+          "una qualsiasi arma semplice"
+        ]
+      },
+      {
+        "choose_one": [
+          "un pacchetto da sacerdote",
+          "un pacchetto da esploratore"
+        ]
+      },
+      "uno scudo",
+      "un simbolo sacro"
+    ],
+    "description": "Un servitore del divino che incanala fede e miracoli: cura, protezione e potere sacro contro i nemici.",
+    "source": "SRD 5.1 CC",
+    "spellcasting": {
+      "ability": "sag",
+      "type": "full"
+    },
+    "levels": [
+      {
+        "level": 1,
+        "prof_bonus": 2,
+        "features": [
+          "incantesimi",
+          "dominio_divino"
+        ],
+        "cantrips_known": 3,
+        "spell_slots_by_level": [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 2,
+        "prof_bonus": 2,
+        "features": [
+          "incanalare_divinita"
+        ],
+        "cantrips_known": 3,
+        "spell_slots_by_level": [
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 3,
+        "prof_bonus": 2,
+        "features": [],
+        "cantrips_known": 3,
+        "spell_slots_by_level": [
+          4,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 4,
+        "prof_bonus": 2,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 5,
+        "prof_bonus": 3,
+        "features": [
+          "distruggere_non_morti"
+        ],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 6,
+        "prof_bonus": 3,
+        "features": [],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 7,
+        "prof_bonus": 3,
+        "features": [],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 8,
+        "prof_bonus": 3,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 9,
+        "prof_bonus": 4,
+        "features": [],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 10,
+        "prof_bonus": 4,
+        "features": [
+          "intervento_divino"
+        ],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 11,
+        "prof_bonus": 4,
+        "features": [],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 12,
+        "prof_bonus": 4,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 13,
+        "prof_bonus": 5,
+        "features": [],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 14,
+        "prof_bonus": 5,
+        "features": [],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 15,
+        "prof_bonus": 5,
+        "features": [],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "level": 16,
+        "prof_bonus": 5,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "level": 17,
+        "prof_bonus": 6,
+        "features": [],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 18,
+        "prof_bonus": 6,
+        "features": [],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 19,
+        "prof_bonus": 6,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 20,
+        "prof_bonus": 6,
+        "features": [
+          "intervento_divino"
+        ],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          2,
+          2,
+          1,
+          1
+        ]
+      }
+    ],
+    "features": [
+      {
+        "feature_key": "incantesimi",
+        "level": 1,
+        "name_it": "Incantesimi",
+        "description": "Lanci incantesimi da chierico usando Saggezza. Prepari ogni giorno un numero di incantesimi da chierico pari a Sag + livello da chierico (minimo 1).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "dominio_divino",
+        "level": 1,
+        "name_it": "Dominio Divino",
+        "description": "Scegli un dominio che rappresenta il tuo legame con la divinità. Il dominio ti concede privilegi al 1°, 2°, 6°, 8° e 17° livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "incanalare_divinita",
+        "level": 2,
+        "name_it": "Incanalare Divinità",
+        "description": "Puoi canalizzare energia divina per produrre effetti speciali (inclusa Scacciare Non Morti). Ottieni più utilizzi con il livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "distruggere_non_morti",
+        "level": 5,
+        "name_it": "Distruggere Non Morti",
+        "description": "Quando scacci non morti, quelli di GS basso vengono distrutti se falliscono il TS. La soglia cresce col livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "intervento_divino",
+        "level": 10,
+        "name_it": "Intervento Divino",
+        "description": "Puoi chiedere aiuto alla tua divinità. Se l’intervento avviene, non puoi riusarlo per 7 giorni. Al 20° livello ha successo automaticamente.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "asi",
+        "level": 4,
+        "name_it": "Aumento dei Punteggi di Caratteristica",
+        "description": "Aumenti due punteggi di caratteristica di 1, oppure un punteggio di 2 (massimo 20). In alternativa, puoi scegliere un talento se l’opzione è in uso.",
+        "source": "SRD 5.1 CC"
+      }
+    ]
+  },
+  {
+    "code": "druid",
+    "name_it": "Druido",
+    "hit_die": 8,
+    "armor_proficiencies": [
+      "Armature leggere (non metalliche)",
+      "Armature medie (non metalliche)",
+      "Scudi (non metallici)"
+    ],
+    "weapon_proficiencies": [
+      "Bastoni",
+      "Daghe",
+      "Dardi",
+      "Giavellotti",
+      "Mazze",
+      "Bastoni ferrati",
+      "Scimitarre",
+      "Falcetti",
+      "Fionde",
+      "Lance"
+    ],
+    "tool_proficiencies": [
+      "Kit da erborista"
+    ],
+    "saving_throws": [
+      "int",
+      "sag"
+    ],
+    "skill_choices": {
+      "choose": 2,
+      "from": [
+        "Arcano",
+        "Addestrare Animali",
+        "Intuizione",
+        "Medicina",
+        "Natura",
+        "Percezione",
+        "Religione",
+        "Sopravvivenza"
+      ]
+    },
+    "starting_equipment": [
+      {
+        "choose_one": [
+          "uno scudo di legno",
+          "una qualsiasi arma semplice"
+        ]
+      },
+      {
+        "choose_one": [
+          "una scimitarra",
+          "una qualsiasi arma semplice da mischia"
+        ]
+      },
+      "armatura di cuoio",
+      "dotazione da esploratore",
+      "focus druidico"
+    ],
+    "description": "Un custode della natura che usa magia primordiale e metamorfosi per adattarsi a ogni sfida.",
+    "source": "SRD 5.1 CC",
+    "spellcasting": {
+      "ability": "sag",
+      "type": "full"
+    },
+    "levels": [
+      {
+        "level": 1,
+        "prof_bonus": 2,
+        "features": [
+          "druidico",
+          "incantesimi"
+        ],
+        "cantrips_known": 2,
+        "spell_slots_by_level": [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 2,
+        "prof_bonus": 2,
+        "features": [
+          "forma_selvatica",
+          "circolo_druido"
+        ],
+        "cantrips_known": 2,
+        "spell_slots_by_level": [
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 3,
+        "prof_bonus": 2,
+        "features": [],
+        "cantrips_known": 2,
+        "spell_slots_by_level": [
+          4,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 4,
+        "prof_bonus": 2,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 3,
+        "spell_slots_by_level": [
+          4,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 5,
+        "prof_bonus": 3,
+        "features": [],
+        "cantrips_known": 3,
+        "spell_slots_by_level": [
+          4,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 6,
+        "prof_bonus": 3,
+        "features": [],
+        "cantrips_known": 3,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 7,
+        "prof_bonus": 3,
+        "features": [],
+        "cantrips_known": 3,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 8,
+        "prof_bonus": 3,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 3,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 9,
+        "prof_bonus": 4,
+        "features": [],
+        "cantrips_known": 3,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 10,
+        "prof_bonus": 4,
+        "features": [],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 11,
+        "prof_bonus": 4,
+        "features": [],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 12,
+        "prof_bonus": 4,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 13,
+        "prof_bonus": 5,
+        "features": [],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 14,
+        "prof_bonus": 5,
+        "features": [],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 15,
+        "prof_bonus": 5,
+        "features": [],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "level": 16,
+        "prof_bonus": 5,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "level": 17,
+        "prof_bonus": 6,
+        "features": [],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 18,
+        "prof_bonus": 6,
+        "features": [
+          "corpo_senza_eta",
+          "incantesimi_bestiali"
+        ],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 19,
+        "prof_bonus": 6,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 20,
+        "prof_bonus": 6,
+        "features": [
+          "arcidruido"
+        ],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          2,
+          2,
+          1,
+          1
+        ]
+      }
+    ],
+    "features": [
+      {
+        "feature_key": "druidico",
+        "level": 1,
+        "name_it": "Druidico",
+        "description": "Conosci il linguaggio segreto dei druidi e puoi usarlo per lasciare messaggi nascosti.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "incantesimi",
+        "level": 1,
+        "name_it": "Incantesimi",
+        "description": "Lanci incantesimi da druido usando Saggezza. Prepari ogni giorno un numero di incantesimi pari a Sag + livello da druido (minimo 1).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "forma_selvatica",
+        "level": 2,
+        "name_it": "Forma Selvatica",
+        "description": "Puoi trasformarti in una bestia che hai visto. Usi e limiti (GS, movimento, durata) migliorano col livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "circolo_druido",
+        "level": 2,
+        "name_it": "Circolo Druido",
+        "description": "Scegli un circolo che definisce il tuo ruolo. Conferisce privilegi al 2°, 6°, 10° e 14° livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "corpo_senza_eta",
+        "level": 18,
+        "name_it": "Corpo senza Età",
+        "description": "Gli effetti dell’età ti raggiungono più lentamente e non puoi essere invecchiato magicamente.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "incantesimi_bestiali",
+        "level": 18,
+        "name_it": "Incantesimi Bestiali",
+        "description": "Puoi lanciare molti incantesimi da druido anche mentre sei in Forma Selvatica.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "arcidruido",
+        "level": 20,
+        "name_it": "Arcidruido",
+        "description": "Puoi usare Forma Selvatica un numero illimitato di volte e puoi ignorare componenti somatiche e verbali di molti incantesimi.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "asi",
+        "level": 4,
+        "name_it": "Aumento dei Punteggi di Caratteristica",
+        "description": "Aumenti due punteggi di caratteristica di 1, oppure un punteggio di 2 (massimo 20). In alternativa, puoi scegliere un talento se l’opzione è in uso.",
+        "source": "SRD 5.1 CC"
+      }
+    ]
+  },
+  {
+    "code": "fighter",
+    "name_it": "Guerriero",
+    "hit_die": 10,
+    "armor_proficiencies": [
+      "Armature leggere",
+      "Armature medie",
+      "Armature pesanti",
+      "Scudi"
+    ],
+    "weapon_proficiencies": [
+      "Armi semplici",
+      "Armi marziali"
+    ],
+    "tool_proficiencies": [],
+    "saving_throws": [
+      "for",
+      "con"
+    ],
+    "skill_choices": {
+      "choose": 2,
+      "from": [
+        "Acrobazia",
+        "Addestrare Animali",
+        "Atletica",
+        "Intimidire",
+        "Intuizione",
+        "Percezione",
+        "Sopravvivenza",
+        "Storia"
+      ]
+    },
+    "starting_equipment": [
+      {
+        "choose_one": [
+          "cotta di maglia",
+          "armatura di cuoio, arco lungo e 20 frecce"
+        ]
+      },
+      {
+        "choose_one": [
+          "un'arma marziale e uno scudo",
+          "due armi marziali"
+        ]
+      },
+      {
+        "choose_one": [
+          "una balestra leggera e 20 quadrelli",
+          "due asce"
+        ]
+      },
+      {
+        "choose_one": [
+          "un pacchetto da soldato",
+          "un pacchetto da esploratore"
+        ]
+      }
+    ],
+    "description": "Un maestro delle armi e della tattica, capace di sostenere lunghi combattimenti e di adattarsi con discipline marziali.",
+    "source": "SRD 5.1 CC",
+    "levels": [
+      {
+        "level": 1,
+        "prof_bonus": 2,
+        "features": [
+          "stile_di_combattimento",
+          "secondo_soffio"
+        ]
+      },
+      {
+        "level": 2,
+        "prof_bonus": 2,
+        "features": [
+          "azione_impetuosa"
+        ]
+      },
+      {
+        "level": 3,
+        "prof_bonus": 2,
+        "features": [
+          "archetipo_marziale"
+        ]
+      },
+      {
+        "level": 4,
+        "prof_bonus": 2,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 5,
+        "prof_bonus": 3,
+        "features": [
+          "attacco_extra"
+        ]
+      },
+      {
+        "level": 6,
+        "prof_bonus": 3,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 7,
+        "prof_bonus": 3,
+        "features": [
+          "archetipo_marziale"
+        ]
+      },
+      {
+        "level": 8,
+        "prof_bonus": 3,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 9,
+        "prof_bonus": 4,
+        "features": [
+          "indomito"
+        ]
+      },
+      {
+        "level": 10,
+        "prof_bonus": 4,
+        "features": [
+          "archetipo_marziale"
+        ]
+      },
+      {
+        "level": 11,
+        "prof_bonus": 4,
+        "features": [
+          "attacco_extra_migliorato"
+        ]
+      },
+      {
+        "level": 12,
+        "prof_bonus": 4,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 13,
+        "prof_bonus": 5,
+        "features": [
+          "indomito"
+        ]
+      },
+      {
+        "level": 14,
+        "prof_bonus": 5,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 15,
+        "prof_bonus": 5,
+        "features": [
+          "archetipo_marziale"
+        ]
+      },
+      {
+        "level": 16,
+        "prof_bonus": 5,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 17,
+        "prof_bonus": 6,
+        "features": [
+          "indomito"
+        ]
+      },
+      {
+        "level": 18,
+        "prof_bonus": 6,
+        "features": [
+          "archetipo_marziale"
+        ]
+      },
+      {
+        "level": 19,
+        "prof_bonus": 6,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 20,
+        "prof_bonus": 6,
+        "features": [
+          "attacco_extra_superiore"
+        ]
+      }
+    ],
+    "features": [
+      {
+        "feature_key": "stile_di_combattimento",
+        "level": 1,
+        "name_it": "Stile di Combattimento",
+        "description": "Adotti uno stile che ti conferisce un beneficio costante in combattimento (es. difesa, duellare, tiro, grande arma).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "secondo_soffio",
+        "level": 1,
+        "name_it": "Secondo Soffio",
+        "description": "Come azione bonus recuperi PF pari a 1d10 + livello da guerriero. Recuperi l’uso con un riposo breve o lungo.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "azione_impetuosa",
+        "level": 2,
+        "name_it": "Azione Impetuosa",
+        "description": "Nel tuo turno puoi compiere un’azione aggiuntiva. Recuperi l’uso con un riposo breve o lungo (usi aumentano col livello).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "archetipo_marziale",
+        "level": 3,
+        "name_it": "Archetipo Marziale",
+        "description": "Scegli un archetipo (es. Campione). Ottieni privilegi al 3°, 7°, 10°, 15° e 18° livello in base all’archetipo scelto.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "attacco_extra",
+        "level": 5,
+        "name_it": "Attacco Extra",
+        "description": "Quando usi l’azione di Attacco, attacchi due volte invece di una (migliora ai livelli superiori).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "attacco_extra_migliorato",
+        "level": 11,
+        "name_it": "Attacco Extra (2)",
+        "description": "Quando usi l’azione di Attacco, attacchi tre volte invece di due.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "attacco_extra_superiore",
+        "level": 20,
+        "name_it": "Attacco Extra (3)",
+        "description": "Quando usi l’azione di Attacco, attacchi quattro volte.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "indomito",
+        "level": 9,
+        "name_it": "Indomito",
+        "description": "Puoi ritirare un tiro salvezza fallito. Recuperi l’uso con un riposo lungo (usi aumentano col livello).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "asi",
+        "level": 4,
+        "name_it": "Aumento dei Punteggi di Caratteristica",
+        "description": "Aumenti due punteggi di caratteristica di 1, oppure un punteggio di 2 (massimo 20). In alternativa, puoi scegliere un talento se l’opzione è in uso.",
+        "source": "SRD 5.1 CC"
+      }
+    ]
+  },
+  {
+    "code": "monk",
+    "name_it": "Monaco",
+    "hit_die": 8,
+    "armor_proficiencies": [],
+    "weapon_proficiencies": [
+      "Armi semplici",
+      "Spade corte"
+    ],
+    "tool_proficiencies": [
+      "Strumenti (uno a scelta) o strumenti musicali (uno a scelta)"
+    ],
+    "saving_throws": [
+      "for",
+      "des"
+    ],
+    "skill_choices": {
+      "choose": 2,
+      "from": [
+        "Acrobazia",
+        "Atletica",
+        "Furtività",
+        "Intuizione",
+        "Religione",
+        "Storia"
+      ]
+    },
+    "starting_equipment": [
+      {
+        "choose_one": [
+          "una spada corta",
+          "una qualsiasi arma semplice"
+        ]
+      },
+      {
+        "choose_one": [
+          "un pacchetto da esploratore",
+          "un pacchetto da speleologo"
+        ]
+      },
+      "10 dardi"
+    ],
+    "description": "Un combattente disciplinato che usa il ki per colpire rapidamente, muoversi con agilità e resistere agli effetti mentali.",
+    "source": "SRD 5.1 CC",
+    "levels": [
+      {
+        "level": 1,
+        "prof_bonus": 2,
+        "features": [
+          "difesa_senza_armatura",
+          "arti_marziali"
+        ]
+      },
+      {
+        "level": 2,
+        "prof_bonus": 2,
+        "features": [
+          "ki",
+          "movimento_senza_armatura"
+        ]
+      },
+      {
+        "level": 3,
+        "prof_bonus": 2,
+        "features": [
+          "tradizione_monastica",
+          "deviare_proiettili"
+        ]
+      },
+      {
+        "level": 4,
+        "prof_bonus": 2,
+        "features": [
+          "asi",
+          "caduta_lenta"
+        ]
+      },
+      {
+        "level": 5,
+        "prof_bonus": 3,
+        "features": [
+          "attacco_extra",
+          "colpo_stordente"
+        ]
+      },
+      {
+        "level": 6,
+        "prof_bonus": 3,
+        "features": [
+          "colpi_potenziati_dal_ki",
+          "tradizione_monastica"
+        ]
+      },
+      {
+        "level": 7,
+        "prof_bonus": 3,
+        "features": [
+          "elusione",
+          "quiete_della_mente"
+        ]
+      },
+      {
+        "level": 8,
+        "prof_bonus": 3,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 9,
+        "prof_bonus": 4,
+        "features": []
+      },
+      {
+        "level": 10,
+        "prof_bonus": 4,
+        "features": [
+          "purezza_del_corpo"
+        ]
+      },
+      {
+        "level": 11,
+        "prof_bonus": 4,
+        "features": [
+          "tradizione_monastica"
+        ]
+      },
+      {
+        "level": 12,
+        "prof_bonus": 4,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 13,
+        "prof_bonus": 5,
+        "features": [
+          "lingua_del_sole_e_della_luna"
+        ]
+      },
+      {
+        "level": 14,
+        "prof_bonus": 5,
+        "features": [
+          "asi",
+          "anima_di_diamante"
+        ]
+      },
+      {
+        "level": 15,
+        "prof_bonus": 5,
+        "features": [
+          "corpo_senza_eta"
+        ]
+      },
+      {
+        "level": 16,
+        "prof_bonus": 5,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 17,
+        "prof_bonus": 6,
+        "features": [
+          "tradizione_monastica"
+        ]
+      },
+      {
+        "level": 18,
+        "prof_bonus": 6,
+        "features": [
+          "corpo_vuoto"
+        ]
+      },
+      {
+        "level": 19,
+        "prof_bonus": 6,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 20,
+        "prof_bonus": 6,
+        "features": [
+          "io_perfetto"
+        ]
+      }
+    ],
+    "features": [
+      {
+        "feature_key": "difesa_senza_armatura",
+        "level": 1,
+        "name_it": "Difesa Senza Armatura",
+        "description": "Quando non indossi armatura né scudo, la tua CA è pari a 10 + Des + Sag.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "arti_marziali",
+        "level": 1,
+        "name_it": "Arti Marziali",
+        "description": "Puoi usare Des al posto di For per attacchi con armi da monaco/colpi senz’armi, tirare un dado per i danni (che cresce) e fare un colpo senz’armi come azione bonus dopo aver attaccato.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "ki",
+        "level": 2,
+        "name_it": "Ki",
+        "description": "Ottieni punti ki per alimentare tecniche come Raffica di Colpi, Difesa Paziente e Passo del Vento. I punti si recuperano con un riposo breve o lungo.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "movimento_senza_armatura",
+        "level": 2,
+        "name_it": "Movimento Senza Armatura",
+        "description": "La tua velocità aumenta quando non indossi armatura né scudo. Bonus cresce col livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "tradizione_monastica",
+        "level": 3,
+        "name_it": "Tradizione Monastica",
+        "description": "Scegli una tradizione che ti concede privilegi al 3°, 6°, 11° e 17° livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "deviare_proiettili",
+        "level": 3,
+        "name_it": "Deviare Proiettili",
+        "description": "Puoi usare la reazione per ridurre i danni di un attacco a distanza. Se riduci a 0, puoi afferrare il proiettile e, spendendo ki, rilanciarlo.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "caduta_lenta",
+        "level": 4,
+        "name_it": "Caduta Lenta",
+        "description": "Puoi usare la reazione per ridurre i danni da caduta.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "attacco_extra",
+        "level": 5,
+        "name_it": "Attacco Extra",
+        "description": "Quando usi l’azione di Attacco, attacchi due volte invece di una.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "colpo_stordente",
+        "level": 5,
+        "name_it": "Colpo Stordente",
+        "description": "Quando colpisci con un attacco in mischia, puoi spendere 1 ki per tentare di stordire il bersaglio (TS Cos).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "colpi_potenziati_dal_ki",
+        "level": 6,
+        "name_it": "Colpi Potenziati dal Ki",
+        "description": "I tuoi colpi senz’armi contano come magici per superare resistenze e immunità ai danni non magici.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "elusione",
+        "level": 7,
+        "name_it": "Elusione",
+        "description": "Quando effettui un TS Des per dimezzare danni, se lo superi non subisci danni, se lo fallisci subisci metà.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "quiete_della_mente",
+        "level": 7,
+        "name_it": "Quiete della Mente",
+        "description": "Puoi usare un’azione per terminare su di te una condizione di affascinato o spaventato.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "purezza_del_corpo",
+        "level": 10,
+        "name_it": "Purezza del Corpo",
+        "description": "Sei immune a malattie e veleni.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "lingua_del_sole_e_della_luna",
+        "level": 13,
+        "name_it": "Lingua del Sole e della Luna",
+        "description": "Comprendi tutti i linguaggi parlati e chi ti ascolta può comprendere te.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "anima_di_diamante",
+        "level": 14,
+        "name_it": "Anima di Diamante",
+        "description": "Ottieni competenza in tutti i tiri salvezza. Inoltre, puoi spendere 1 ki per ritirare un TS fallito.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "corpo_senza_eta",
+        "level": 15,
+        "name_it": "Corpo senza Età",
+        "description": "Non subisci gli effetti dell’età e non hai bisogno di cibo o acqua.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "corpo_vuoto",
+        "level": 18,
+        "name_it": "Corpo Vuoto",
+        "description": "Puoi diventare invisibile e ottenere resistenza a tutti i danni tranne forza, spendendo ki. Inoltre puoi proiettarti nel Piano Astrale.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "io_perfetto",
+        "level": 20,
+        "name_it": "Io Perfetto",
+        "description": "Se inizi un combattimento senza punti ki, ne recuperi 4.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "asi",
+        "level": 4,
+        "name_it": "Aumento dei Punteggi di Caratteristica",
+        "description": "Aumenti due punteggi di caratteristica di 1, oppure un punteggio di 2 (massimo 20). In alternativa, puoi scegliere un talento se l’opzione è in uso.",
+        "source": "SRD 5.1 CC"
+      }
+    ]
+  },
+  {
+    "code": "paladin",
+    "name_it": "Paladino",
+    "hit_die": 10,
+    "armor_proficiencies": [
+      "Armature leggere",
+      "Armature medie",
+      "Armature pesanti",
+      "Scudi"
+    ],
+    "weapon_proficiencies": [
+      "Armi semplici",
+      "Armi marziali"
+    ],
+    "tool_proficiencies": [],
+    "saving_throws": [
+      "sag",
+      "car"
+    ],
+    "skill_choices": {
+      "choose": 2,
+      "from": [
+        "Atletica",
+        "Intuizione",
+        "Intimidire",
+        "Medicina",
+        "Persuasione",
+        "Religione"
+      ]
+    },
+    "starting_equipment": [
+      {
+        "choose_one": [
+          "un'arma marziale e uno scudo",
+          "due armi marziali"
+        ]
+      },
+      {
+        "choose_one": [
+          "cinque giavellotti",
+          "una qualsiasi arma semplice da mischia"
+        ]
+      },
+      {
+        "choose_one": [
+          "un pacchetto da sacerdote",
+          "un pacchetto da esploratore"
+        ]
+      },
+      "cotta di maglia",
+      "un simbolo sacro"
+    ],
+    "description": "Un campione sacro vincolato da un giuramento: protegge, cura e colpisce con energia divina.",
+    "source": "SRD 5.1 CC",
+    "spellcasting": {
+      "ability": "car",
+      "type": "half"
+    },
+    "levels": [
+      {
+        "level": 1,
+        "prof_bonus": 2,
+        "features": [
+          "senso_divino",
+          "imposizione_delle_mani"
+        ],
+        "spell_slots_by_level": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 2,
+        "prof_bonus": 2,
+        "features": [
+          "stile_di_combattimento",
+          "incantesimi",
+          "colpo_divino"
+        ],
+        "spell_slots_by_level": [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 3,
+        "prof_bonus": 2,
+        "features": [
+          "giuramento_sacro",
+          "salute_divina"
+        ],
+        "spell_slots_by_level": [
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 4,
+        "prof_bonus": 2,
+        "features": [
+          "asi"
+        ],
+        "spell_slots_by_level": [
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 5,
+        "prof_bonus": 3,
+        "features": [
+          "attacco_extra"
+        ],
+        "spell_slots_by_level": [
+          4,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 6,
+        "prof_bonus": 3,
+        "features": [
+          "aura_di_protezione"
+        ],
+        "spell_slots_by_level": [
+          4,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 7,
+        "prof_bonus": 3,
+        "features": [],
+        "spell_slots_by_level": [
+          4,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 8,
+        "prof_bonus": 3,
+        "features": [
+          "asi"
+        ],
+        "spell_slots_by_level": [
+          4,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 9,
+        "prof_bonus": 4,
+        "features": [],
+        "spell_slots_by_level": [
+          4,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 10,
+        "prof_bonus": 4,
+        "features": [
+          "aura_di_coraggio"
+        ],
+        "spell_slots_by_level": [
+          4,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 11,
+        "prof_bonus": 4,
+        "features": [
+          "colpo_divino_migliorato"
+        ],
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 12,
+        "prof_bonus": 4,
+        "features": [
+          "asi"
+        ],
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 13,
+        "prof_bonus": 5,
+        "features": [],
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 14,
+        "prof_bonus": 5,
+        "features": [
+          "tocco_purificante",
+          "giuramento_sacro"
+        ],
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 15,
+        "prof_bonus": 5,
+        "features": [],
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 16,
+        "prof_bonus": 5,
+        "features": [
+          "asi"
+        ],
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 17,
+        "prof_bonus": 6,
+        "features": [],
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 18,
+        "prof_bonus": 6,
+        "features": [
+          "aura_di_protezione"
+        ],
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 19,
+        "prof_bonus": 6,
+        "features": [
+          "asi"
+        ],
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 20,
+        "prof_bonus": 6,
+        "features": [
+          "giuramento_sacro"
+        ],
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "features": [
+      {
+        "feature_key": "senso_divino",
+        "level": 1,
+        "name_it": "Senso Divino",
+        "description": "Percepire la presenza di celestiali, immondi e non morti entro raggio limitato per breve tempo. Usi basati su Carisma.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "imposizione_delle_mani",
+        "level": 1,
+        "name_it": "Imposizione delle Mani",
+        "description": "Hai una riserva di guarigione pari a 5 × livello da paladino per ripristinare PF o curare malattie/veleni.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "stile_di_combattimento",
+        "level": 2,
+        "name_it": "Stile di Combattimento",
+        "description": "Adotti uno stile di combattimento che ti fornisce un beneficio costante.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "incantesimi",
+        "level": 2,
+        "name_it": "Incantesimi",
+        "description": "Ottieni capacità di lanciare incantesimi da paladino, usando Carisma. Prepari un numero di incantesimi pari a Car + metà livello da paladino (arrotondato per difetto).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "colpo_divino",
+        "level": 2,
+        "name_it": "Colpo Divino",
+        "description": "Quando colpisci con un attacco in mischia, puoi spendere uno slot per infliggere danni radiosi extra; più danni contro immondi e non morti.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "salute_divina",
+        "level": 3,
+        "name_it": "Salute Divina",
+        "description": "Sei immune alle malattie.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "giuramento_sacro",
+        "level": 3,
+        "name_it": "Giuramento Sacro",
+        "description": "Scegli un giuramento che ti concede privilegi al 3°, 7°, 15° e 20° livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "attacco_extra",
+        "level": 5,
+        "name_it": "Attacco Extra",
+        "description": "Quando usi l’azione di Attacco, attacchi due volte.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "aura_di_protezione",
+        "level": 6,
+        "name_it": "Aura di Protezione",
+        "description": "Tu e alleati entro 3 m aggiungete il tuo modificatore di Carisma ai tiri salvezza (devi essere cosciente). Raggio aumenta al 18° livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "aura_di_coraggio",
+        "level": 10,
+        "name_it": "Aura di Coraggio",
+        "description": "Tu e alleati entro 3 m siete immuni alla condizione di spaventato (devi essere cosciente).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "colpo_divino_migliorato",
+        "level": 11,
+        "name_it": "Colpo Divino Migliorato",
+        "description": "Ogni tuo attacco in mischia infligge danni radiosi extra (senza spendere slot).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "tocco_purificante",
+        "level": 14,
+        "name_it": "Tocco Purificante",
+        "description": "Puoi terminare un incantesimo su di te o su una creatura toccata. Usi basati su Carisma.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "asi",
+        "level": 4,
+        "name_it": "Aumento dei Punteggi di Caratteristica",
+        "description": "Aumenti due punteggi di caratteristica di 1, oppure un punteggio di 2 (massimo 20). In alternativa, puoi scegliere un talento se l’opzione è in uso.",
+        "source": "SRD 5.1 CC"
+      }
+    ]
+  },
+  {
+    "code": "ranger",
+    "name_it": "Ranger",
+    "hit_die": 10,
+    "armor_proficiencies": [
+      "Armature leggere",
+      "Armature medie",
+      "Scudi"
+    ],
+    "weapon_proficiencies": [
+      "Armi semplici",
+      "Armi marziali"
+    ],
+    "tool_proficiencies": [],
+    "saving_throws": [
+      "for",
+      "des"
+    ],
+    "skill_choices": {
+      "choose": 3,
+      "from": [
+        "Addestrare Animali",
+        "Atletica",
+        "Furtività",
+        "Intuizione",
+        "Indagare",
+        "Natura",
+        "Percezione",
+        "Sopravvivenza"
+      ]
+    },
+    "starting_equipment": [
+      {
+        "choose_one": [
+          "cotta di maglia",
+          "armatura di cuoio"
+        ]
+      },
+      {
+        "choose_one": [
+          "due spade corte",
+          "due armi semplici da mischia"
+        ]
+      },
+      {
+        "choose_one": [
+          "un pacchetto da esploratore",
+          "un pacchetto da speleologo"
+        ]
+      },
+      "un arco lungo e una faretra con 20 frecce"
+    ],
+    "description": "Un esploratore e cacciatore che eccelle nel seguire tracce, sopravvivere nella natura e colpire con precisione.",
+    "source": "SRD 5.1 CC",
+    "spellcasting": {
+      "ability": "sag",
+      "type": "half"
+    },
+    "levels": [
+      {
+        "level": 1,
+        "prof_bonus": 2,
+        "features": [
+          "nemico_prescelto",
+          "esploratore_naturale"
+        ],
+        "spells_known": 0,
+        "spell_slots_by_level": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 2,
+        "prof_bonus": 2,
+        "features": [
+          "stile_di_combattimento",
+          "incantesimi"
+        ],
+        "spells_known": 2,
+        "spell_slots_by_level": [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 3,
+        "prof_bonus": 2,
+        "features": [
+          "archetipo_da_ranger",
+          "consapevolezza_primordiale"
+        ],
+        "spells_known": 3,
+        "spell_slots_by_level": [
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 4,
+        "prof_bonus": 2,
+        "features": [
+          "asi"
+        ],
+        "spells_known": 3,
+        "spell_slots_by_level": [
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 5,
+        "prof_bonus": 3,
+        "features": [
+          "attacco_extra"
+        ],
+        "spells_known": 4,
+        "spell_slots_by_level": [
+          4,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 6,
+        "prof_bonus": 3,
+        "features": [],
+        "spells_known": 4,
+        "spell_slots_by_level": [
+          4,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 7,
+        "prof_bonus": 3,
+        "features": [],
+        "spells_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 8,
+        "prof_bonus": 3,
+        "features": [
+          "asi",
+          "passo_del_territorio"
+        ],
+        "spells_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 9,
+        "prof_bonus": 4,
+        "features": [],
+        "spells_known": 6,
+        "spell_slots_by_level": [
+          4,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 10,
+        "prof_bonus": 4,
+        "features": [
+          "nascondersi_in_piena_vista"
+        ],
+        "spells_known": 6,
+        "spell_slots_by_level": [
+          4,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 11,
+        "prof_bonus": 4,
+        "features": [],
+        "spells_known": 7,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 12,
+        "prof_bonus": 4,
+        "features": [
+          "asi"
+        ],
+        "spells_known": 7,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 13,
+        "prof_bonus": 5,
+        "features": [],
+        "spells_known": 8,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 14,
+        "prof_bonus": 5,
+        "features": [
+          "svanire",
+          "archetipo_da_ranger"
+        ],
+        "spells_known": 8,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 15,
+        "prof_bonus": 5,
+        "features": [],
+        "spells_known": 9,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 16,
+        "prof_bonus": 5,
+        "features": [
+          "asi"
+        ],
+        "spells_known": 9,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 17,
+        "prof_bonus": 6,
+        "features": [],
+        "spells_known": 10,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 18,
+        "prof_bonus": 6,
+        "features": [
+          "sensi_ferini"
+        ],
+        "spells_known": 10,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 19,
+        "prof_bonus": 6,
+        "features": [
+          "asi"
+        ],
+        "spells_known": 11,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 20,
+        "prof_bonus": 6,
+        "features": [
+          "uccisore_di_nemici"
+        ],
+        "spells_known": 11,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "features": [
+      {
+        "feature_key": "nemico_prescelto",
+        "level": 1,
+        "name_it": "Nemico Prescelto",
+        "description": "Scegli un tipo di creatura come nemico prescelto: ottieni vantaggio a seguire tracce/ricordare info e apprendi una lingua correlata. Scelte aggiuntive col livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "esploratore_naturale",
+        "level": 1,
+        "name_it": "Esploratore Naturale",
+        "description": "Scegli un terreno favorito: ottieni benefici durante il viaggio e la sopravvivenza. Scegli terreni aggiuntivi col livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "stile_di_combattimento",
+        "level": 2,
+        "name_it": "Stile di Combattimento",
+        "description": "Adotti uno stile di combattimento (es. tiro, difesa, duellare, due armi).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "incantesimi",
+        "level": 2,
+        "name_it": "Incantesimi",
+        "description": "Ottieni capacità di lanciare incantesimi da ranger usando Saggezza. Conosci un numero di incantesimi da ranger che aumenta con il livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "archetipo_da_ranger",
+        "level": 3,
+        "name_it": "Archetipo da Ranger",
+        "description": "Scegli un archetipo (es. Cacciatore). Ottieni privilegi al 3°, 7°, 11° e 15° livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "consapevolezza_primordiale",
+        "level": 3,
+        "name_it": "Consapevolezza Primordiale",
+        "description": "Puoi spendere uno slot per percepire se certi tipi di creature (celestiali, draghi, elementali, fate, immondi, non morti) sono presenti entro distanza in base al terreno.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "attacco_extra",
+        "level": 5,
+        "name_it": "Attacco Extra",
+        "description": "Quando usi l’azione di Attacco, attacchi due volte.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "passo_del_territorio",
+        "level": 8,
+        "name_it": "Passo del Territorio",
+        "description": "Ignori terreno difficile non magico e hai vantaggio ai TS contro piante che ostacolano il movimento.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "nascondersi_in_piena_vista",
+        "level": 10,
+        "name_it": "Nascondersi in Piena Vista",
+        "description": "Puoi spendere 1 minuto per camuffarti e ottenere bonus alle prove di Furtività finché resti fermo.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "svanire",
+        "level": 14,
+        "name_it": "Svanire",
+        "description": "Puoi nasconderti come azione bonus e non puoi essere rintracciato con mezzi non magici se ti muovi al ritmo normale.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "sensi_ferini",
+        "level": 18,
+        "name_it": "Sensi Ferini",
+        "description": "Hai percezione acuta contro creature invisibili o nascoste entro 9 m, purché non siano completamente coperte.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "uccisore_di_nemici",
+        "level": 20,
+        "name_it": "Uccisore di Nemici",
+        "description": "Una volta per turno puoi aggiungere il tuo modificatore di Saggezza al tiro per colpire o ai danni contro un nemico prescelto.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "asi",
+        "level": 4,
+        "name_it": "Aumento dei Punteggi di Caratteristica",
+        "description": "Aumenti due punteggi di caratteristica di 1, oppure un punteggio di 2 (massimo 20). In alternativa, puoi scegliere un talento se l’opzione è in uso.",
+        "source": "SRD 5.1 CC"
+      }
+    ]
+  },
+  {
+    "code": "rogue",
+    "name_it": "Ladro",
+    "hit_die": 8,
+    "armor_proficiencies": [
+      "Armature leggere"
+    ],
+    "weapon_proficiencies": [
+      "Armi semplici",
+      "Balestre a mano",
+      "Spade lunghe",
+      "Spade corte",
+      "Rapiere"
+    ],
+    "tool_proficiencies": [
+      "Attrezzi da ladro"
+    ],
+    "saving_throws": [
+      "des",
+      "int"
+    ],
+    "skill_choices": {
+      "choose": 4,
+      "from": [
+        "Acrobazia",
+        "Atletica",
+        "Furtività",
+        "Inganno",
+        "Intimidire",
+        "Intuizione",
+        "Intrattenere",
+        "Indagare",
+        "Percezione",
+        "Persuasione",
+        "Rapidità di Mano",
+        "Storia"
+      ]
+    },
+    "starting_equipment": [
+      {
+        "choose_one": [
+          "una rapiera",
+          "una spada corta"
+        ]
+      },
+      {
+        "choose_one": [
+          "un arco corto e 20 frecce",
+          "una spada corta"
+        ]
+      },
+      {
+        "choose_one": [
+          "un pacchetto da ladruncolo",
+          "un pacchetto da esploratore",
+          "un pacchetto da diplomatico"
+        ]
+      },
+      "armatura di cuoio",
+      "due pugnali",
+      "attrezzi da ladro"
+    ],
+    "description": "Un esperto di furtività e precisione che colpisce nel momento giusto e aggira le difese con astuzia.",
+    "source": "SRD 5.1 CC",
+    "levels": [
+      {
+        "level": 1,
+        "prof_bonus": 2,
+        "features": [
+          "competenza_superiore",
+          "attacco_furtivo",
+          "gergo_dei_ladri"
+        ]
+      },
+      {
+        "level": 2,
+        "prof_bonus": 2,
+        "features": [
+          "azione_scaltra"
+        ]
+      },
+      {
+        "level": 3,
+        "prof_bonus": 2,
+        "features": [
+          "archetipo_canaglia"
+        ]
+      },
+      {
+        "level": 4,
+        "prof_bonus": 2,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 5,
+        "prof_bonus": 3,
+        "features": [
+          "schivata_prodigiosa"
+        ]
+      },
+      {
+        "level": 6,
+        "prof_bonus": 3,
+        "features": [
+          "competenza_superiore"
+        ]
+      },
+      {
+        "level": 7,
+        "prof_bonus": 3,
+        "features": [
+          "elusione"
+        ]
+      },
+      {
+        "level": 8,
+        "prof_bonus": 3,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 9,
+        "prof_bonus": 4,
+        "features": [
+          "archetipo_canaglia"
+        ]
+      },
+      {
+        "level": 10,
+        "prof_bonus": 4,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 11,
+        "prof_bonus": 4,
+        "features": [
+          "talento_affidabile"
+        ]
+      },
+      {
+        "level": 12,
+        "prof_bonus": 4,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 13,
+        "prof_bonus": 5,
+        "features": [
+          "archetipo_canaglia"
+        ]
+      },
+      {
+        "level": 14,
+        "prof_bonus": 5,
+        "features": [
+          "senso_cieco"
+        ]
+      },
+      {
+        "level": 15,
+        "prof_bonus": 5,
+        "features": [
+          "mente_scivolosa"
+        ]
+      },
+      {
+        "level": 16,
+        "prof_bonus": 5,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 17,
+        "prof_bonus": 6,
+        "features": [
+          "archetipo_canaglia"
+        ]
+      },
+      {
+        "level": 18,
+        "prof_bonus": 6,
+        "features": [
+          "inafferrabile"
+        ]
+      },
+      {
+        "level": 19,
+        "prof_bonus": 6,
+        "features": [
+          "asi"
+        ]
+      },
+      {
+        "level": 20,
+        "prof_bonus": 6,
+        "features": [
+          "colpo_di_fortuna"
+        ]
+      }
+    ],
+    "features": [
+      {
+        "feature_key": "competenza_superiore",
+        "level": 1,
+        "name_it": "Competenza Superiore",
+        "description": "Scegli due abilità (o una abilità e gli attrezzi da ladro) in cui sei competente: raddoppi il bonus di competenza per le prove relative. Ottieni altre competenze superiori al 6° livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "attacco_furtivo",
+        "level": 1,
+        "name_it": "Attacco Furtivo",
+        "description": "Una volta per turno infliggi danni extra a una creatura colpita con un’arma a distanza o con Finesse se hai vantaggio, o se un alleato è adiacente al bersaglio. I dadi extra aumentano col livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "gergo_dei_ladri",
+        "level": 1,
+        "name_it": "Gergo dei Ladri",
+        "description": "Conosci un linguaggio segreto usato dai ladri.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "azione_scaltra",
+        "level": 2,
+        "name_it": "Azione Scaltra",
+        "description": "Puoi usare un’azione bonus per Scattare, Disimpegnarti o Nasconderti.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "archetipo_canaglia",
+        "level": 3,
+        "name_it": "Archetipo da Canaglia",
+        "description": "Scegli un archetipo (es. Ladro). Ottieni privilegi al 3°, 9°, 13° e 17° livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "schivata_prodigiosa",
+        "level": 5,
+        "name_it": "Schivata Prodigiosa",
+        "description": "Quando un attaccante che puoi vedere ti colpisce, puoi usare la reazione per dimezzare i danni dell’attacco.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "elusione",
+        "level": 7,
+        "name_it": "Elusione",
+        "description": "Quando effettui un TS Des per dimezzare danni, se lo superi non subisci danni, se lo fallisci subisci metà.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "talento_affidabile",
+        "level": 11,
+        "name_it": "Talento Affidabile",
+        "description": "Quando effettui una prova di caratteristica con un’abilità in cui sei competente, un d20 che mostra 9 o meno conta come 10.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "senso_cieco",
+        "level": 14,
+        "name_it": "Senso Cieco",
+        "description": "Se puoi sentire, percepisci la posizione di creature nascoste o invisibili entro 3 m.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "mente_scivolosa",
+        "level": 15,
+        "name_it": "Mente Scivolosa",
+        "description": "Ottieni competenza nei tiri salvezza su Saggezza.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "inafferrabile",
+        "level": 18,
+        "name_it": "Inafferrabile",
+        "description": "Nessun tiro per colpire contro di te ha vantaggio finché non sei incapacitato.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "colpo_di_fortuna",
+        "level": 20,
+        "name_it": "Colpo di Fortuna",
+        "description": "Se manchi un tiro per colpire, puoi trasformarlo in un colpo. In alternativa, se fallisci una prova di caratteristica, puoi considerare il d20 come 20. Recuperi l’uso con un riposo breve o lungo.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "asi",
+        "level": 4,
+        "name_it": "Aumento dei Punteggi di Caratteristica",
+        "description": "Aumenti due punteggi di caratteristica di 1, oppure un punteggio di 2 (massimo 20). In alternativa, puoi scegliere un talento se l’opzione è in uso.",
+        "source": "SRD 5.1 CC"
+      }
+    ]
+  },
+  {
+    "code": "sorcerer",
+    "name_it": "Stregone",
+    "hit_die": 6,
+    "armor_proficiencies": [],
+    "weapon_proficiencies": [
+      "Daghe",
+      "Dardi",
+      "Fionde",
+      "Bastoni",
+      "Balestre leggere"
+    ],
+    "tool_proficiencies": [],
+    "saving_throws": [
+      "con",
+      "car"
+    ],
+    "skill_choices": {
+      "choose": 2,
+      "from": [
+        "Arcano",
+        "Inganno",
+        "Intuizione",
+        "Intimidire",
+        "Persuasione",
+        "Religione"
+      ]
+    },
+    "starting_equipment": [
+      {
+        "choose_one": [
+          "una balestra leggera e 20 quadrelli",
+          "una qualsiasi arma semplice"
+        ]
+      },
+      {
+        "choose_one": [
+          "una borsa per componenti",
+          "un focus arcano"
+        ]
+      },
+      {
+        "choose_one": [
+          "un pacchetto da avventuriero",
+          "un pacchetto da speleologo"
+        ]
+      },
+      "due pugnali"
+    ],
+    "description": "Un incantatore innato la cui magia scaturisce da un’eredità o da un evento soprannaturale, capace di plasmare gli incantesimi con la metamagia.",
+    "source": "SRD 5.1 CC",
+    "spellcasting": {
+      "ability": "car",
+      "type": "full"
+    },
+    "levels": [
+      {
+        "level": 1,
+        "prof_bonus": 2,
+        "features": [
+          "incantesimi",
+          "origine_stregonesca"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 2,
+        "spell_slots_by_level": [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 2,
+        "prof_bonus": 2,
+        "features": [
+          "fonte_di_magia"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 3,
+        "spell_slots_by_level": [
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 3,
+        "prof_bonus": 2,
+        "features": [
+          "metamagia"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 4,
+        "spell_slots_by_level": [
+          4,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 4,
+        "prof_bonus": 2,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 5,
+        "spells_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 5,
+        "prof_bonus": 3,
+        "features": [],
+        "cantrips_known": 5,
+        "spells_known": 6,
+        "spell_slots_by_level": [
+          4,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 6,
+        "prof_bonus": 3,
+        "features": [
+          "origine_stregonesca"
+        ],
+        "cantrips_known": 5,
+        "spells_known": 7,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 7,
+        "prof_bonus": 3,
+        "features": [],
+        "cantrips_known": 5,
+        "spells_known": 8,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 8,
+        "prof_bonus": 3,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 5,
+        "spells_known": 9,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 9,
+        "prof_bonus": 4,
+        "features": [],
+        "cantrips_known": 5,
+        "spells_known": 10,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 10,
+        "prof_bonus": 4,
+        "features": [
+          "metamagia"
+        ],
+        "cantrips_known": 6,
+        "spells_known": 11,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 11,
+        "prof_bonus": 4,
+        "features": [],
+        "cantrips_known": 6,
+        "spells_known": 12,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 12,
+        "prof_bonus": 4,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 6,
+        "spells_known": 12,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 13,
+        "prof_bonus": 5,
+        "features": [],
+        "cantrips_known": 6,
+        "spells_known": 13,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 14,
+        "prof_bonus": 5,
+        "features": [
+          "origine_stregonesca"
+        ],
+        "cantrips_known": 6,
+        "spells_known": 13,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 15,
+        "prof_bonus": 5,
+        "features": [],
+        "cantrips_known": 6,
+        "spells_known": 14,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "level": 16,
+        "prof_bonus": 5,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 6,
+        "spells_known": 14,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "level": 17,
+        "prof_bonus": 6,
+        "features": [
+          "metamagia"
+        ],
+        "cantrips_known": 6,
+        "spells_known": 15,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 18,
+        "prof_bonus": 6,
+        "features": [
+          "origine_stregonesca"
+        ],
+        "cantrips_known": 6,
+        "spells_known": 15,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 19,
+        "prof_bonus": 6,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 6,
+        "spells_known": 15,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 20,
+        "prof_bonus": 6,
+        "features": [
+          "ripristino_stregonesco"
+        ],
+        "cantrips_known": 6,
+        "spells_known": 15,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          2,
+          2,
+          1,
+          1
+        ]
+      }
+    ],
+    "features": [
+      {
+        "feature_key": "incantesimi",
+        "level": 1,
+        "name_it": "Incantesimi",
+        "description": "Lanci incantesimi da stregone usando Carisma. Conosci trucchetti e un numero di incantesimi, scelti dalla lista dello stregone.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "origine_stregonesca",
+        "level": 1,
+        "name_it": "Origine Stregonesca",
+        "description": "Scegli un’origine (es. Discendenza Draconica) che ti concede privilegi al 1°, 6°, 14° e 18° livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "fonte_di_magia",
+        "level": 2,
+        "name_it": "Fonte di Magia",
+        "description": "Ottieni punti stregoneria che puoi convertire in slot incantesimo o viceversa e alimentare la metamagia.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "metamagia",
+        "level": 3,
+        "name_it": "Metamagia",
+        "description": "Impari opzioni di metamagia che modificano i tuoi incantesimi (es. Estesa, Potenziata). Ne ottieni altre al 10° e 17° livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "ripristino_stregonesco",
+        "level": 20,
+        "name_it": "Ripristino Stregonesco",
+        "description": "Dopo un riposo breve recuperi 4 punti stregoneria se ne hai 0.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "asi",
+        "level": 4,
+        "name_it": "Aumento dei Punteggi di Caratteristica",
+        "description": "Aumenti due punteggi di caratteristica di 1, oppure un punteggio di 2 (massimo 20). In alternativa, puoi scegliere un talento se l’opzione è in uso.",
+        "source": "SRD 5.1 CC"
+      }
+    ]
+  },
+  {
+    "code": "warlock",
+    "name_it": "Warlock",
+    "hit_die": 8,
+    "armor_proficiencies": [
+      "Armature leggere"
+    ],
+    "weapon_proficiencies": [
+      "Armi semplici"
+    ],
+    "tool_proficiencies": [],
+    "saving_throws": [
+      "sag",
+      "car"
+    ],
+    "skill_choices": {
+      "choose": 2,
+      "from": [
+        "Arcano",
+        "Indagare",
+        "Inganno",
+        "Intimidire",
+        "Natura",
+        "Religione",
+        "Storia"
+      ]
+    },
+    "starting_equipment": [
+      {
+        "choose_one": [
+          "una balestra leggera e 20 quadrelli",
+          "una qualsiasi arma semplice"
+        ]
+      },
+      {
+        "choose_one": [
+          "una borsa per componenti",
+          "un focus arcano"
+        ]
+      },
+      {
+        "choose_one": [
+          "una dotazione da studioso",
+          "una dotazione da avventuriero"
+        ]
+      },
+      "armatura di cuoio",
+      "una qualsiasi arma semplice",
+      "due pugnali"
+    ],
+    "spellcasting": {
+      "ability": "car",
+      "type": "pact"
+    },
+    "description": "Un utilizzatore di magia che ottiene potere da un patto con un patrono ultraterreno. Lancia un numero ridotto di incantesimi ma sempre al livello più alto disponibile, e ottiene invocazioni che modificano le sue capacità.",
+    "source": "SRD 5.1 CC",
+    "levels": [
+      {
+        "level": 1,
+        "prof_bonus": 2,
+        "features": [
+          "patrono_ultraterreno",
+          "magia_del_patto"
+        ],
+        "cantrips_known": 2,
+        "spells_known": 2,
+        "spell_slots": 1,
+        "slot_level": 1,
+        "invocations_known": null
+      },
+      {
+        "level": 2,
+        "prof_bonus": 2,
+        "features": [
+          "suppliche_occulte"
+        ],
+        "cantrips_known": 2,
+        "spells_known": 3,
+        "spell_slots": 2,
+        "slot_level": 1,
+        "invocations_known": 2
+      },
+      {
+        "level": 3,
+        "prof_bonus": 2,
+        "features": [
+          "dono_del_patto"
+        ],
+        "cantrips_known": 2,
+        "spells_known": 4,
+        "spell_slots": 2,
+        "slot_level": 2,
+        "invocations_known": 2
+      },
+      {
+        "level": 4,
+        "prof_bonus": 2,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 3,
+        "spells_known": 5,
+        "spell_slots": 2,
+        "slot_level": 2,
+        "invocations_known": 2
+      },
+      {
+        "level": 5,
+        "prof_bonus": 3,
+        "features": [],
+        "cantrips_known": 3,
+        "spells_known": 6,
+        "spell_slots": 2,
+        "slot_level": 3,
+        "invocations_known": 3
+      },
+      {
+        "level": 6,
+        "prof_bonus": 3,
+        "features": [
+          "privilegio_patrono_ultraterreno"
+        ],
+        "cantrips_known": 3,
+        "spells_known": 7,
+        "spell_slots": 2,
+        "slot_level": 3,
+        "invocations_known": 3
+      },
+      {
+        "level": 7,
+        "prof_bonus": 3,
+        "features": [],
+        "cantrips_known": 3,
+        "spells_known": 8,
+        "spell_slots": 2,
+        "slot_level": 4,
+        "invocations_known": 4
+      },
+      {
+        "level": 8,
+        "prof_bonus": 3,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 3,
+        "spells_known": 9,
+        "spell_slots": 2,
+        "slot_level": 4,
+        "invocations_known": 4
+      },
+      {
+        "level": 9,
+        "prof_bonus": 4,
+        "features": [],
+        "cantrips_known": 3,
+        "spells_known": 10,
+        "spell_slots": 2,
+        "slot_level": 5,
+        "invocations_known": 5
+      },
+      {
+        "level": 10,
+        "prof_bonus": 4,
+        "features": [
+          "privilegio_patrono_ultraterreno"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 10,
+        "spell_slots": 2,
+        "slot_level": 5,
+        "invocations_known": 5
+      },
+      {
+        "level": 11,
+        "prof_bonus": 4,
+        "features": [
+          "arcanum_mistico_6"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 11,
+        "spell_slots": 3,
+        "slot_level": 5,
+        "invocations_known": 5
+      },
+      {
+        "level": 12,
+        "prof_bonus": 4,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 11,
+        "spell_slots": 3,
+        "slot_level": 5,
+        "invocations_known": 6
+      },
+      {
+        "level": 13,
+        "prof_bonus": 5,
+        "features": [
+          "arcanum_mistico_7"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 12,
+        "spell_slots": 3,
+        "slot_level": 5,
+        "invocations_known": 6
+      },
+      {
+        "level": 14,
+        "prof_bonus": 5,
+        "features": [
+          "privilegio_patrono_ultraterreno"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 12,
+        "spell_slots": 3,
+        "slot_level": 5,
+        "invocations_known": 6
+      },
+      {
+        "level": 15,
+        "prof_bonus": 5,
+        "features": [
+          "arcanum_mistico_8"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 13,
+        "spell_slots": 3,
+        "slot_level": 5,
+        "invocations_known": 7
+      },
+      {
+        "level": 16,
+        "prof_bonus": 5,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 13,
+        "spell_slots": 3,
+        "slot_level": 5,
+        "invocations_known": 7
+      },
+      {
+        "level": 17,
+        "prof_bonus": 6,
+        "features": [
+          "arcanum_mistico_9"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 14,
+        "spell_slots": 4,
+        "slot_level": 5,
+        "invocations_known": 7
+      },
+      {
+        "level": 18,
+        "prof_bonus": 6,
+        "features": [],
+        "cantrips_known": 4,
+        "spells_known": 14,
+        "spell_slots": 4,
+        "slot_level": 5,
+        "invocations_known": 8
+      },
+      {
+        "level": 19,
+        "prof_bonus": 6,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 15,
+        "spell_slots": 4,
+        "slot_level": 5,
+        "invocations_known": 8
+      },
+      {
+        "level": 20,
+        "prof_bonus": 6,
+        "features": [
+          "maestro_dell_occulto"
+        ],
+        "cantrips_known": 4,
+        "spells_known": 15,
+        "spell_slots": 4,
+        "slot_level": 5,
+        "invocations_known": 8
+      }
+    ],
+    "features": [
+      {
+        "feature_key": "patrono_ultraterreno",
+        "level": 1,
+        "name_it": "Patrono Ultraterreno",
+        "description": "Stipuli un patto con un essere ultraterreno (es. Signore Fatato, Immondo o Grande Antico). La scelta ti concede privilegi al 1°, 6°, 10° e 14° livello (dipendono dal patrono scelto)."
+      },
+      {
+        "feature_key": "magia_del_patto",
+        "level": 1,
+        "name_it": "Magia del Patto",
+        "description": "Ottieni la capacità di lanciare incantesimi da warlock. Conosci un numero limitato di incantesimi e li lanci usando gli Slot Incantesimo della Magia del Patto, che si ricaricano con un riposo breve o lungo. Usi Carisma come caratteristica da incantatore."
+      },
+      {
+        "feature_key": "suppliche_occulte",
+        "level": 2,
+        "name_it": "Suppliche Occulte",
+        "description": "Impari invocazioni occulte, poteri speciali che personalizzano il warlock. Ne conosci 2 al 2° livello e ne apprendi altre salendo di livello; alcune richiedono un livello minimo."
+      },
+      {
+        "feature_key": "dono_del_patto",
+        "level": 3,
+        "name_it": "Dono del Patto",
+        "description": "Scegli un dono che definisce un aspetto del tuo patto: Patto della Catena, della Lama o del Tomo. Il dono ti concede capacità specifiche e può sbloccare invocazioni dedicate."
+      },
+      {
+        "feature_key": "asi",
+        "level": 4,
+        "name_it": "Aumento dei Punteggi di Caratteristica",
+        "description": "Aumenti due punteggi di caratteristica di 1, oppure un punteggio di 2 (massimo 20). In alternativa, puoi scegliere un talento se l’opzione è in uso."
+      },
+      {
+        "feature_key": "privilegio_patrono_ultraterreno",
+        "level": 6,
+        "name_it": "Privilegio del Patrono Ultraterreno",
+        "description": "Ottieni un privilegio aggiuntivo dal tuo patrono al 6° livello (e di nuovo al 10° e 14° livello), in base al patrono scelto."
+      },
+      {
+        "feature_key": "arcanum_mistico_6",
+        "level": 11,
+        "name_it": "Arcanum Mistico (6° livello)",
+        "description": "Scegli un incantesimo da warlock di 6° livello come arcanum. Puoi lanciarlo una volta senza consumare slot, recuperando l’uso con un riposo lungo."
+      },
+      {
+        "feature_key": "arcanum_mistico_7",
+        "level": 13,
+        "name_it": "Arcanum Mistico (7° livello)",
+        "description": "Scegli un incantesimo da warlock di 7° livello come arcanum. Puoi lanciarlo una volta senza consumare slot, recuperando l’uso con un riposo lungo."
+      },
+      {
+        "feature_key": "arcanum_mistico_8",
+        "level": 15,
+        "name_it": "Arcanum Mistico (8° livello)",
+        "description": "Scegli un incantesimo da warlock di 8° livello come arcanum. Puoi lanciarlo una volta senza consumare slot, recuperando l’uso con un riposo lungo."
+      },
+      {
+        "feature_key": "arcanum_mistico_9",
+        "level": 17,
+        "name_it": "Arcanum Mistico (9° livello)",
+        "description": "Scegli un incantesimo da warlock di 9° livello come arcanum. Puoi lanciarlo una volta senza consumare slot, recuperando l’uso con un riposo lungo."
+      },
+      {
+        "feature_key": "maestro_dell_occulto",
+        "level": 20,
+        "name_it": "Maestro dell'Occulto",
+        "description": "In un minuto puoi supplicare il tuo patrono per recuperare tutti gli slot della Magia del Patto. Dopo aver usato questo privilegio, devi completare un riposo lungo prima di poterlo usare di nuovo."
+      }
+    ]
+  },
+  {
+    "code": "wizard",
+    "name_it": "Mago",
+    "hit_die": 6,
+    "armor_proficiencies": [],
+    "weapon_proficiencies": [
+      "Daghe",
+      "Dardi",
+      "Fionde",
+      "Bastoni",
+      "Balestre leggere"
+    ],
+    "tool_proficiencies": [],
+    "saving_throws": [
+      "int",
+      "sag"
+    ],
+    "skill_choices": {
+      "choose": 2,
+      "from": [
+        "Arcano",
+        "Storia",
+        "Intuizione",
+        "Indagare",
+        "Medicina",
+        "Religione"
+      ]
+    },
+    "starting_equipment": [
+      {
+        "choose_one": [
+          "una borsa per componenti",
+          "un focus arcano"
+        ]
+      },
+      {
+        "choose_one": [
+          "un pacchetto da studioso",
+          "un pacchetto da avventuriero"
+        ]
+      },
+      "un libro degli incantesimi"
+    ],
+    "description": "Uno studioso della magia che apprende incantesimi attraverso studio e pratica, custodendo un vasto repertorio nel suo libro.",
+    "source": "SRD 5.1 CC",
+    "spellcasting": {
+      "ability": "int",
+      "type": "full"
+    },
+    "levels": [
+      {
+        "level": 1,
+        "prof_bonus": 2,
+        "features": [
+          "incantesimi",
+          "recupero_arcano"
+        ],
+        "cantrips_known": 3,
+        "spell_slots_by_level": [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 2,
+        "prof_bonus": 2,
+        "features": [
+          "tradizione_arcana"
+        ],
+        "cantrips_known": 3,
+        "spell_slots_by_level": [
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 3,
+        "prof_bonus": 2,
+        "features": [],
+        "cantrips_known": 3,
+        "spell_slots_by_level": [
+          4,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 4,
+        "prof_bonus": 2,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 5,
+        "prof_bonus": 3,
+        "features": [],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 6,
+        "prof_bonus": 3,
+        "features": [
+          "tradizione_arcana"
+        ],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 7,
+        "prof_bonus": 3,
+        "features": [],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 8,
+        "prof_bonus": 3,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 9,
+        "prof_bonus": 4,
+        "features": [],
+        "cantrips_known": 4,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          1,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 10,
+        "prof_bonus": 4,
+        "features": [
+          "tradizione_arcana"
+        ],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 11,
+        "prof_bonus": 4,
+        "features": [],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 12,
+        "prof_bonus": 4,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 13,
+        "prof_bonus": 5,
+        "features": [],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 14,
+        "prof_bonus": 5,
+        "features": [
+          "tradizione_arcana"
+        ],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "level": 15,
+        "prof_bonus": 5,
+        "features": [],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "level": 16,
+        "prof_bonus": 5,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "level": 17,
+        "prof_bonus": 6,
+        "features": [],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 18,
+        "prof_bonus": 6,
+        "features": [
+          "maestria_magica"
+        ],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 19,
+        "prof_bonus": 6,
+        "features": [
+          "asi"
+        ],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "level": 20,
+        "prof_bonus": 6,
+        "features": [
+          "incantesimi_firma"
+        ],
+        "cantrips_known": 5,
+        "spell_slots_by_level": [
+          4,
+          3,
+          3,
+          3,
+          3,
+          2,
+          2,
+          1,
+          1
+        ]
+      }
+    ],
+    "features": [
+      {
+        "feature_key": "incantesimi",
+        "level": 1,
+        "name_it": "Incantesimi",
+        "description": "Lanci incantesimi da mago usando Intelligenza e un libro degli incantesimi. Prepari ogni giorno un numero di incantesimi pari a Int + livello da mago (minimo 1), scelti dal tuo libro.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "recupero_arcano",
+        "level": 1,
+        "name_it": "Recupero Arcano",
+        "description": "Dopo un riposo breve puoi recuperare slot incantesimo (fino a un totale di livelli pari a metà livello da mago).",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "tradizione_arcana",
+        "level": 2,
+        "name_it": "Tradizione Arcana",
+        "description": "Scegli una scuola o tradizione (es. Invocazione). Ottieni privilegi al 2°, 6°, 10° e 14° livello.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "maestria_magica",
+        "level": 18,
+        "name_it": "Maestria Magica",
+        "description": "Scegli un incantesimo di 1° e uno di 2° livello dal tuo libro: li puoi lanciare a volontà senza consumare slot.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "incantesimi_firma",
+        "level": 20,
+        "name_it": "Incantesimi Firma",
+        "description": "Scegli due incantesimi di 3° livello dal tuo libro: li lanci una volta ciascuno senza consumare slot e recuperi con un riposo breve o lungo.",
+        "source": "SRD 5.1 CC"
+      },
+      {
+        "feature_key": "asi",
+        "level": 4,
+        "name_it": "Aumento dei Punteggi di Caratteristica",
+        "description": "Aumenti due punteggi di caratteristica di 1, oppure un punteggio di 2 (massimo 20). In alternativa, puoi scegliere un talento se l’opzione è in uso.",
+        "source": "SRD 5.1 CC"
+      }
+    ]
+  }
+]

@@ -99,6 +99,69 @@ def ensure_schema(conn: sqlite3.Connection) -> None:
             name_it TEXT NOT NULL
         );
 
+        -- Dettagli classi (SRD)
+        -- Nota: teniamo JSON per liste/choice così evitiamo migrazioni frequenti.
+        CREATE TABLE IF NOT EXISTS class_details (
+            class_code TEXT PRIMARY KEY,
+            hit_die INTEGER NOT NULL,
+
+            armor_proficiencies_json TEXT,
+            weapon_proficiencies_json TEXT,
+            tool_proficiencies_json TEXT,
+            saving_throws_json TEXT,
+            skill_choices_json TEXT,
+            starting_equipment_json TEXT,
+
+            spellcasting_ability TEXT,   -- es: "car" per Warlock
+            spellcasting_type TEXT,      -- es: "pact", "full", "half", "none"
+
+            description TEXT,
+            source TEXT,
+
+            FOREIGN KEY (class_code) REFERENCES classes(code) ON DELETE CASCADE
+        );
+
+        -- Progressione per livello (per automatismi UI)
+        CREATE TABLE IF NOT EXISTS class_levels (
+            class_code TEXT NOT NULL,
+            level INTEGER NOT NULL,
+
+            prof_bonus INTEGER NOT NULL,
+            features_json TEXT,          -- lista di feature_key (ordine importante)
+
+            -- campi comuni (NULL se non applicabili)
+            cantrips_known INTEGER,
+            spells_known INTEGER,
+            -- Per Warlock (Magia del Patto): numero slot e loro livello
+            spell_slots INTEGER,
+            slot_level INTEGER,
+
+            -- Per incantatori "normali": lista slot per livello [1..9]
+            spell_slots_json TEXT,
+            invocations_known INTEGER,
+
+            PRIMARY KEY (class_code, level),
+            FOREIGN KEY (class_code) REFERENCES classes(code) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_class_levels_code ON class_levels(class_code);
+
+        -- Dettaglio privilegi/feature (testo SRD o parafrasi)
+        CREATE TABLE IF NOT EXISTS class_features (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            class_code TEXT NOT NULL,
+            feature_key TEXT NOT NULL,
+            level INTEGER NOT NULL,
+            name_it TEXT NOT NULL,
+            description TEXT,
+            source TEXT,
+
+            UNIQUE (class_code, feature_key),
+            FOREIGN KEY (class_code) REFERENCES classes(code) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_class_features_code ON class_features(class_code);
+
         -- Molti-a-molti: quali classi hanno accesso a quali incantesimi
         CREATE TABLE IF NOT EXISTS spell_classes (
             spell_id INTEGER NOT NULL,
@@ -194,5 +257,22 @@ def ensure_schema(conn: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_character_spells_character ON character_spells(character_id);
         CREATE INDEX IF NOT EXISTS idx_character_spells_spell ON character_spells(spell_id);
         """
+    )
+
+    # -------------------------
+    # Migrazioni leggere (ALTER TABLE)
+    # -------------------------
+    # Nota: CREATE TABLE IF NOT EXISTS non aggiunge colonne nuove su DB esistenti.
+    # Qui aggiungiamo le colonne mancanti in modo idempotente.
+
+    def _ensure_column(table: str, column: str, ddl: str) -> None:
+        cols = [r[1] for r in conn.execute(f"PRAGMA table_info({table});").fetchall()]
+        if column not in cols:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {ddl};")
+
+    _ensure_column(
+        "class_levels",
+        "spell_slots_json",
+        "spell_slots_json TEXT",
     )
     conn.commit()
