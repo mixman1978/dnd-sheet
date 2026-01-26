@@ -1,5 +1,5 @@
 from __future__ import annotations
-import json,sys
+import json,sys, re
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -10,6 +10,55 @@ from engine.db import connect, ensure_schema
 
 DATASET = Path("db/datasets/spells_srd_it.json")
 
+SCHOOL_WORDS = [
+    "Abiurazione",
+    "Ammaliamento",
+    "Divinazione",
+    "Evocazione",
+    "Illusione",
+    "Invocazione",
+    "Necromanzia",
+    "Trasmutazione",
+]
+
+def make_description_cleaner(spells: list[dict]):
+    """
+    Rimuove code spurie del tipo:
+      <Nome Incantesimo Successivo>\n<Scuola di X° livello ...>
+    che a volte finiscono in coda alla descrizione per via dell’estrazione PDF.
+    """
+    names = []
+    for s in spells:
+        if isinstance(s, dict) and s.get("name_it"):
+            names.append(str(s["name_it"]))
+
+    # Evita match parziali: più lunghi prima
+    uniq = sorted(set(names), key=len, reverse=True)
+    if not uniq:
+        return lambda txt: (txt, False)
+
+    name_alt = "|".join(re.escape(n) for n in uniq)
+    school_alt = "|".join(SCHOOL_WORDS)
+    header_re = rf"(?:Trucchetto\s+di\s+[A-Za-zÀ-ÖØ-öø-ÿ]+|(?:{school_alt})\s+di\s+\d+°\s+livello(?:\s*\(rituale\))?)"
+
+    tail_re = re.compile(
+        rf"(?P<prefix>[\s\S]*?)(?:\n|\s)*(?P<name>(?:{name_alt}))\s*\n(?P<header>{header_re})\s*$",
+        re.IGNORECASE,
+    )
+    tail_re2 = re.compile(
+        rf"(?P<prefix>[\s\S]*?)[\.\!\?\…]\s*(?P<name>(?:{name_alt}))\s*\n(?P<header>{header_re})\s*$",
+        re.IGNORECASE,
+    )
+
+    def clean(text: str):
+        if not text:
+            return text, False
+        m = tail_re2.match(text) or tail_re.match(text)
+        if not m:
+            return text, False
+        return m.group("prefix").rstrip(), True
+
+    return clean
 
 
 
@@ -115,6 +164,9 @@ def main() -> None:
         raise SystemExit(f"Dataset non trovato: {DATASET}")
 
     spells = json.loads(DATASET.read_text(encoding="utf-8"))
+    clean_desc = make_description_cleaner(spells)
+    fixed_desc = 0
+
     if not isinstance(spells, list):
         raise SystemExit("Dataset non valido: atteso array JSON")
 
@@ -132,6 +184,12 @@ def main() -> None:
             if not s.get("slug") or not s.get("name_it"):
                 continue
 
+            d = s.get("description", "")
+            nd, changed = clean_desc(d if isinstance(d, str) else "")
+            if changed:
+                s["description"] = nd
+                fixed_desc += 1
+
             spell_id = upsert_spell(conn, s)
 
             # mapping classi (se presente nel dataset)
@@ -143,7 +201,8 @@ def main() -> None:
 
         conn.commit()
 
-    print(f"OK: importate/aggiornate {imported} spell nel DB.")
+    print(f"OK: importate/aggiornate {imported} spell nel DB. Descrizioni ripulite: {fixed_desc}.")
+
 
 if __name__ == "__main__":
     main()
