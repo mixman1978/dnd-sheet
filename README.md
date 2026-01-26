@@ -20,6 +20,7 @@ pip install -r requirements.txt
 # Creazione del DB
 è necessario che nella cartella db non ci sia il file dnd_sheet.sqlite3
 
+```bash
 # importazione delle taballe
 python scripts/import_spells_srd.py
 
@@ -30,3 +31,4 @@ python scripts/seed_classes.py
 python scripts/convert_monsters_cc_srd_to_dataset.py
 python scripts/import_monsters_srd.py
 
+```
