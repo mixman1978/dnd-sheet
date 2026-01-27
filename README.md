@@ -31,3 +31,12 @@ python scripts/seed_classes.py
 python scripts/import_monsters_srd.py
 
 ```
+
+## Salvataggi PG
+- Compila il personaggio e clicca **Salva** (usa il campo Nome come chiave univoca).
+- Usa il menu **Personaggi salvati** + **Carica** per ripristinare dal DB.
+- **Export JSON** scarica lo stato completo del PG corrente.
+- **Import** accetta un file `.json` esportato e lo normalizza automaticamente.
+- Salva/Carica/Import aggiornano `session["pg"]` senza cambiare i calcoli.
+- **Pulisci PG** cancella solo la tabella `characters` (personaggi salvati).
+- Non tocca cataloghi come spells o monsters.

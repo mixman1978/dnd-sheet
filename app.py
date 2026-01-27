@@ -2,13 +2,43 @@ from __future__ import annotations
 
 import json
 from typing import Any
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import (
+    Flask,
+    Response,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
+from engine.characters import (
+    delete_character as delete_character_in_db,
+    list_characters,
+    load_character as load_character_from_db,
+    purge_characters as purge_characters_in_db,
+    save_character as save_character_to_db,
+)
+from engine.db import connect, ensure_schema
 from engine.rules import (
-    STATS, STAT_LABEL, CLASSES, LINEAGES, LINEAGE_BONUS, ALIGNMENTS, SKILLS
+    STATS,
+    STAT_LABEL,
+    CLASSES,
+    LINEAGES,
+    LINEAGE_BONUS,
+    ALIGNMENTS,
+    SKILLS,
 )
 from engine.calc import (
-    mod, prof_bonus, total_stats, hp_max, hit_die, class_skill_choices, saving_throws
+    mod,
+    prof_bonus,
+    total_stats,
+    hp_max,
+    hit_die,
+    class_skill_choices,
+    saving_throws,
+    spellcasting_ability,
 )
 
 DEFAULT_PG = {
@@ -22,11 +52,16 @@ DEFAULT_PG = {
     "skills_proficient": [],
     "hp_current": 0,
     "hp_temp": 0,
-
+    # Combat basics (phase 2 foundation)
+    "ac_base": 10,
+    "ac_bonus": 0,
+    "speed": 9,
 }
+
 
 def new_pg() -> dict:
     return json.loads(json.dumps(DEFAULT_PG, ensure_ascii=False))
+
 
 def clamp_int(v: Any, default: int, min_v: int | None = None, max_v: int | None = None) -> int:
     try:
@@ -39,8 +74,10 @@ def clamp_int(v: Any, default: int, min_v: int | None = None, max_v: int | None 
         x = min(max_v, x)
     return x
 
+
 def normalize_choice(v: Any, options: list[str], default: str) -> str:
     return v if isinstance(v, str) and v in options else default
+
 
 def ensure_lineage_state(pg: dict) -> None:
     if not str(pg.get("lineage", "")).startswith("Mezzelfo"):
@@ -60,6 +97,7 @@ def ensure_lineage_state(pg: dict) -> None:
     if pg["lineage_extra_stats"][0] and pg["lineage_extra_stats"][0] == pg["lineage_extra_stats"][1]:
         pg["lineage_extra_stats"][1] = None
 
+
 def get_lineage_bonus(pg: dict) -> dict:
     base_bonus = dict(LINEAGE_BONUS.get(pg.get("lineage"), {}) or {})
 
@@ -74,8 +112,9 @@ def get_lineage_bonus(pg: dict) -> dict:
 
     return base_bonus
 
-def get_pg() -> dict:
-    pg = session.get("pg")
+
+def normalize_pg(pg: Any) -> dict:
+    """Normalize an arbitrary PG payload to the shape expected by the UI."""
     pg = pg if isinstance(pg, dict) else new_pg()
 
     pg["lineage"] = normalize_choice(pg.get("lineage"), LINEAGES, "Nessuno")
@@ -93,16 +132,53 @@ def get_pg() -> dict:
 
     pg["hp_current"] = clamp_int(pg.get("hp_current"), 0, 0, 999)
     pg["hp_temp"] = clamp_int(pg.get("hp_temp"), 0, 0, 999)
+    pg["ac_base"] = clamp_int(pg.get("ac_base"), 10, 1, 30)
+    pg["ac_bonus"] = clamp_int(pg.get("ac_bonus"), 0, -10, 20)
+    pg["speed"] = clamp_int(pg.get("speed"), 9, 0, 60)
 
     ensure_lineage_state(pg)
     return pg
 
+
+def get_pg() -> dict:
+    pg = session.get("pg")
+    return normalize_pg(pg)
+
+
 def save_pg(pg: dict) -> None:
     session["pg"] = pg
+
+
+def _safe_filename_from_name(name: str | None) -> str:
+    raw = (name or "personaggio").strip() or "personaggio"
+    safe = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in raw)
+    return f"{safe[:60]}.json"
+
+
+def _current_session_character_id() -> int | None:
+    """Best-effort lookup of the DB id for the character currently in session."""
+    pg = session.get("pg")
+    if not isinstance(pg, dict):
+        return None
+    name = (pg.get("nome") or "").strip()
+    if not name:
+        return None
+    try:
+        with connect() as conn:
+            ensure_schema(conn)
+            row = conn.execute("SELECT id FROM characters WHERE name = ?", (name,)).fetchone()
+        return int(row["id"]) if row else None
+    except Exception:
+        return None
+
 
 def create_app() -> Flask:
     app = Flask(__name__)
     app.secret_key = "dev-secret-key-change-me"
+
+    # Garantisce che lo schema esista all'avvio.
+    with connect() as conn:
+        ensure_schema(conn)
 
     @app.route("/", methods=["GET", "POST"])
     def index():
@@ -120,6 +196,9 @@ def create_app() -> Flask:
 
             pg["hp_current"] = clamp_int(request.form.get("hp_current"), pg.get("hp_current", 0), 0, 999)
             pg["hp_temp"] = clamp_int(request.form.get("hp_temp"), pg.get("hp_temp", 0), 0, 999)
+            pg["ac_base"] = clamp_int(request.form.get("ac_base"), pg.get("ac_base", 10), 1, 30)
+            pg["ac_bonus"] = clamp_int(request.form.get("ac_bonus"), pg.get("ac_bonus", 0), -10, 20)
+            pg["speed"] = clamp_int(request.form.get("speed"), pg.get("speed", 9), 0, 60)
 
             # mezzelfo extras (se presenti)
             pg["lineage_extra_stats"] = [
@@ -144,18 +223,29 @@ def create_app() -> Flask:
         totals = total_stats(pg["stats_base"], bonus)
         pb = prof_bonus(pg["level"])
         initiative = mod(totals["des"])
+        dex_mod = mod(totals["des"])
+        ac = int(pg.get("ac_base", 10)) + dex_mod + int(pg.get("ac_bonus", 0))
         st_prof = set(saving_throws(pg["classe"]))
         saving_rows = []
         for s in STATS:
             b = mod(totals[s]) + (pb if s in st_prof else 0)
-            saving_rows.append({
-                "stat": s,
-                "label": STAT_LABEL[s],
-                "bonus": b,
-                "proficient": s in st_prof,
-            })
+            saving_rows.append(
+                {
+                    "stat": s,
+                    "label": STAT_LABEL[s],
+                    "bonus": b,
+                    "proficient": s in st_prof,
+                }
+            )
         con_mod = mod(totals["cos"])
         hpmax = int(hp_max(pg["level"], pg["classe"], con_mod, "medio"))
+
+        # Spellcasting summary (only for classes that cast spells)
+        spell_ability = spellcasting_ability(pg["classe"])
+        spell_ability_label = STAT_LABEL.get(spell_ability) if spell_ability else None
+        spell_mod = mod(totals[spell_ability]) if spell_ability else None
+        spell_dc = (8 + pb + spell_mod) if spell_mod is not None else None
+        spell_attack = (pb + spell_mod) if spell_mod is not None else None
 
         mezzelfo_opts = [(s, STAT_LABEL[s]) for s in STATS if s != "car"]
 
@@ -176,15 +266,19 @@ def create_app() -> Flask:
             stat = SKILLS[sk]
             proficient = sk in prof_set
             bonus_val = mod(totals[stat]) + (pb if proficient else 0)
-            skill_rows.append({
-                "name": sk,
-                "stat": stat,
-                "stat_label": STAT_LABEL[stat],
-                "bonus": bonus_val,
-                "proficient": proficient,
-                "selectable": sk in allowed_skills,
-            })
-    
+            skill_rows.append(
+                {
+                    "name": sk,
+                    "stat": stat,
+                    "stat_label": STAT_LABEL[stat],
+                    "bonus": bonus_val,
+                    "proficient": proficient,
+                    "selectable": sk in allowed_skills,
+                }
+            )
+
+        characters = list_characters()
+
         return render_template(
             "index.html",
             pg=pg,
@@ -199,6 +293,14 @@ def create_app() -> Flask:
             skill_rows=skill_rows,
             saving_rows=saving_rows,
             initiative=initiative,
+            ac=ac,
+            dex_mod=dex_mod,
+            characters=characters,
+            spell_ability=spell_ability,
+            spell_ability_label=spell_ability_label,
+            spell_mod=spell_mod,
+            spell_dc=spell_dc,
+            spell_attack=spell_attack,
             STATS=STATS,
             STAT_LABEL=STAT_LABEL,
             CLASSES=CLASSES,
@@ -206,7 +308,82 @@ def create_app() -> Flask:
             ALIGNMENTS=ALIGNMENTS,
         )
 
+    @app.post("/save_character")
+    def save_character():
+        pg = get_pg()
+        name = (pg.get("nome") or "personaggio").strip() or "personaggio"
+        try:
+            char_id = save_character_to_db(name, pg)
+            flash(f"Salvato: {name} (#{char_id})", "success")
+        except Exception:
+            flash("Errore durante il salvataggio.", "danger")
+        return redirect(url_for("index"))
+
+    @app.get("/load_character/<int:char_id>")
+    def load_character(char_id: int):
+        try:
+            data = load_character_from_db(char_id)
+        except Exception:
+            data = None
+        if not data:
+            flash("Personaggio non trovato.", "warning")
+            return redirect(url_for("index"))
+        pg = normalize_pg(data)
+        save_pg(pg)
+        flash(f"Caricato: {pg.get('nome') or 'personaggio'}", "success")
+        return redirect(url_for("index"))
+
+    @app.post("/delete_character/<int:char_id>")
+    def delete_character(char_id: int):
+        session_char_id = _current_session_character_id()
+        try:
+            delete_character_in_db(char_id)
+            if session_char_id == char_id:
+                save_pg(new_pg())
+            flash("Personaggio eliminato.", "success")
+        except Exception:
+            flash("Errore durante l'eliminazione.", "danger")
+        return redirect(url_for("index"))
+
+    @app.post("/purge_characters")
+    def purge_characters():
+        try:
+            deleted = purge_characters_in_db()
+            save_pg(new_pg())
+            flash(f"Pulisci PG: {deleted} personaggi rimossi.", "warning")
+        except Exception:
+            flash("Errore durante la pulizia PG.", "danger")
+        return redirect(url_for("index"))
+
+    @app.get("/export_character")
+    def export_character():
+        pg = get_pg()
+        payload = json.dumps(pg, ensure_ascii=False, indent=2)
+        filename = _safe_filename_from_name(pg.get("nome"))
+        headers = {"Content-Disposition": f"attachment; filename={filename}"}
+        return Response(payload, mimetype="application/json; charset=utf-8", headers=headers)
+
+    @app.post("/import_character")
+    def import_character():
+        file = request.files.get("character_file")
+        if not file or not file.filename:
+            flash("Seleziona un file JSON da importare.", "warning")
+            return redirect(url_for("index"))
+
+        try:
+            raw = file.read()
+            text = raw.decode("utf-8-sig", errors="strict")
+            data = json.loads(text)
+            pg = normalize_pg(data)
+            save_pg(pg)
+            flash(f"Import completato: {pg.get('nome') or 'personaggio'}", "success")
+        except Exception:
+            flash("JSON non valido: import annullato.", "danger")
+
+        return redirect(url_for("index"))
+
     return app
+
 
 if __name__ == "__main__":
     create_app().run(host="127.0.0.1", port=8090, debug=True)

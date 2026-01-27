@@ -3,12 +3,12 @@
 STATS = ["for", "des", "cos", "int", "sag", "car"]
 
 STAT_LABEL = {
-    "for": "FOR",
-    "des": "DES",
-    "cos": "COS",
-    "int": "INT",
-    "sag": "SAG",
-    "car": "CAR",
+    "for": "Forza",
+    "des": "Destrezza",
+    "cos": "Costituzione",
+    "int": "Intelligenza",
+    "sag": "Saggezza",
+    "car": "Carisma",
 }
 
 ALIGNMENTS = [
@@ -114,3 +114,4 @@ SPELLCASTING_ABILITY_BY_CLASS = {
     "Stregone": "car",
     "Warlock": "car",
 }
+

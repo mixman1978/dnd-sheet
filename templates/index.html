@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-<form method="post" action="{{ url_for('index') }}" class="card shadow-sm">
+<form method="post" action="{{ url_for('index') }}" enctype="multipart/form-data" class="card shadow-sm">
   <div class="card-body">
 
     <div class="row g-2">
@@ -12,7 +12,7 @@
                 <input class="form-control" name="nome" value="{{ pg.nome }}" onblur="this.form.submit()">
             </div>
 
-            <div class="col-12 col-md-3">
+            <div class="col-12 col-md-2">
                 <div class="label mb-1">Lineage</div>
                 <select class="form-select" name="lineage" onchange="this.form.submit()">
                 {% for l in LINEAGES %}
@@ -36,7 +36,7 @@
                     value="{{ pg.level }}" onchange="this.form.submit()" onblur="this.form.submit()">
             </div>
 
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-md-3">
                 <div class="label mb-1">Allineamento</div>
                 <select class="form-select" name="alignment" onchange="this.form.submit()">
                 {% for a in ALIGNMENTS %}
@@ -52,7 +52,7 @@
             <div class="col-12 col-md-4">
               <div class="label mb-1">Mezzelfo +1 #1</div>
               <select class="form-select" name="mezzelfo_0" onchange="this.form.submit()">
-                <option value="">—</option>
+                <option value="">-</option>
                 {% for code,label in mezzelfo_opts %}
                   <option value="{{ code }}" {% if pg.lineage_extra_stats[0] == code %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
@@ -61,7 +61,7 @@
             <div class="col-12 col-md-4">
               <div class="label mb-1">Mezzelfo +1 #2</div>
               <select class="form-select" name="mezzelfo_1" onchange="this.form.submit()">
-                <option value="">—</option>
+                <option value="">-</option>
                 {% for code,label in mezzelfo_opts %}
                   <option value="{{ code }}" {% if pg.lineage_extra_stats[1] == code %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
@@ -77,9 +77,9 @@
 
         <div class="row g-2">
           <div class="col-12">
-            <div class="label">Abilità (Skills)</div>
+            <div class="label">Abilit&agrave; (Skills)</div>
             {% if choose_n > 0 %}
-              <div class="small text-muted">Scegli {{ choose_n }} competenze · Selezionate: {{ pg.skills_proficient|length }}/{{ choose_n }}</div>
+              <div class="small text-muted">Scegli {{ choose_n }} competenze - Selezionate: {{ pg.skills_proficient|length }}/{{ choose_n }}</div>
             {% endif %}
           </div>
           <div class="col-12">
@@ -98,7 +98,7 @@
                         {{ row.name }} <span class="text-muted">({{ row.stat_label }})</span>
                       </span>
                       {% if row.proficient %}
-                        <span class="text-success ms-1">✓</span>
+                        <span class="text-success ms-1">&#10003;</span>
                       {% endif %}
                     </div>
                     <div class="mono fw-bold text-end" style="min-width:48px">
@@ -137,7 +137,7 @@
                 <div class="mono fw-bold">+{{ pb }}</div>
               </div>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-12 col-md-6 ps-md-2">
               <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                 <div class="text-muted">HP Max (auto)</div>
                 <div class="mono fw-bold">{{ hpmax }}</div>
@@ -149,10 +149,43 @@
                 <div class="mono fw-bold">d{{ hit_die }}</div>
               </div>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-12 col-md-6 ps-md-2">
               <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                 <div class="text-muted">Iniziativa</div>
                 <div class="mono fw-bold">{{ "%+d"|format(initiative) }}</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">CA (auto)</div>
+                <div class="mono fw-bold">{{ ac }}</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 ps-md-2">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">Velocit&agrave; (m)</div>
+                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
+                  type="number" min="0" max="60" name="speed" value="{{ pg.speed }}"
+                  onchange="this.form.submit()" onblur="this.form.submit()"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">CA base</div>
+                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
+                  type="number" min="1" max="30" name="ac_base" value="{{ pg.ac_base }}"
+                  onchange="this.form.submit()" onblur="this.form.submit()"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
+              </div>
+            </div>
+            <div class="col-12 col-md-6 ps-md-2">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">CA bonus</div>
+                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
+                  type="number" min="-10" max="20" name="ac_bonus" value="{{ pg.ac_bonus }}"
+                  onchange="this.form.submit()" onblur="this.form.submit()"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
               </div>
             </div>
             <div class="col-12 col-md-6">
@@ -164,7 +197,7 @@
                   onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
               </div>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-12 col-md-6 ps-md-2">
               <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                 <div class="text-muted">HP Temp</div>
                 <input class="form-control form-control-sm mono text-end" style="max-width:120px"
@@ -175,6 +208,39 @@
             </div>
           </div>
         </div>
+
+        {% if spell_ability %}
+          <hr class="my-3">
+          <div class="border rounded p-2 bg-white">
+            <div class="label">Incantesimi</div>
+            <div class="row g-0 small">
+              <div class="col-12 col-md-6">
+                <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                  <div class="text-muted">Abilit&agrave; da incantatore</div>
+                  <div class="mono fw-bold">{{ spell_ability_label }}</div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 ps-md-2">
+                <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                  <div class="text-muted">Mod incantatore</div>
+                  <div class="mono fw-bold">{{ "%+d"|format(spell_mod) }}</div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                  <div class="text-muted">Spell Save DC</div>
+                  <div class="mono fw-bold">{{ spell_dc }}</div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 ps-md-2">
+                <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                  <div class="text-muted">Spell Attack</div>
+                  <div class="mono fw-bold">{{ "%+d"|format(spell_attack) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
       </div>
 
       <div class="col-12 col-lg-4">
@@ -215,8 +281,8 @@
             {% for r in saving_rows %}
               <div class="col-6">
                 <div class="d-flex justify-content-between">
-                  <span>{{ r.label }}</span>
-                  <span class="mono">{{ "%+d"|format(r.bonus) }} {% if r.proficient %}✅{% endif %}</span>
+                  <span>{{ STAT_LABEL[r.stat] }}</span>
+                  <span class="mono">{{ "%+d"|format(r.bonus) }}</span>
                 </div>
               </div>
             {% endfor %}
@@ -229,3 +295,6 @@
 </form>
 
 {% endblock %}
+
+
+

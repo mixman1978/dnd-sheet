@@ -6,10 +6,12 @@
   <title>{{ title or "DnD Sheet (Flask)" }}</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
+    <style>
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
     .label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; }
     .value { font-weight: 700; }
+    /* Prevent file input from overflowing/truncating oddly inside the Tools dropdown */
+    .dropdown-menu .input-group .form-control[type=file] { min-width: 0; }
   </style>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
@@ -17,7 +19,7 @@
 </head>
 <body class="bg-light">
 
-<nav class="navbar navbar-dark" style="background:#111;">
+<nav class="navbar navbar-dark navbar-expand-lg" style="background:#111;">
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('index') }}">
       <img
@@ -25,10 +27,85 @@
         alt="DnD Sheet"
         style="height:32px; width:auto; object-fit:contain; display:block;"
       >
+      <span class="text-white small">
+        {% if pg and (pg.nome or "")|trim %}
+          {{ pg.nome }} ({{ pg.classe }} {{ pg.level }})
+        {% else %}
+          DnD Sheet
+        {% endif %}
+      </span>
     </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNavbar">
+      <div class="ms-auto d-flex align-items-center gap-2 flex-wrap py-2 py-lg-0">
+          <select id="navbar-character-select" class="form-select form-select-sm" style="min-width: 220px;">
+            <option value="">Personaggi salvati</option>
+            {% for ch in characters or [] %}
+              <option value="{{ ch.id }}">{{ ch.name }}</option>
+            {% endfor %}
+          </select>
+          <button type="button" class="btn btn-sm btn-outline-light" onclick="loadSelectedCharacterNavbar()">Carica</button>
+          <form method="post" action="{{ url_for('save_character') }}" class="m-0">
+            <button type="submit" class="btn btn-sm btn-primary">Salva</button>
+          </form>
+          <form id="delete-character-form" method="post" action="{{ url_for('delete_character', char_id=0) }}" class="m-0" onsubmit="return submitDeleteSelectedCharacter();">
+            <button type="submit" class="btn btn-sm btn-outline-danger">Elimina</button>
+          </form>
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Tools
+          </button>
+          <div class="dropdown-menu dropdown-menu-end p-2" style="min-width: 320px;">
+            <div class="px-2 pt-1 pb-2"><a class="btn btn-sm btn-outline-primary w-100" href="{{ url_for('export_character') }}" role="button">Export JSON</a></div>
+            <div class="dropdown-divider"></div>
+            <form method="post" action="{{ url_for('import_character') }}" enctype="multipart/form-data" class="px-2 pb-2">
+              <label class="form-label small text-muted mb-1">Import JSON</label>
+              <div class="d-grid gap-2">
+                <input class="form-control form-control-sm" type="file" name="character_file" accept=".json,application/json" required>
+                <button class="btn btn-sm btn-outline-secondary" type="submit">Import</button>
+              </div>
+            </form>
+            <div class="dropdown-divider"></div>
+            <form method="post" action="{{ url_for('purge_characters') }}" class="px-2 pb-2" onsubmit="return confirmPurgeCharacters();">
+              <button type="submit" class="btn btn-sm btn-outline-danger w-100">Pulisci PG</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </nav>
 
+<script>
+  function getSelectedCharacterId() {
+    const select = document.getElementById('navbar-character-select');
+    return select && select.value ? String(select.value) : "";
+  }
+
+  function loadSelectedCharacterNavbar() {
+    const id = getSelectedCharacterId();
+    if (!id) return;
+    const base = "{{ url_for('load_character', char_id=0) }}";
+    window.location.href = base.replace(/0$/, id);
+  }
+
+  function submitDeleteSelectedCharacter() {
+    const id = getSelectedCharacterId();
+    if (!id) return false;
+    const base = "{{ url_for('delete_character', char_id=0) }}";
+    const form = document.getElementById('delete-character-form');
+    form.action = base.replace(/0$/, id);
+    return window.confirm('Eliminare il personaggio selezionato?');
+  }
+
+  function confirmPurgeCharacters() {
+    return window.confirm('Sei sicuro? Cancella tutti i personaggi salvati.');
+  }
+</script>
 
 <main class="container py-3">
   {% with messages = get_flashed_messages(with_categories=true) %}
@@ -45,3 +122,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
+
+
