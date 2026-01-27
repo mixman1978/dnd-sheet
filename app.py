@@ -53,7 +53,8 @@ DEFAULT_PG = {
     "hp_current": 0,
     "hp_temp": 0,
     # Combat basics (phase 2 foundation)
-    "ac_base": 10,
+    "armor_type": "none",
+    "has_shield": False,
     "ac_bonus": 0,
     "speed": 9,
     # Base attacks (no inventory yet)
@@ -135,9 +136,13 @@ def normalize_pg(pg: Any) -> dict:
 
     pg["hp_current"] = clamp_int(pg.get("hp_current"), 0, 0, 999)
     pg["hp_temp"] = clamp_int(pg.get("hp_temp"), 0, 0, 999)
-    pg["ac_base"] = clamp_int(pg.get("ac_base"), 10, 1, 30)
-    pg["ac_bonus"] = clamp_int(pg.get("ac_bonus"), 0, -10, 20)
     pg["speed"] = clamp_int(pg.get("speed"), 9, 0, 60)
+    armor_type = pg.get("armor_type")
+    if armor_type not in ("none", "light", "medium", "heavy"):
+        armor_type = "none"
+    pg["armor_type"] = armor_type
+    pg["has_shield"] = bool(pg.get("has_shield", False))
+    pg["ac_bonus"] = clamp_int(pg.get("ac_bonus"), 0, -10, 10)
     pg["atk_prof_melee"] = bool(pg.get("atk_prof_melee", False))
     pg["atk_prof_ranged"] = bool(pg.get("atk_prof_ranged", False))
 
@@ -201,9 +206,11 @@ def create_app() -> Flask:
 
             pg["hp_current"] = clamp_int(request.form.get("hp_current"), pg.get("hp_current", 0), 0, 999)
             pg["hp_temp"] = clamp_int(request.form.get("hp_temp"), pg.get("hp_temp", 0), 0, 999)
-            pg["ac_base"] = clamp_int(request.form.get("ac_base"), pg.get("ac_base", 10), 1, 30)
-            pg["ac_bonus"] = clamp_int(request.form.get("ac_bonus"), pg.get("ac_bonus", 0), -10, 20)
             pg["speed"] = clamp_int(request.form.get("speed"), pg.get("speed", 9), 0, 60)
+            armor_type = request.form.get("armor_type") or pg.get("armor_type") or "none"
+            pg["armor_type"] = armor_type if armor_type in ("none", "light", "medium", "heavy") else "none"
+            pg["has_shield"] = request.form.get("has_shield") is not None
+            pg["ac_bonus"] = clamp_int(request.form.get("ac_bonus"), pg.get("ac_bonus", 0), -10, 10)
             pg["atk_prof_melee"] = request.form.get("atk_prof_melee") is not None
             pg["atk_prof_ranged"] = request.form.get("atk_prof_ranged") is not None
 
@@ -231,7 +238,15 @@ def create_app() -> Flask:
         pb = prof_bonus(pg["level"])
         initiative = mod(totals["des"])
         dex_mod = mod(totals["des"])
-        ac = int(pg.get("ac_base", 10)) + dex_mod + int(pg.get("ac_bonus", 0))
+        armor_type = pg.get("armor_type", "none")
+        if armor_type == "medium":
+            dex_to_ac = min(dex_mod, 2)
+        elif armor_type == "heavy":
+            dex_to_ac = 0
+        else:
+            dex_to_ac = dex_mod
+        ac = 10 + dex_to_ac + (2 if pg.get("has_shield") else 0) + int(pg.get("ac_bonus", 0))
+        speed_auto = 9
         st_prof = set(saving_throws(pg["classe"]))
         saving_rows = []
         for s in STATS:
@@ -314,6 +329,7 @@ def create_app() -> Flask:
             passive_perception=passive_perception,
             melee_attack_bonus=melee_attack_bonus,
             ranged_attack_bonus=ranged_attack_bonus,
+            speed_auto=speed_auto,
             spell_ability=spell_ability,
             spell_ability_label=spell_ability_label,
             spell_mod=spell_mod,

@@ -139,8 +139,8 @@
             </div>
             <div class="col-12 col-md-6 ps-md-2">
               <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">HP Max (auto)</div>
-                <div class="mono fw-bold">{{ hpmax }}</div>
+                <div class="text-muted">Percezione passiva</div>
+                <div class="mono fw-bold">{{ passive_perception }}</div>
               </div>
             </div>
             <div class="col-12 col-md-6">
@@ -151,66 +151,66 @@
             </div>
             <div class="col-12 col-md-6 ps-md-2">
               <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">Percezione passiva</div>
-                <div class="mono fw-bold">{{ passive_perception }}</div>
-              </div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                 <div class="text-muted">Iniziativa</div>
                 <div class="mono fw-bold">{{ "%+d"|format(initiative) }}</div>
               </div>
             </div>
-            <div class="col-12 col-md-6 ps-md-2">
+            <div class="col-12 col-md-6">
               <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">Classe Armatura (auto)</div>
+                <div class="text-muted">Classe Armatura</div>
                 <div class="mono fw-bold">{{ ac }}</div>
               </div>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-12 col-md-6 ps-md-2">
               <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                 <div class="text-muted">Velocit&agrave; (m)</div>
-                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
-                  type="number" min="0" max="60" name="speed" value="{{ pg.speed }}"
-                  onchange="this.form.submit()" onblur="this.form.submit()"
-                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
+                <div class="mono fw-bold">{{ speed_auto }}</div>
               </div>
             </div>
-            <div class="col-12 col-md-6 ps-md-2">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">Classe Armatura base</div>
-                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
-                  type="number" min="1" max="30" name="ac_base" value="{{ pg.ac_base }}"
-                  onchange="this.form.submit()" onblur="this.form.submit()"
-                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
+          </div>
+        </div>
+
+        <hr class="my-3">
+        <div class="border rounded p-2 bg-white small">
+          <div class="label">Difesa</div>
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-6 col-lg-5">
+              <label class="text-muted mb-1">Armatura</label>
+              <select class="form-select form-select-sm" name="armor_type" onchange="this.form.submit()">
+                <option value="none" {% if pg.armor_type == "none" %}selected{% endif %}>Nessuna</option>
+                <option value="light" {% if pg.armor_type == "light" %}selected{% endif %}>Leggera</option>
+                <option value="medium" {% if pg.armor_type == "medium" %}selected{% endif %}>Media</option>
+                <option value="heavy" {% if pg.armor_type == "heavy" %}selected{% endif %}>Pesante</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-3 col-lg-3">
+              <label class="text-muted mb-1 d-none d-md-block">&nbsp;</label>
+              <div class="form-check mt-1">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="has-shield"
+                  name="has_shield"
+                  onchange="this.form.submit()"
+                  {% if pg.has_shield %}checked{% endif %}
+                >
+                <label class="form-check-label text-muted" for="has-shield">Scudo (+2)</label>
               </div>
             </div>
-            <div class="col-12 col-md-6">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">Classe Armatura bonus</div>
-                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
-                  type="number" min="-10" max="20" name="ac_bonus" value="{{ pg.ac_bonus }}"
-                  onchange="this.form.submit()" onblur="this.form.submit()"
-                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
-              </div>
-            </div>
-            <div class="col-12 col-md-6 ps-md-2">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">HP Attuali</div>
-                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
-                  type="number" min="0" max="999" name="hp_current" value="{{ pg.hp_current }}"
-                  onchange="this.form.submit()" onblur="this.form.submit()"
-                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
-              </div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">HP Temp</div>
-                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
-                  type="number" min="0" max="999" name="hp_temp" value="{{ pg.hp_temp }}"
-                  onchange="this.form.submit()" onblur="this.form.submit()"
-                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
-              </div>
+            <div class="col-12 col-md-3 col-lg-4">
+              <label class="text-muted mb-1">Bonus CA (Magie/Oggetti)</label>
+              <input
+                class="form-control form-control-sm mono text-end"
+                style="max-width:120px"
+                type="number"
+                min="-10"
+                max="10"
+                name="ac_bonus"
+                value="{{ pg.ac_bonus }}"
+                onchange="this.form.submit()"
+                onblur="this.form.submit()"
+                onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}"
+              >
             </div>
           </div>
         </div>
@@ -303,6 +303,35 @@
       </div>
 
       <div class="col-12 col-lg-4">
+        <div class="border rounded p-2 bg-white small mb-2">
+          <div class="label">Vita</div>
+          <div class="row g-0">
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">HP Max (auto)</div>
+                <div class="mono fw-bold">{{ hpmax }}</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">HP Attuali</div>
+                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
+                  type="number" min="0" max="999" name="hp_current" value="{{ pg.hp_current }}"
+                  onchange="this.form.submit()" onblur="this.form.submit()"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">HP Temp</div>
+                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
+                  type="number" min="0" max="999" name="hp_temp" value="{{ pg.hp_temp }}"
+                  onchange="this.form.submit()" onblur="this.form.submit()"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="label">Caratteristiche</div>
         <div class="row g-2">
           {% for s in STATS %}
