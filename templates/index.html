@@ -4,155 +4,219 @@
 <form method="post" action="{{ url_for('index') }}" class="card shadow-sm">
   <div class="card-body">
 
-    <div class="row g-2 align-items-end">
-        <div class="col-12 col-md-3">
-            <div class="label mb-1">Nome</div>
-            <input class="form-control" name="nome" value="{{ pg.nome }}" onblur="this.form.submit()">
-        </div>
-
-        <div class="col-12 col-md-3">
-            <div class="label mb-1">Lineage</div>
-            <select class="form-select" name="lineage" onchange="this.form.submit()">
-            {% for l in LINEAGES %}
-                <option value="{{ l }}" {% if l == pg.lineage %}selected{% endif %}>{{ l }}</option>
-            {% endfor %}
-            </select>
-        </div>
-
-        <div class="col-12 col-md-3">
-            <div class="label mb-1">Classe</div>
-            <select class="form-select" name="classe" onchange="this.form.submit()">
-            {% for c in CLASSES %}
-                <option value="{{ c }}" {% if c == pg.classe %}selected{% endif %}>{{ c }}</option>
-            {% endfor %}
-            </select>
-        </div>
-
-        <div class="col-6 col-md-1">
-            <div class="label mb-1">Lv</div>
-            <input class="form-control mono" type="number" min="1" max="20" name="level"
-                value="{{ pg.level }}" onchange="this.form.submit()" onblur="this.form.submit()">
-        </div>
-
-        <div class="col-6 col-md-2">
-            <div class="label mb-1">Allineamento</div>
-            <select class="form-select" name="alignment" onchange="this.form.submit()">
-            {% for a in ALIGNMENTS %}
-                <option value="{{ a }}" {% if a == pg.alignment %}selected{% endif %}>{{ a }}</option>
-            {% endfor %}
-            </select>
-        </div>
-    </div>
-
-
-    {% if pg.lineage.startswith("Mezzelfo") %}
-      <hr class="my-3">
-      <div class="row g-2">
-        <div class="col-12 col-md-4">
-          <div class="label mb-1">Mezzelfo +1 #1</div>
-          <select class="form-select" name="mezzelfo_0" onchange="this.form.submit()">
-            <option value="">—</option>
-            {% for code,label in mezzelfo_opts %}
-              <option value="{{ code }}" {% if pg.lineage_extra_stats[0] == code %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="col-12 col-md-4">
-          <div class="label mb-1">Mezzelfo +1 #2</div>
-          <select class="form-select" name="mezzelfo_1" onchange="this.form.submit()">
-            <option value="">—</option>
-            {% for code,label in mezzelfo_opts %}
-              <option value="{{ code }}" {% if pg.lineage_extra_stats[1] == code %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="col-12 col-md-4 small text-muted d-flex align-items-end">
-          (non puoi scegliere CAR, e niente duplicati)
-        </div>
-      </div>
-    {% endif %}
-
-    <hr class="my-3">
-
     <div class="row g-2">
-      <div class="col-12">
-        <div class="label">Caratteristiche</div>
-      </div>
-
-      {% for s in STATS %}
-        <div class="col-6 col-md-4 col-lg-2">
-          <div class="border rounded p-2 bg-white">
-            <div class="label">{{ STAT_LABEL[s] }}</div>
-
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <input class="form-control form-control-sm mono text-end" style="max-width:80px"
-                type="number" min="3" max="20" name="stat_{{ s }}" value="{{ pg.stats_base[s] }}"
-                onchange="this.form.submit()" onblur="this.form.submit()"
-                onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
-
-              <span class="small text-muted">bonus razza: {{ "%+d"|format(bonus.get(s, 0)) }}</span>
+      <div class="col-12 col-lg-8">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-3">
+                <div class="label mb-1">Nome</div>
+                <input class="form-control" name="nome" value="{{ pg.nome }}" onblur="this.form.submit()">
             </div>
 
-            <div class="mt-2">
-              <div class="small text-muted">Totale</div>
-              <div class="value mono">{{ totals[s] }}</div>
+            <div class="col-12 col-md-3">
+                <div class="label mb-1">Lineage</div>
+                <select class="form-select" name="lineage" onchange="this.form.submit()">
+                {% for l in LINEAGES %}
+                    <option value="{{ l }}" {% if l == pg.lineage %}selected{% endif %}>{{ l }}</option>
+                {% endfor %}
+                </select>
             </div>
 
-            <div class="small text-muted">
-              Mod: <span class="mono value">{{ "%+d"|format((totals[s]-10)//2) }}</span>
+            <div class="col-12 col-md-3">
+                <div class="label mb-1">Classe</div>
+                <select class="form-select" name="classe" onchange="this.form.submit()">
+                {% for c in CLASSES %}
+                    <option value="{{ c }}" {% if c == pg.classe %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-6 col-md-1">
+                <div class="label mb-1">Lv</div>
+                <input class="form-control mono" type="number" min="1" max="20" name="level"
+                    value="{{ pg.level }}" onchange="this.form.submit()" onblur="this.form.submit()">
+            </div>
+
+            <div class="col-6 col-md-2">
+                <div class="label mb-1">Allineamento</div>
+                <select class="form-select" name="alignment" onchange="this.form.submit()">
+                {% for a in ALIGNMENTS %}
+                    <option value="{{ a }}" {% if a == pg.alignment %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        {% if pg.lineage.startswith("Mezzelfo") %}
+          <hr class="my-3">
+          <div class="row g-2">
+            <div class="col-12 col-md-4">
+              <div class="label mb-1">Mezzelfo +1 #1</div>
+              <select class="form-select" name="mezzelfo_0" onchange="this.form.submit()">
+                <option value="">—</option>
+                {% for code,label in mezzelfo_opts %}
+                  <option value="{{ code }}" {% if pg.lineage_extra_stats[0] == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12 col-md-4">
+              <div class="label mb-1">Mezzelfo +1 #2</div>
+              <select class="form-select" name="mezzelfo_1" onchange="this.form.submit()">
+                <option value="">—</option>
+                {% for code,label in mezzelfo_opts %}
+                  <option value="{{ code }}" {% if pg.lineage_extra_stats[1] == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12 col-md-4 small text-muted d-flex align-items-end">
+              (non puoi scegliere CAR, e niente duplicati)
+            </div>
+          </div>
+        {% endif %}
+
+        <hr class="my-3">
+
+        <div class="row g-2">
+          <div class="col-12">
+            <div class="label">Abilità (Skills)</div>
+            {% if choose_n > 0 %}
+              <div class="small text-muted">Scegli {{ choose_n }} competenze · Selezionate: {{ pg.skills_proficient|length }}/{{ choose_n }}</div>
+            {% endif %}
+          </div>
+          <div class="col-12">
+            <div class="row g-0 small">
+              {% for row in skill_rows %}
+                <div class="col-12 col-md-6 col-lg-4">
+                  <div class="d-flex align-items-center justify-content-between py-1 px-1 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                      {% if row.selectable %}
+                        <input type="checkbox" class="form-check-input m-0"
+                          name="skills_proficient" value="{{ row.name }}"
+                          {% if row.proficient %}checked{% endif %}
+                          onchange="onSkillToggle(this)">
+                      {% endif %}
+                      <span>
+                        {{ row.name }} <span class="text-muted">({{ row.stat_label }})</span>
+                      </span>
+                      {% if row.proficient %}
+                        <span class="text-success ms-1">✓</span>
+                      {% endif %}
+                    </div>
+                    <div class="mono fw-bold text-end" style="min-width:48px">
+                      {{ "%+d"|format(row.bonus) }}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+            <script>
+              const LIMIT = Number("{{ choose_n|int }}");
+              function onSkillToggle(cb) {
+                if (!LIMIT) {
+                  cb.form.submit();
+                  return;
+                }
+                const checked = cb.form.querySelectorAll('input[name="skills_proficient"]:checked').length;
+                if (checked > LIMIT) {
+                  cb.checked = false;
+                  return;
+                }
+                cb.form.submit();
+              }
+            </script>
+          </div>
+        </div>
+
+        <hr class="my-3">
+
+        <div class="border rounded p-2 bg-white">
+          <div class="label">Riepilogo</div>
+          <div class="row g-0">
+            <div class="col-12 col-md-6">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">PB</div>
+                <div class="mono fw-bold">+{{ pb }}</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">HP Max (auto)</div>
+                <div class="mono fw-bold">{{ hpmax }}</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">Dado Vita</div>
+                <div class="mono fw-bold">d{{ hit_die }}</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">Iniziativa</div>
+                <div class="mono fw-bold">{{ "%+d"|format(initiative) }}</div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">HP Attuali</div>
+                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
+                  type="number" min="0" max="999" name="hp_current" value="{{ pg.hp_current }}"
+                  onchange="this.form.submit()" onblur="this.form.submit()"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">HP Temp</div>
+                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
+                  type="number" min="0" max="999" name="hp_temp" value="{{ pg.hp_temp }}"
+                  onchange="this.form.submit()" onblur="this.form.submit()"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
+              </div>
             </div>
           </div>
         </div>
-      {% endfor %}
-    </div>
-
-    <hr class="my-3">
-
-    <div class="row g-2">
-      <div class="col-12 col-md-4">
-        <div class="border rounded p-2 bg-white">
-          <div class="label">Bonus Competenza</div>
-          <div class="value mono">+{{ pb }}</div>
-        </div>
       </div>
-      <div class="col-12 col-md-4">
-        <div class="border rounded p-2 bg-white">
-          <div class="label">HP Max (auto)</div>
-          <div class="value mono">{{ hpmax }}</div>
-        </div>
-      </div>
-      <div class="col-12 col-md-4">
-        <div class="border rounded p-2 bg-white">
-          <div class="label">Dado Vita</div>
-          <div class="value mono">d{{ hit_die }}</div>
-        </div>
-      </div>
-    </div>
 
-    <hr class="my-3">
+      <div class="col-12 col-lg-4">
+        <div class="label">Caratteristiche</div>
+        <div class="row g-2">
+          {% for s in STATS %}
+            <div class="col-6">
+              <div class="border rounded p-2 bg-white">
+                <div class="label">{{ STAT_LABEL[s] }}</div>
 
-    <div class="row g-2">
-      <div class="col-12">
-        <div class="label">Abilità (Skills)</div>
-        {% if choose_n > 0 %}
-          <div class="small text-muted">Scegli {{ choose_n }} competenze</div>
-        {% endif %}
-      </div>
-      <div class="col-12 col-md-4">
-        <select class="form-select" name="skills_proficient" multiple size="10" onchange="this.form.submit()">
-          {% for sk in allowed_skills %}
-            <option value="{{ sk }}" {% if sk in pg.skills_proficient %}selected{% endif %}>{{ sk }}</option>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                  <input class="form-control form-control-sm mono text-end" style="max-width:80px"
+                    type="number" min="3" max="20" name="stat_{{ s }}" value="{{ pg.stats_base[s] }}"
+                    onchange="this.form.submit()" onblur="this.form.submit()"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
+
+                  <span class="small text-muted">bonus razza: {{ "%+d"|format(bonus.get(s, 0)) }}</span>
+                </div>
+
+                <div class="mt-2">
+                  <div class="small text-muted">Totale</div>
+                  <div class="value mono">{{ totals[s] }}</div>
+                </div>
+
+                <div class="small text-muted">
+                  Mod: <span class="mono value">{{ "%+d"|format((totals[s]-10)//2) }}</span>
+                </div>
+              </div>
+            </div>
           {% endfor %}
-        </select>
-      </div>
-      <div class="col-12 col-md-8">
+        </div>
+
+        <hr class="my-3">
+
         <div class="border rounded p-2 bg-white">
-          <div class="row g-2 small">
-            {% for row in skill_rows %}
-              <div class="col-12 col-md-6">
+          <div class="label">Tiri Salvezza</div>
+          <div class="row g-1 small">
+            {% for r in saving_rows %}
+              <div class="col-6">
                 <div class="d-flex justify-content-between">
-                  <span>{{ row.name }} <span class="text-muted">({{ row.stat_label }})</span></span>
-                  <span class="mono">{{ "%+d"|format(row.bonus) }} {% if row.proficient %}✅{% endif %}</span>
+                  <span>{{ r.label }}</span>
+                  <span class="mono">{{ "%+d"|format(r.bonus) }} {% if r.proficient %}✅{% endif %}</span>
                 </div>
               </div>
             {% endfor %}

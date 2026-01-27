@@ -8,7 +8,7 @@ from engine.rules import (
     STATS, STAT_LABEL, CLASSES, LINEAGES, LINEAGE_BONUS, ALIGNMENTS, SKILLS
 )
 from engine.calc import (
-    mod, prof_bonus, total_stats, hp_max, hit_die, class_skill_choices
+    mod, prof_bonus, total_stats, hp_max, hit_die, class_skill_choices, saving_throws
 )
 
 DEFAULT_PG = {
@@ -20,6 +20,8 @@ DEFAULT_PG = {
     "stats_base": {"for": 10, "des": 10, "cos": 10, "int": 10, "sag": 10, "car": 10},
     "lineage_extra_stats": [None, None],  # solo Mezzelfo
     "skills_proficient": [],
+    "hp_current": 0,
+    "hp_temp": 0,
 
 }
 
@@ -89,6 +91,8 @@ def get_pg() -> dict:
     if not isinstance(pg.get("skills_proficient"), list):
         pg["skills_proficient"] = []
 
+    pg["hp_current"] = clamp_int(pg.get("hp_current"), 0, 0, 999)
+    pg["hp_temp"] = clamp_int(pg.get("hp_temp"), 0, 0, 999)
 
     ensure_lineage_state(pg)
     return pg
@@ -114,6 +118,9 @@ def create_app() -> Flask:
             for s in STATS:
                 pg["stats_base"][s] = clamp_int(request.form.get(f"stat_{s}"), pg["stats_base"][s], 3, 20)
 
+            pg["hp_current"] = clamp_int(request.form.get("hp_current"), pg.get("hp_current", 0), 0, 999)
+            pg["hp_temp"] = clamp_int(request.form.get("hp_temp"), pg.get("hp_temp", 0), 0, 999)
+
             # mezzelfo extras (se presenti)
             pg["lineage_extra_stats"] = [
                 request.form.get("mezzelfo_0") or None,
@@ -136,6 +143,17 @@ def create_app() -> Flask:
         bonus = get_lineage_bonus(pg)
         totals = total_stats(pg["stats_base"], bonus)
         pb = prof_bonus(pg["level"])
+        initiative = mod(totals["des"])
+        st_prof = set(saving_throws(pg["classe"]))
+        saving_rows = []
+        for s in STATS:
+            b = mod(totals[s]) + (pb if s in st_prof else 0)
+            saving_rows.append({
+                "stat": s,
+                "label": STAT_LABEL[s],
+                "bonus": b,
+                "proficient": s in st_prof,
+            })
         con_mod = mod(totals["cos"])
         hpmax = int(hp_max(pg["level"], pg["classe"], con_mod, "medio"))
 
@@ -152,8 +170,9 @@ def create_app() -> Flask:
             save_pg(pg)
 
         prof_set = set(pg["skills_proficient"])
+        all_skills = sorted(SKILLS.keys())
         skill_rows = []
-        for sk in allowed_skills:
+        for sk in all_skills:
             stat = SKILLS[sk]
             proficient = sk in prof_set
             bonus_val = mod(totals[stat]) + (pb if proficient else 0)
@@ -163,6 +182,7 @@ def create_app() -> Flask:
                 "stat_label": STAT_LABEL[stat],
                 "bonus": bonus_val,
                 "proficient": proficient,
+                "selectable": sk in allowed_skills,
             })
     
         return render_template(
@@ -177,6 +197,8 @@ def create_app() -> Flask:
             choose_n=choose_n,
             allowed_skills=allowed_skills,
             skill_rows=skill_rows,
+            saving_rows=saving_rows,
+            initiative=initiative,
             STATS=STATS,
             STAT_LABEL=STAT_LABEL,
             CLASSES=CLASSES,
