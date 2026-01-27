@@ -52,6 +52,19 @@ def save_character(name: str, data: dict) -> int:
     return int(row["id"]) if row else 0
 
 
+def get_character_id_by_name(name: str) -> int | None:
+    clean_name = (name or "").strip()
+    if not clean_name:
+        return None
+    with connect() as conn:
+        ensure_schema(conn)
+        row = conn.execute(
+            "SELECT id FROM characters WHERE name = ?",
+            (clean_name,),
+        ).fetchone()
+    return int(row["id"]) if row else None
+
+
 def load_character(char_id: int) -> dict | None:
     """Load a character by id and return the parsed JSON payload."""
     with connect() as conn:

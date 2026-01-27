@@ -15,6 +15,7 @@ from flask import (
 
 from engine.characters import (
     delete_character as delete_character_in_db,
+    get_character_id_by_name,
     list_characters,
     load_character as load_character_from_db,
     purge_characters as purge_characters_in_db,
@@ -44,8 +45,8 @@ from engine.spellbook import (
     add_spell_to_character,
     list_character_spells,
     remove_spell_from_character,
-    search_spells,
 )
+from engine.spells_repo import get_by_id, search_spells
 
 DEFAULT_PG = {
     "nome": "",
@@ -199,10 +200,7 @@ def _current_session_character_id() -> int | None:
     if not name:
         return None
     try:
-        with connect() as conn:
-            ensure_schema(conn)
-            row = conn.execute("SELECT id FROM characters WHERE name = ?", (name,)).fetchone()
-        return int(row["id"]) if row else None
+        return get_character_id_by_name(name)
     except Exception:
         return None
 
@@ -502,58 +500,9 @@ def create_app() -> Flask:
 
     @app.get("/spell/<int:spell_id>")
     def spell_detail(spell_id: int):
-        with connect() as conn:
-            ensure_schema(conn)
-            row = conn.execute(
-                """
-                SELECT
-                    name_it,
-                    level,
-                    school,
-                    casting_time,
-                    range_text,
-                    components_v,
-                    components_s,
-                    components_m,
-                    material_text,
-                    duration_text,
-                    concentration,
-                    ritual,
-                    description,
-                    at_higher_levels
-                FROM spells
-                WHERE id = ?
-                """,
-                (spell_id,),
-            ).fetchone()
-
-        if not row:
+        spell = get_by_id(spell_id)
+        if not spell:
             return ("Not found", 404)
-
-        components = []
-        if row["components_v"]:
-            components.append("V")
-        if row["components_s"]:
-            components.append("S")
-        if row["components_m"]:
-            components.append("M")
-        components_text = ", ".join(components) if components else "-"
-        if row["components_m"] and row["material_text"]:
-            components_text = f"{components_text} ({row['material_text']})"
-
-        spell = {
-            "name": row["name_it"],
-            "level": int(row["level"]),
-            "school": row["school"],
-            "casting_time": row["casting_time"],
-            "range_text": row["range_text"],
-            "components_text": components_text,
-            "duration_text": row["duration_text"],
-            "concentration": bool(row["concentration"]),
-            "ritual": bool(row["ritual"]),
-            "description": row["description"],
-            "at_higher_levels": row["at_higher_levels"],
-        }
 
         return render_template("spell_detail.html", spell=spell)
 

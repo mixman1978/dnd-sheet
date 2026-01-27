@@ -173,6 +173,7 @@ def ensure_schema(conn: sqlite3.Connection) -> None:
         );
 
         CREATE INDEX IF NOT EXISTS idx_spell_classes_class ON spell_classes(class_code);
+        CREATE INDEX IF NOT EXISTS idx_spell_classes_class_spell ON spell_classes(class_code, spell_id);
 
 
         -- =========================================
