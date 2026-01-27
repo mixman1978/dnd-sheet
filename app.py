@@ -56,6 +56,9 @@ DEFAULT_PG = {
     "ac_base": 10,
     "ac_bonus": 0,
     "speed": 9,
+    # Base attacks (no inventory yet)
+    "atk_prof_melee": False,
+    "atk_prof_ranged": False,
 }
 
 
@@ -135,6 +138,8 @@ def normalize_pg(pg: Any) -> dict:
     pg["ac_base"] = clamp_int(pg.get("ac_base"), 10, 1, 30)
     pg["ac_bonus"] = clamp_int(pg.get("ac_bonus"), 0, -10, 20)
     pg["speed"] = clamp_int(pg.get("speed"), 9, 0, 60)
+    pg["atk_prof_melee"] = bool(pg.get("atk_prof_melee", False))
+    pg["atk_prof_ranged"] = bool(pg.get("atk_prof_ranged", False))
 
     ensure_lineage_state(pg)
     return pg
@@ -199,6 +204,8 @@ def create_app() -> Flask:
             pg["ac_base"] = clamp_int(request.form.get("ac_base"), pg.get("ac_base", 10), 1, 30)
             pg["ac_bonus"] = clamp_int(request.form.get("ac_bonus"), pg.get("ac_bonus", 0), -10, 20)
             pg["speed"] = clamp_int(request.form.get("speed"), pg.get("speed", 9), 0, 60)
+            pg["atk_prof_melee"] = request.form.get("atk_prof_melee") is not None
+            pg["atk_prof_ranged"] = request.form.get("atk_prof_ranged") is not None
 
             # mezzelfo extras (se presenti)
             pg["lineage_extra_stats"] = [
@@ -277,6 +284,14 @@ def create_app() -> Flask:
                 }
             )
 
+        # Passive Perception: 10 + WIS mod + PB if proficient in Percezione
+        wis_mod = mod(totals["sag"])
+        passive_perception = 10 + wis_mod + (pb if "Percezione" in prof_set else 0)
+
+        # Base attacks (no weapon/inventory yet)
+        melee_attack_bonus = mod(totals["for"]) + (pb if pg.get("atk_prof_melee") else 0)
+        ranged_attack_bonus = mod(totals["des"]) + (pb if pg.get("atk_prof_ranged") else 0)
+
         characters = list_characters()
 
         return render_template(
@@ -296,6 +311,9 @@ def create_app() -> Flask:
             ac=ac,
             dex_mod=dex_mod,
             characters=characters,
+            passive_perception=passive_perception,
+            melee_attack_bonus=melee_attack_bonus,
+            ranged_attack_bonus=ranged_attack_bonus,
             spell_ability=spell_ability,
             spell_ability_label=spell_ability_label,
             spell_mod=spell_mod,
