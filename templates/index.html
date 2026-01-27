@@ -177,10 +177,10 @@
             <div class="col-12 col-md-6 col-lg-5">
               <label class="text-muted mb-1">Armatura</label>
               <select class="form-select form-select-sm" name="armor_type" onchange="this.form.submit()">
-                <option value="none" {% if pg.armor_type == "none" %}selected{% endif %}>Nessuna</option>
-                <option value="light" {% if pg.armor_type == "light" %}selected{% endif %}>Leggera</option>
-                <option value="medium" {% if pg.armor_type == "medium" %}selected{% endif %}>Media</option>
-                <option value="heavy" {% if pg.armor_type == "heavy" %}selected{% endif %}>Pesante</option>
+                {% if "none" in allowed_armor %}<option value="none" {% if pg.armor_type == "none" %}selected{% endif %}>Nessuna</option>{% endif %}
+                {% if "light" in allowed_armor %}<option value="light" {% if pg.armor_type == "light" %}selected{% endif %}>Leggera</option>{% endif %}
+                {% if "medium" in allowed_armor %}<option value="medium" {% if pg.armor_type == "medium" %}selected{% endif %}>Media</option>{% endif %}
+                {% if "heavy" in allowed_armor %}<option value="heavy" {% if pg.armor_type == "heavy" %}selected{% endif %}>Pesante</option>{% endif %}
               </select>
             </div>
             <div class="col-12 col-md-3 col-lg-3">
@@ -192,6 +192,7 @@
                   id="has-shield"
                   name="has_shield"
                   onchange="this.form.submit()"
+                  {% if not shield_allowed %}disabled{% endif %}
                   {% if pg.has_shield %}checked{% endif %}
                 >
                 <label class="form-check-label text-muted" for="has-shield">Scudo (+2)</label>
@@ -383,6 +384,3 @@
 </form>
 
 {% endblock %}
-
-
-

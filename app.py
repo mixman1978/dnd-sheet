@@ -40,11 +40,17 @@ from engine.calc import (
     saving_throws,
     spellcasting_ability,
 )
+from engine.spellbook import (
+    add_spell_to_character,
+    list_character_spells,
+    remove_spell_from_character,
+    search_spells,
+)
 
 DEFAULT_PG = {
-    "nome": "Azir",
+    "nome": "",
     "lineage": "Nessuno",
-    "classe": "Warlock",
+    "classe": "Guerriero",
     "level": 1,
     "alignment": "Neutrale",
     "stats_base": {"for": 10, "des": 10, "cos": 10, "int": 10, "sag": 10, "car": 10},
@@ -62,6 +68,18 @@ DEFAULT_PG = {
     "atk_prof_ranged": False,
 }
 
+# Defense proficiencies (minimal mapping)
+ALLOWED_ARMOR_BY_CLASS = {
+    "Mago": ["none"],
+    "Chierico": ["none", "light", "medium"],
+    "Bardo": ["none", "light"],
+}
+
+ALLOWED_SHIELD_BY_CLASS = {
+    "Mago": False,
+    "Chierico": True,
+    "Bardo": False,
+}
 
 def new_pg() -> dict:
     return json.loads(json.dumps(DEFAULT_PG, ensure_ascii=False))
@@ -147,6 +165,13 @@ def normalize_pg(pg: Any) -> dict:
     pg["atk_prof_ranged"] = bool(pg.get("atk_prof_ranged", False))
 
     ensure_lineage_state(pg)
+
+    # Enforce armor/shield limits by class
+    allowed_armor = ALLOWED_ARMOR_BY_CLASS.get(pg["classe"], ["none", "light", "medium", "heavy"])
+    if pg["armor_type"] not in allowed_armor:
+        pg["armor_type"] = "none"
+    if not ALLOWED_SHIELD_BY_CLASS.get(pg["classe"], True):
+        pg["has_shield"] = False
     return pg
 
 
@@ -180,6 +205,19 @@ def _current_session_character_id() -> int | None:
         return int(row["id"]) if row else None
     except Exception:
         return None
+
+
+def _ensure_current_character_id() -> int:
+    """Return current character id, creating/saving if needed."""
+    pg = get_pg()
+    name = (pg.get("nome") or "personaggio").strip() or "personaggio"
+    char_id = _current_session_character_id()
+    if char_id:
+        return char_id
+    try:
+        return int(save_character_to_db(name, pg))
+    except Exception:
+        return 0
 
 
 def create_app() -> Flask:
@@ -262,6 +300,9 @@ def create_app() -> Flask:
         con_mod = mod(totals["cos"])
         hpmax = int(hp_max(pg["level"], pg["classe"], con_mod, "medio"))
 
+        allowed_armor = ALLOWED_ARMOR_BY_CLASS.get(pg["classe"], ["none", "light", "medium", "heavy"])
+        shield_allowed = ALLOWED_SHIELD_BY_CLASS.get(pg["classe"], True)
+
         # Spellcasting summary (only for classes that cast spells)
         spell_ability = spellcasting_ability(pg["classe"])
         spell_ability_label = STAT_LABEL.get(spell_ability) if spell_ability else None
@@ -330,6 +371,8 @@ def create_app() -> Flask:
             melee_attack_bonus=melee_attack_bonus,
             ranged_attack_bonus=ranged_attack_bonus,
             speed_auto=speed_auto,
+            allowed_armor=allowed_armor,
+            shield_allowed=shield_allowed,
             spell_ability=spell_ability,
             spell_ability_label=spell_ability_label,
             spell_mod=spell_mod,
@@ -415,6 +458,104 @@ def create_app() -> Flask:
             flash("JSON non valido: import annullato.", "danger")
 
         return redirect(url_for("index"))
+
+    @app.get("/spells")
+    def spells():
+        pg = get_pg()
+        character_id = _ensure_current_character_id()
+
+        q = (request.args.get("q") or "").strip()
+        level_raw = (request.args.get("level") or "").strip()
+        level = None
+        if level_raw.isdigit():
+            level = int(level_raw)
+
+        results = search_spells(q=q, level=level, class_name=None, limit=30) if q else []
+        owned = list_character_spells(character_id) if character_id else []
+        characters = list_characters()
+
+        return render_template(
+            "spells.html",
+            pg=pg,
+            q=q,
+            level=level,
+            results=results,
+            owned=owned,
+            characters=characters,
+        )
+
+    @app.post("/spells/add")
+    def spells_add():
+        character_id = _ensure_current_character_id()
+        spell_id = clamp_int(request.form.get("spell_id"), 0, 0, None)
+        if character_id and spell_id:
+            add_spell_to_character(character_id, spell_id)
+        return redirect(url_for("spells", q=request.form.get("q") or "", level=request.form.get("level") or ""))
+
+    @app.post("/spells/remove")
+    def spells_remove():
+        character_id = _ensure_current_character_id()
+        spell_id = clamp_int(request.form.get("spell_id"), 0, 0, None)
+        if character_id and spell_id:
+            remove_spell_from_character(character_id, spell_id)
+        return redirect(url_for("spells", q=request.form.get("q") or "", level=request.form.get("level") or ""))
+
+    @app.get("/spell/<int:spell_id>")
+    def spell_detail(spell_id: int):
+        with connect() as conn:
+            ensure_schema(conn)
+            row = conn.execute(
+                """
+                SELECT
+                    name_it,
+                    level,
+                    school,
+                    casting_time,
+                    range_text,
+                    components_v,
+                    components_s,
+                    components_m,
+                    material_text,
+                    duration_text,
+                    concentration,
+                    ritual,
+                    description,
+                    at_higher_levels
+                FROM spells
+                WHERE id = ?
+                """,
+                (spell_id,),
+            ).fetchone()
+
+        if not row:
+            return ("Not found", 404)
+
+        components = []
+        if row["components_v"]:
+            components.append("V")
+        if row["components_s"]:
+            components.append("S")
+        if row["components_m"]:
+            components.append("M")
+        components_text = ", ".join(components) if components else "-"
+        if row["components_m"] and row["material_text"]:
+            components_text = f"{components_text} ({row['material_text']})"
+
+        spell = {
+            "name": row["name_it"],
+            "level": int(row["level"]),
+            "school": row["school"],
+            "casting_time": row["casting_time"],
+            "range_text": row["range_text"],
+            "components_text": components_text,
+            "duration_text": row["duration_text"],
+            "concentration": bool(row["concentration"]),
+            "ritual": bool(row["ritual"]),
+            "description": row["description"],
+            "at_higher_levels": row["at_higher_levels"],
+        }
+
+        return render_template("spell_detail.html", spell=spell)
 
     return app
 

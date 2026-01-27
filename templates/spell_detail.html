@@ -1,0 +1,34 @@
+<div class="mb-2">
+  <div class="h5 mb-0">{{ spell.name }}</div>
+  <div class="text-muted small">
+    {% if spell.level == 0 %}
+      Trucchetto
+    {% else %}
+      Livello {{ spell.level }}
+    {% endif %}
+    · {{ spell.school }}
+  </div>
+</div>
+
+<div class="small text-muted mb-2">
+  <span>Tempo di lancio: <strong>{{ spell.casting_time }}</strong></span>
+  <span class="mx-2">|</span>
+  <span>Gittata: <strong>{{ spell.range_text }}</strong></span>
+  <span class="mx-2">|</span>
+  <span>Componenti: <strong>{{ spell.components_text }}</strong></span>
+  <span class="mx-2">|</span>
+  <span>Durata: <strong>{{ spell.duration_text }}</strong></span>
+  {% if spell.ritual %}
+    <span class="mx-2">|</span><span>Rituale</span>
+  {% endif %}
+  {% if spell.concentration %}
+    <span class="mx-2">|</span><span>Concentrazione</span>
+  {% endif %}
+</div>
+
+<div class="fs-6 spell-body" style="white-space: pre-line;">
+  {{ spell.description }}
+  {% if spell.at_higher_levels %}
+    {{ "\n\n" }}Al livelli superiori: {{ spell.at_higher_levels }}
+  {% endif %}
+</div>

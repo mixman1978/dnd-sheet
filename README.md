@@ -17,21 +17,6 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-# Creazione del DB
-è necessario che nella cartella db non ci sia il file dnd_sheet.sqlite3
-
-```bash
-# creazione DB e importazione spells
-python scripts/import_spells_srd.py
-
-# seed tabelle base
-python scripts/seed_classes.py
-
-# bestiario: import del bestiario
-python scripts/import_monsters_srd.py
-
-```
-
 ## Salvataggi PG
 - Compila il personaggio e clicca **Salva** (usa il campo Nome come chiave univoca).
 - Usa il menu **Personaggi salvati** + **Carica** per ripristinare dal DB.

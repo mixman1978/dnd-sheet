@@ -61,6 +61,14 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# Project DB (commit the clean seed DB, ignore other DBs)
+/db/*.sqlite3
+/db/*.sqlite3-*
+!/db/dnd_sheet.sqlite3
+
+# Datasets (source JSONs)
+/db/datasets/
+
 # Flask stuff:
 instance/
 .webassets-cache

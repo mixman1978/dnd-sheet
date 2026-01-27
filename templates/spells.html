@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <div class="label mb-2">Incantesimi</div>
+    <form class="row g-2 align-items-end" method="get" action="{{ url_for('spells') }}">
+      <div class="col-12 col-md-8">
+        <label class="text-muted mb-1">Cerca per nome</label>
+        <input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Es: dardo, cura, scudo">
+      </div>
+      <div class="col-12 col-md-2">
+        <label class="text-muted mb-1">Livello</label>
+        <select class="form-select form-select-sm" name="level">
+          <option value="">Tutti</option>
+          {% for lv in range(0, 10) %}
+            <option value="{{ lv }}" {% if level is not none and level == lv %}selected{% endif %}>
+              {% if lv == 0 %}Trucchetto{% else %}{{ lv }}{% endif %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-2">
+        <button class="btn btn-sm btn-primary w-100" type="submit">Cerca</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="label mb-2">Risultati</div>
+        {% if not results %}
+          <div class="text-muted small">Nessun risultato.</div>
+        {% else %}
+          <div class="list-group">
+            {% for sp in results %}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <div>{{ sp.name }}</div>
+                  <div class="text-muted small">Lv {{ sp.level }} · {{ sp.school }}</div>
+                </div>
+                <div class="d-flex gap-2">
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#spellDetailModal"
+                    hx-get="/spell/{{ sp.id }}"
+                    hx-target="#spell-detail-body"
+                    hx-swap="innerHTML"
+                  >Dettagli</button>
+                  <form method="post" action="{{ url_for('spells_add') }}" class="m-0">
+                    <input type="hidden" name="spell_id" value="{{ sp.id }}">
+                    <input type="hidden" name="q" value="{{ q }}">
+                    <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
+                    <button class="btn btn-sm btn-outline-primary" type="submit">Aggiungi</button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="label mb-2">Incantesimi del personaggio</div>
+        {% if not owned %}
+          <div class="text-muted small">Nessun incantesimo aggiunto.</div>
+        {% else %}
+          <div class="list-group">
+            {% for sp in owned %}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <div>{{ sp.name }}</div>
+                  <div class="text-muted small">Lv {{ sp.level }} · {{ sp.school }}</div>
+                </div>
+                <div class="d-flex gap-2">
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#spellDetailModal"
+                    hx-get="/spell/{{ sp.id }}"
+                    hx-target="#spell-detail-body"
+                    hx-swap="innerHTML"
+                  >Dettagli</button>
+                  <form method="post" action="{{ url_for('spells_remove') }}" class="m-0">
+                    <input type="hidden" name="spell_id" value="{{ sp.id }}">
+                    <input type="hidden" name="q" value="{{ q }}">
+                    <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
+                    <button class="btn btn-sm btn-outline-danger" type="submit">Rimuovi</button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="spellDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Dettagli incantesimo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="spell-detail-body">
+        <div class="text-muted small">Seleziona un incantesimo.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
