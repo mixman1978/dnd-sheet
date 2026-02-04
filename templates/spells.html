@@ -39,6 +39,10 @@
             <option value="{{ code }}" {% if class_code == code %}selected{% endif %}>{{ class_labels.get(code, code) }}</option>
           {% endfor %}
         </select>
+        <div class="form-check form-switch mt-2">
+          <input class="form-check-input" type="checkbox" role="switch" id="pg-mode" name="pg_mode" value="1" {% if pg_mode %}checked{% endif %}>
+          <label class="form-check-label small text-muted" for="pg-mode">Usa limiti PG corrente</label>
+        </div>
       </div>
       <div class="col-12 col-lg-2">
         <div class="d-grid gap-2">
@@ -47,7 +51,7 @@
             class="btn btn-sm btn-outline-secondary w-100"
             type="button"
             onclick="clearSpellsFilters()"
-            {% if not q and level is none and not class_code %}disabled{% endif %}
+            {% if not q and level is none and not class_code and not pg_mode %}disabled{% endif %}
           >
             Pulisci
           </button>
@@ -56,6 +60,19 @@
     </form>
   </div>
 </div>
+{% if pg_mode %}
+  <div class="alert alert-info py-2 mb-3 small">
+    Filtro PG attivo:
+    {% if pg_filter_class_label %}
+      classe <strong>{{ pg_filter_class_label }}</strong>
+    {% else %}
+      classe non disponibile
+    {% endif %}
+    {% if pg_filter_max_spell_level is not none %}
+      · livello incantesimo massimo <strong>{{ pg_filter_max_spell_level }}</strong>
+    {% endif %}
+  </div>
+{% endif %}
 
 <div class="row g-3">
   <div class="col-12 col-lg-6">
@@ -97,6 +114,7 @@
                     <input type="hidden" name="q" value="{{ q }}">
                     <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
                     <input type="hidden" name="class_code" value="{{ class_code }}">
+                    <input type="hidden" name="pg_mode" value="{{ '1' if pg_mode else '' }}">
                     <input type="hidden" name="page" value="{{ page }}">
                     <button class="btn btn-sm btn-outline-primary" type="submit">Aggiungi</button>
                   </form>
@@ -111,13 +129,13 @@
                 {% if has_prev %}
                   <a
                     class="btn btn-sm btn-outline-secondary"
-                    href="{{ url_for('spells', q=q, level=(level if level is not none else ''), class_code=class_code, page=page-1) }}"
+                    href="{{ url_for('spells', q=q, level=(level if level is not none else ''), class_code=class_code, pg_mode=('1' if pg_mode else ''), page=page-1) }}"
                   >Precedente</a>
                 {% endif %}
                 {% if has_next %}
                   <a
                     class="btn btn-sm btn-outline-secondary"
-                    href="{{ url_for('spells', q=q, level=(level if level is not none else ''), class_code=class_code, page=page+1) }}"
+                    href="{{ url_for('spells', q=q, level=(level if level is not none else ''), class_code=class_code, pg_mode=('1' if pg_mode else ''), page=page+1) }}"
                   >Successiva</a>
                 {% endif %}
               </div>
@@ -167,6 +185,7 @@
                     <input type="hidden" name="q" value="{{ q }}">
                     <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
                     <input type="hidden" name="class_code" value="{{ class_code }}">
+                    <input type="hidden" name="pg_mode" value="{{ '1' if pg_mode else '' }}">
                     <input type="hidden" name="page" value="{{ page }}">
                     <button class="btn btn-sm btn-outline-danger" type="submit">Rimuovi</button>
                   </form>
@@ -204,11 +223,13 @@
     const qInput = form.querySelector('input[name="q"]');
     const levelSelect = form.querySelector('select[name="level"]');
     const classSelect = form.querySelector('select[name="class_code"]');
+    const pgModeInput = form.querySelector('input[name="pg_mode"]');
     const hasQuery = Boolean(qInput && qInput.value.trim());
     const hasLevel = Boolean(levelSelect && levelSelect.value);
     const hasClass = Boolean(classSelect && classSelect.value);
+    const hasPgMode = Boolean(pgModeInput && pgModeInput.checked);
 
-    clearBtn.disabled = !(hasQuery || hasLevel || hasClass);
+    clearBtn.disabled = !(hasQuery || hasLevel || hasClass || hasPgMode);
   }
 
   function clearSpellsFilters() {
@@ -218,9 +239,11 @@
     const qInput = form.querySelector('input[name="q"]');
     const levelSelect = form.querySelector('select[name="level"]');
     const classSelect = form.querySelector('select[name="class_code"]');
+    const pgModeInput = form.querySelector('input[name="pg_mode"]');
     if (qInput) qInput.value = '';
     if (levelSelect) levelSelect.value = '';
     if (classSelect) classSelect.value = '';
+    if (pgModeInput) pgModeInput.checked = false;
     updateClearSpellsFiltersState();
 
     const submitBtn = document.getElementById('spells-filter-submit');
@@ -238,9 +261,11 @@
     const qInput = form.querySelector('input[name="q"]');
     const levelSelect = form.querySelector('select[name="level"]');
     const classSelect = form.querySelector('select[name="class_code"]');
+    const pgModeInput = form.querySelector('input[name="pg_mode"]');
     if (qInput) qInput.addEventListener('input', updateClearSpellsFiltersState);
     if (levelSelect) levelSelect.addEventListener('change', updateClearSpellsFiltersState);
     if (classSelect) classSelect.addEventListener('change', updateClearSpellsFiltersState);
+    if (pgModeInput) pgModeInput.addEventListener('change', updateClearSpellsFiltersState);
 
     updateClearSpellsFiltersState();
   });

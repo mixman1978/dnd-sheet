@@ -218,6 +218,58 @@ def _ensure_current_character_id() -> int:
         return 0
 
 
+def _class_code_from_name_it(name_it: str | None) -> str | None:
+    if not name_it:
+        return None
+    try:
+        with connect() as conn:
+            ensure_schema(conn)
+            row = conn.execute(
+                "SELECT code FROM classes WHERE name_it = ?",
+                ((name_it or "").strip(),),
+            ).fetchone()
+            if row and row[0]:
+                return str(row[0])
+    except Exception:
+        return None
+    return None
+
+
+def _max_spell_level_for_class_level(class_code: str, level: int) -> int | None:
+    try:
+        with connect() as conn:
+            ensure_schema(conn)
+            row = conn.execute(
+                """
+                SELECT spell_slots_json, spell_slots, slot_level
+                FROM class_levels
+                WHERE class_code = ? AND level = ?
+                """,
+                (class_code, int(level)),
+            ).fetchone()
+            if not row:
+                return None
+
+            slots_json = row["spell_slots_json"]
+            if slots_json:
+                slots = json.loads(slots_json)
+                if isinstance(slots, list):
+                    max_level = 0
+                    for idx, n in enumerate(slots, start=1):
+                        if int(n or 0) > 0:
+                            max_level = idx
+                    return max_level
+
+            pact_slots = int(row["spell_slots"] or 0)
+            pact_slot_level = int(row["slot_level"] or 0)
+            if pact_slots > 0 and pact_slot_level > 0:
+                return pact_slot_level
+    except Exception:
+        return None
+
+    return 0
+
+
 def create_app() -> Flask:
     app = Flask(__name__)
     app.secret_key = "dev-secret-key-change-me"
@@ -467,6 +519,7 @@ def create_app() -> Flask:
         q = (request.args.get("q") or "").strip()
         level_raw = (request.args.get("level") or "").strip()
         class_code = (request.args.get("class_code") or "").strip().lower()
+        pg_mode = (request.args.get("pg_mode") or "").strip() in {"1", "true", "on"}
         page_raw = (request.args.get("page") or "1").strip()
         if class_code not in class_options:
             class_code = ""
@@ -475,7 +528,17 @@ def create_app() -> Flask:
             level = int(level_raw)
         page = int(page_raw) if page_raw.isdigit() and int(page_raw) > 0 else 1
 
-        has_filters = bool(q or level is not None or class_code)
+        effective_class_code = class_code or None
+        pg_filter_max_spell_level = None
+        pg_filter_class_label = None
+        if pg_mode:
+            pg_filter_class_label = (pg.get("classe") or "").strip() or None
+            pg_class_code = _class_code_from_name_it(pg_filter_class_label)
+            if pg_class_code:
+                effective_class_code = pg_class_code
+                pg_filter_max_spell_level = _max_spell_level_for_class_level(pg_class_code, int(pg.get("level") or 1))
+
+        has_filters = bool(q or level is not None or class_code or pg_mode)
         page_size = 30
         has_prev = page > 1
         has_next = False
@@ -483,7 +546,8 @@ def create_app() -> Flask:
             raw_results = search_spells(
                 q=q,
                 level=level,
-                class_code=class_code or None,
+                class_code=effective_class_code,
+                max_level=pg_filter_max_spell_level,
                 limit=page_size + 1,
                 offset=(page - 1) * page_size,
             )
@@ -501,6 +565,9 @@ def create_app() -> Flask:
             level=level,
             class_code=class_code,
             class_options=class_options,
+            pg_mode=pg_mode,
+            pg_filter_class_label=pg_filter_class_label,
+            pg_filter_max_spell_level=pg_filter_max_spell_level,
             page=page,
             has_prev=has_prev,
             has_next=has_next,
@@ -521,6 +588,7 @@ def create_app() -> Flask:
                 q=request.form.get("q") or "",
                 level=request.form.get("level") or "",
                 class_code=request.form.get("class_code") or "",
+                pg_mode=request.form.get("pg_mode") or "",
                 page=request.form.get("page") or "1",
             )
         )
@@ -537,6 +605,7 @@ def create_app() -> Flask:
                 q=request.form.get("q") or "",
                 level=request.form.get("level") or "",
                 class_code=request.form.get("class_code") or "",
+                pg_mode=request.form.get("pg_mode") or "",
                 page=request.form.get("page") or "1",
             )
         )

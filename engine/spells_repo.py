@@ -25,6 +25,7 @@ def search_spells(
     q: str,
     level: int | None = None,
     class_code: str | None = None,
+    max_level: int | None = None,
     limit: int = 20,
     offset: int = 0,
 ) -> list[dict]:
@@ -39,6 +40,9 @@ def search_spells(
     if level is not None:
         where.append("s.level = ?")
         params.append(int(level))
+    if max_level is not None:
+        where.append("s.level <= ?")
+        params.append(int(max_level))
 
     if class_code:
         where.append(
