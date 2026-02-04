@@ -1,15 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
+{% set class_labels = {
+  "bard": "Bardo",
+  "cleric": "Chierico",
+  "druid": "Druido",
+  "paladin": "Paladino",
+  "ranger": "Ranger",
+  "sorcerer": "Stregone",
+  "warlock": "Warlock",
+  "wizard": "Mago"
+} %}
+{% set class_badge_order = ["bard", "cleric", "druid", "paladin", "ranger", "sorcerer", "warlock", "wizard"] %}
 
 <div class="card shadow-sm mb-3">
   <div class="card-body">
     <div class="label mb-2">Incantesimi</div>
     <form id="spells-filter-form" class="row g-2 align-items-end" method="get" action="{{ url_for('spells') }}">
-      <div class="col-12 col-md-8">
+      <div class="col-12 col-lg-5">
         <label class="text-muted mb-1">Cerca per nome</label>
         <input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Es: dardo, cura, scudo">
       </div>
-      <div class="col-12 col-md-2">
+      <div class="col-6 col-lg-2">
         <label class="text-muted mb-1">Livello</label>
         <select class="form-select form-select-sm" name="level">
           <option value="">Tutti</option>
@@ -20,14 +31,23 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-12 col-md-2">
+      <div class="col-6 col-lg-3">
+        <label class="text-muted mb-1">Classe</label>
+        <select class="form-select form-select-sm" name="class_code">
+          <option value="">Tutte</option>
+          {% for code in class_options %}
+            <option value="{{ code }}" {% if class_code == code %}selected{% endif %}>{{ class_labels.get(code, code) }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-lg-2">
         <div class="d-grid gap-2">
           <button id="spells-filter-submit" class="btn btn-sm btn-primary w-100" type="submit">Cerca</button>
           <button
             class="btn btn-sm btn-outline-secondary w-100"
             type="button"
             onclick="clearSpellsFilters()"
-            {% if not q and level is none %}disabled{% endif %}
+            {% if not q and level is none and not class_code %}disabled{% endif %}
           >
             Pulisci
           </button>
@@ -51,6 +71,16 @@
                 <div>
                   <div>{{ sp.name }}</div>
                   <div class="text-muted small">Lv {{ sp.level }} · {{ sp.school }}</div>
+                  {% if sp.class_codes %}
+                    {% set codes = sp.class_codes.split(",") %}
+                    <div class="mt-1 d-flex flex-wrap gap-1">
+                      {% for code in class_badge_order %}
+                        {% if code in codes %}
+                          <span class="badge rounded-pill text-bg-light border">{{ class_labels.get(code, code) }}</span>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
                 </div>
                 <div class="d-flex gap-2">
                   <button
@@ -66,6 +96,7 @@
                     <input type="hidden" name="spell_id" value="{{ sp.id }}">
                     <input type="hidden" name="q" value="{{ q }}">
                     <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
+                    <input type="hidden" name="class_code" value="{{ class_code }}">
                     <button class="btn btn-sm btn-outline-primary" type="submit">Aggiungi</button>
                   </form>
                 </div>
@@ -90,6 +121,16 @@
                 <div>
                   <div>{{ sp.name }}</div>
                   <div class="text-muted small">Lv {{ sp.level }} · {{ sp.school }}</div>
+                  {% if sp.class_codes %}
+                    {% set codes = sp.class_codes.split(",") %}
+                    <div class="mt-1 d-flex flex-wrap gap-1">
+                      {% for code in class_badge_order %}
+                        {% if code in codes %}
+                          <span class="badge rounded-pill text-bg-light border">{{ class_labels.get(code, code) }}</span>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
                 </div>
                 <div class="d-flex gap-2">
                   <button
@@ -105,6 +146,7 @@
                     <input type="hidden" name="spell_id" value="{{ sp.id }}">
                     <input type="hidden" name="q" value="{{ q }}">
                     <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
+                    <input type="hidden" name="class_code" value="{{ class_code }}">
                     <button class="btn btn-sm btn-outline-danger" type="submit">Rimuovi</button>
                   </form>
                 </div>
@@ -140,10 +182,12 @@
 
     const qInput = form.querySelector('input[name="q"]');
     const levelSelect = form.querySelector('select[name="level"]');
+    const classSelect = form.querySelector('select[name="class_code"]');
     const hasQuery = Boolean(qInput && qInput.value.trim());
     const hasLevel = Boolean(levelSelect && levelSelect.value);
+    const hasClass = Boolean(classSelect && classSelect.value);
 
-    clearBtn.disabled = !(hasQuery || hasLevel);
+    clearBtn.disabled = !(hasQuery || hasLevel || hasClass);
   }
 
   function clearSpellsFilters() {
@@ -152,8 +196,10 @@
 
     const qInput = form.querySelector('input[name="q"]');
     const levelSelect = form.querySelector('select[name="level"]');
+    const classSelect = form.querySelector('select[name="class_code"]');
     if (qInput) qInput.value = '';
     if (levelSelect) levelSelect.value = '';
+    if (classSelect) classSelect.value = '';
     updateClearSpellsFiltersState();
 
     const submitBtn = document.getElementById('spells-filter-submit');
@@ -170,8 +216,10 @@
 
     const qInput = form.querySelector('input[name="q"]');
     const levelSelect = form.querySelector('select[name="level"]');
+    const classSelect = form.querySelector('select[name="class_code"]');
     if (qInput) qInput.addEventListener('input', updateClearSpellsFiltersState);
     if (levelSelect) levelSelect.addEventListener('change', updateClearSpellsFiltersState);
+    if (classSelect) classSelect.addEventListener('change', updateClearSpellsFiltersState);
 
     updateClearSpellsFiltersState();
   });

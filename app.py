@@ -461,14 +461,19 @@ def create_app() -> Flask:
     def spells():
         pg = get_pg()
         character_id = _ensure_current_character_id()
+        class_options = ["bard", "cleric", "druid", "paladin", "ranger", "sorcerer", "warlock", "wizard"]
 
         q = (request.args.get("q") or "").strip()
         level_raw = (request.args.get("level") or "").strip()
+        class_code = (request.args.get("class_code") or "").strip().lower()
+        if class_code not in class_options:
+            class_code = ""
         level = None
         if level_raw.isdigit():
             level = int(level_raw)
 
-        results = search_spells(q=q, level=level, class_name=None, limit=30) if q else []
+        has_filters = bool(q or level is not None or class_code)
+        results = search_spells(q=q, level=level, class_code=class_code or None, limit=30) if has_filters else []
         owned = list_character_spells(character_id) if character_id else []
         characters = list_characters()
 
@@ -477,6 +482,8 @@ def create_app() -> Flask:
             pg=pg,
             q=q,
             level=level,
+            class_code=class_code,
+            class_options=class_options,
             results=results,
             owned=owned,
             characters=characters,
@@ -488,7 +495,14 @@ def create_app() -> Flask:
         spell_id = clamp_int(request.form.get("spell_id"), 0, 0, None)
         if character_id and spell_id:
             add_spell_to_character(character_id, spell_id)
-        return redirect(url_for("spells", q=request.form.get("q") or "", level=request.form.get("level") or ""))
+        return redirect(
+            url_for(
+                "spells",
+                q=request.form.get("q") or "",
+                level=request.form.get("level") or "",
+                class_code=request.form.get("class_code") or "",
+            )
+        )
 
     @app.post("/spells/remove")
     def spells_remove():
@@ -496,7 +510,14 @@ def create_app() -> Flask:
         spell_id = clamp_int(request.form.get("spell_id"), 0, 0, None)
         if character_id and spell_id:
             remove_spell_from_character(character_id, spell_id)
-        return redirect(url_for("spells", q=request.form.get("q") or "", level=request.form.get("level") or ""))
+        return redirect(
+            url_for(
+                "spells",
+                q=request.form.get("q") or "",
+                level=request.form.get("level") or "",
+                class_code=request.form.get("class_code") or "",
+            )
+        )
 
     @app.get("/spell/<int:spell_id>")
     def spell_detail(spell_id: int):

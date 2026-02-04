@@ -1,3 +1,15 @@
+{% set class_labels = {
+  "bard": "Bardo",
+  "cleric": "Chierico",
+  "druid": "Druido",
+  "paladin": "Paladino",
+  "ranger": "Ranger",
+  "sorcerer": "Stregone",
+  "warlock": "Warlock",
+  "wizard": "Mago"
+} %}
+{% set class_badge_order = ["bard", "cleric", "druid", "paladin", "ranger", "sorcerer", "warlock", "wizard"] %}
+
 <div class="mb-2">
   <div class="h5 mb-0">{{ spell.name }}</div>
   <div class="text-muted small">
@@ -9,6 +21,17 @@
     · {{ spell.school }}
   </div>
 </div>
+
+{% if spell.class_codes %}
+  {% set codes = spell.class_codes.split(",") %}
+  <div class="mb-2 d-flex flex-wrap gap-1">
+    {% for code in class_badge_order %}
+      {% if code in codes %}
+        <span class="badge rounded-pill text-bg-light border">{{ class_labels.get(code, code) }}</span>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endif %}
 
 <div class="small text-muted mb-2">
   <span>Tempo di lancio: <strong>{{ spell.casting_time }}</strong></span>

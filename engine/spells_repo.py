@@ -7,46 +7,54 @@ from engine.db import connect, ensure_schema
 
 
 def _rows_to_spells(rows: Iterable) -> list[dict]:
-    return [
-        {
+    spells = []
+    for r in rows:
+        item = {
             "id": int(r["id"]),
             "name": str(r["name_it"]),
             "level": int(r["level"]),
             "school": str(r["school"]),
         }
-        for r in rows
-    ]
+        if "class_codes" in r.keys():
+            item["class_codes"] = r["class_codes"] or ""
+        spells.append(item)
+    return spells
 
 
-def search_spells(q: str, level: int | None = None, class_name: str | None = None, limit: int = 20) -> list[dict]:
-    if not q:
-        return []
+def search_spells(
+    q: str,
+    level: int | None = None,
+    class_code: str | None = None,
+    limit: int = 20,
+) -> list[dict]:
+    params: list = []
+    where: list[str] = []
 
-    like = f"%{q.strip()}%"
-    params: list = [like]
-    level_filter = ""
-    class_join = ""
-    class_filter = ""
+    q = (q or "").strip()
+    if q:
+        where.append("s.name_it LIKE ?")
+        params.append(f"%{q}%")
 
     if level is not None:
-        level_filter = "AND s.level = ?"
+        where.append("s.level = ?")
         params.append(int(level))
 
-    if class_name:
-        class_join = "JOIN spell_classes sc ON sc.spell_id = s.id JOIN classes c ON c.code = sc.class_code"
-        class_filter = "AND c.name_it = ?"
-        params.append(class_name)
+    if class_code:
+        where.append(
+            "EXISTS (SELECT 1 FROM spell_classes sc_filter WHERE sc_filter.spell_id = s.id AND sc_filter.class_code = ?)"
+        )
+        params.append(class_code)
 
     with connect() as conn:
         ensure_schema(conn)
+        where_sql = f"WHERE {' AND '.join(where)}" if where else ""
         rows = conn.execute(
             f"""
-            SELECT s.id, s.name_it, s.level, s.school
+            SELECT s.id, s.name_it, s.level, s.school, group_concat(DISTINCT sc_all.class_code) AS class_codes
             FROM spells s
-            {class_join}
-            WHERE s.name_it LIKE ?
-            {level_filter}
-            {class_filter}
+            LEFT JOIN spell_classes sc_all ON sc_all.spell_id = s.id
+            {where_sql}
+            GROUP BY s.id
             ORDER BY s.level ASC, s.name_it ASC
             LIMIT ?
             """,
@@ -61,10 +69,17 @@ def list_by_character(character_id: int) -> list[dict]:
         ensure_schema(conn)
         rows = conn.execute(
             """
-            SELECT s.id, s.name_it, s.level, s.school
+            SELECT
+                s.id,
+                s.name_it,
+                s.level,
+                s.school,
+                group_concat(DISTINCT sc.class_code) AS class_codes
             FROM character_spells cs
             JOIN spells s ON s.id = cs.spell_id
+            LEFT JOIN spell_classes sc ON sc.spell_id = s.id
             WHERE cs.character_id = ? AND cs.status = 'known'
+            GROUP BY s.id
             ORDER BY s.level ASC, s.name_it ASC
             """,
             (int(character_id),),
@@ -142,7 +157,12 @@ def get_by_id(spell_id: int) -> dict | None:
                 concentration,
                 ritual,
                 description,
-                at_higher_levels
+                at_higher_levels,
+                (
+                    SELECT group_concat(DISTINCT sc.class_code)
+                    FROM spell_classes sc
+                    WHERE sc.spell_id = spells.id
+                ) AS class_codes
             FROM spells
             WHERE id = ?
             """,
@@ -176,4 +196,5 @@ def get_by_id(spell_id: int) -> dict | None:
         "ritual": bool(row["ritual"]),
         "description": _clean_description(row["description"], row["duration_text"]),
         "at_higher_levels": row["at_higher_levels"],
+        "class_codes": row["class_codes"] or "",
     }
