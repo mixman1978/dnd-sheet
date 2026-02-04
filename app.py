@@ -512,7 +512,9 @@ def create_app() -> Flask:
     @app.get("/spells")
     def spells():
         pg = get_pg()
-        character_id = _ensure_current_character_id()
+        # Non autosalvare il PG al semplice accesso della pagina Incantesimi.
+        # Evita aggiornamenti involontari del record fallback "personaggio".
+        character_id = _current_session_character_id()
         # Ordine alfabetico per label IT: Bardo, Chierico, Druido, Mago, Paladino, Ranger, Stregone, Warlock
         class_options = ["bard", "cleric", "druid", "wizard", "paladin", "ranger", "sorcerer", "warlock"]
 
