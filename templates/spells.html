@@ -4,7 +4,7 @@
 <div class="card shadow-sm mb-3">
   <div class="card-body">
     <div class="label mb-2">Incantesimi</div>
-    <form class="row g-2 align-items-end" method="get" action="{{ url_for('spells') }}">
+    <form id="spells-filter-form" class="row g-2 align-items-end" method="get" action="{{ url_for('spells') }}">
       <div class="col-12 col-md-8">
         <label class="text-muted mb-1">Cerca per nome</label>
         <input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Es: dardo, cura, scudo">
@@ -21,7 +21,17 @@
         </select>
       </div>
       <div class="col-12 col-md-2">
-        <button class="btn btn-sm btn-primary w-100" type="submit">Cerca</button>
+        <div class="d-grid gap-2">
+          <button id="spells-filter-submit" class="btn btn-sm btn-primary w-100" type="submit">Cerca</button>
+          <button
+            class="btn btn-sm btn-outline-secondary w-100"
+            type="button"
+            onclick="clearSpellsFilters()"
+            {% if not q and level is none %}disabled{% endif %}
+          >
+            Pulisci
+          </button>
+        </div>
       </div>
     </form>
   </div>
@@ -120,5 +130,51 @@
     </div>
   </div>
 </div>
+
+<script>
+  function updateClearSpellsFiltersState() {
+    const form = document.getElementById('spells-filter-form');
+    if (!form) return;
+    const clearBtn = form.querySelector('button[onclick="clearSpellsFilters()"]');
+    if (!clearBtn) return;
+
+    const qInput = form.querySelector('input[name="q"]');
+    const levelSelect = form.querySelector('select[name="level"]');
+    const hasQuery = Boolean(qInput && qInput.value.trim());
+    const hasLevel = Boolean(levelSelect && levelSelect.value);
+
+    clearBtn.disabled = !(hasQuery || hasLevel);
+  }
+
+  function clearSpellsFilters() {
+    const form = document.getElementById('spells-filter-form');
+    if (!form) return;
+
+    const qInput = form.querySelector('input[name="q"]');
+    const levelSelect = form.querySelector('select[name="level"]');
+    if (qInput) qInput.value = '';
+    if (levelSelect) levelSelect.value = '';
+    updateClearSpellsFiltersState();
+
+    const submitBtn = document.getElementById('spells-filter-submit');
+    if (submitBtn) {
+      submitBtn.click();
+      return;
+    }
+    form.requestSubmit();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('spells-filter-form');
+    if (!form) return;
+
+    const qInput = form.querySelector('input[name="q"]');
+    const levelSelect = form.querySelector('select[name="level"]');
+    if (qInput) qInput.addEventListener('input', updateClearSpellsFiltersState);
+    if (levelSelect) levelSelect.addEventListener('change', updateClearSpellsFiltersState);
+
+    updateClearSpellsFiltersState();
+  });
+</script>
 
 {% endblock %}
