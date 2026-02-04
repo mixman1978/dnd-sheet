@@ -40,8 +40,16 @@
           {% endfor %}
         </select>
         <div class="form-check form-switch mt-2">
-          <input class="form-check-input" type="checkbox" role="switch" id="pg-mode" name="pg_mode" value="1" {% if pg_mode %}checked{% endif %}>
-          <label class="form-check-label small text-muted" for="pg-mode">Usa limiti PG corrente</label>
+          <input class="form-check-input" type="checkbox" role="switch" id="pg-limits" name="pg_limits" value="1" {% if pg_limits %}checked{% endif %}>
+          <label class="form-check-label small text-muted" for="pg-limits">Usa limiti PG corrente</label>
+        </div>
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="checkbox" id="ritual-only" name="ritual_only" value="1" {% if ritual_only %}checked{% endif %}>
+          <label class="form-check-label small text-muted" for="ritual-only">Solo rituali</label>
+        </div>
+        <div class="form-check mt-1">
+          <input class="form-check-input" type="checkbox" id="concentration-only" name="concentration_only" value="1" {% if concentration_only %}checked{% endif %}>
+          <label class="form-check-label small text-muted" for="concentration-only">Solo concentrazione</label>
         </div>
       </div>
       <div class="col-12 col-lg-2">
@@ -51,7 +59,7 @@
             class="btn btn-sm btn-outline-secondary w-100"
             type="button"
             onclick="clearSpellsFilters()"
-            {% if not q and level is none and not class_code and not pg_mode %}disabled{% endif %}
+            {% if not q and level is none and not class_code and not pg_limits and not ritual_only and not concentration_only %}disabled{% endif %}
           >
             Pulisci
           </button>
@@ -60,7 +68,7 @@
     </form>
   </div>
 </div>
-{% if pg_mode %}
+{% if pg_limits %}
   <div class="alert alert-info py-2 mb-3 small">
     Filtro PG attivo:
     {% if pg_filter_class_label %}
@@ -87,7 +95,15 @@
               <div class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
                   <div>{{ sp.name }}</div>
-                  <div class="text-muted small">Lv {{ sp.level }} · {{ sp.school }}</div>
+                  <div class="text-muted small d-flex align-items-center gap-1 flex-wrap">
+                    <span>Lv {{ sp.level }} · {{ sp.school }}</span>
+                    {% if sp.ritual %}
+                      <span class="badge rounded-pill text-bg-secondary" title="Rituale">R</span>
+                    {% endif %}
+                    {% if sp.concentration %}
+                      <span class="badge rounded-pill text-bg-secondary" title="Concentrazione">C</span>
+                    {% endif %}
+                  </div>
                   {% if sp.class_codes %}
                     {% set codes = sp.class_codes.split(",") %}
                     <div class="mt-1 d-flex flex-wrap gap-1">
@@ -114,7 +130,9 @@
                     <input type="hidden" name="q" value="{{ q }}">
                     <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
                     <input type="hidden" name="class_code" value="{{ class_code }}">
-                    <input type="hidden" name="pg_mode" value="{{ '1' if pg_mode else '' }}">
+                    <input type="hidden" name="ritual_only" value="{{ '1' if ritual_only else '' }}">
+                    <input type="hidden" name="concentration_only" value="{{ '1' if concentration_only else '' }}">
+                    <input type="hidden" name="pg_limits" value="{{ '1' if pg_limits else '' }}">
                     <input type="hidden" name="page" value="{{ page }}">
                     <button class="btn btn-sm btn-outline-primary" type="submit">Aggiungi</button>
                   </form>
@@ -129,13 +147,13 @@
                 {% if has_prev %}
                   <a
                     class="btn btn-sm btn-outline-secondary"
-                    href="{{ url_for('spells', q=q, level=(level if level is not none else ''), class_code=class_code, pg_mode=('1' if pg_mode else ''), page=page-1) }}"
+                    href="{{ url_for('spells', q=q, level=(level if level is not none else ''), class_code=class_code, ritual_only=('1' if ritual_only else ''), concentration_only=('1' if concentration_only else ''), pg_limits=('1' if pg_limits else ''), page=page-1) }}"
                   >Precedente</a>
                 {% endif %}
                 {% if has_next %}
                   <a
                     class="btn btn-sm btn-outline-secondary"
-                    href="{{ url_for('spells', q=q, level=(level if level is not none else ''), class_code=class_code, pg_mode=('1' if pg_mode else ''), page=page+1) }}"
+                    href="{{ url_for('spells', q=q, level=(level if level is not none else ''), class_code=class_code, ritual_only=('1' if ritual_only else ''), concentration_only=('1' if concentration_only else ''), pg_limits=('1' if pg_limits else ''), page=page+1) }}"
                   >Successiva</a>
                 {% endif %}
               </div>
@@ -158,7 +176,15 @@
               <div class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
                   <div>{{ sp.name }}</div>
-                  <div class="text-muted small">Lv {{ sp.level }} · {{ sp.school }}</div>
+                  <div class="text-muted small d-flex align-items-center gap-1 flex-wrap">
+                    <span>Lv {{ sp.level }} · {{ sp.school }}</span>
+                    {% if sp.ritual %}
+                      <span class="badge rounded-pill text-bg-secondary" title="Rituale">R</span>
+                    {% endif %}
+                    {% if sp.concentration %}
+                      <span class="badge rounded-pill text-bg-secondary" title="Concentrazione">C</span>
+                    {% endif %}
+                  </div>
                   {% if sp.class_codes %}
                     {% set codes = sp.class_codes.split(",") %}
                     <div class="mt-1 d-flex flex-wrap gap-1">
@@ -185,7 +211,9 @@
                     <input type="hidden" name="q" value="{{ q }}">
                     <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
                     <input type="hidden" name="class_code" value="{{ class_code }}">
-                    <input type="hidden" name="pg_mode" value="{{ '1' if pg_mode else '' }}">
+                    <input type="hidden" name="ritual_only" value="{{ '1' if ritual_only else '' }}">
+                    <input type="hidden" name="concentration_only" value="{{ '1' if concentration_only else '' }}">
+                    <input type="hidden" name="pg_limits" value="{{ '1' if pg_limits else '' }}">
                     <input type="hidden" name="page" value="{{ page }}">
                     <button class="btn btn-sm btn-outline-danger" type="submit">Rimuovi</button>
                   </form>
@@ -223,13 +251,17 @@
     const qInput = form.querySelector('input[name="q"]');
     const levelSelect = form.querySelector('select[name="level"]');
     const classSelect = form.querySelector('select[name="class_code"]');
-    const pgModeInput = form.querySelector('input[name="pg_mode"]');
+    const ritualOnlyInput = form.querySelector('input[name="ritual_only"]');
+    const concentrationOnlyInput = form.querySelector('input[name="concentration_only"]');
+    const pgLimitsInput = form.querySelector('input[name="pg_limits"]');
     const hasQuery = Boolean(qInput && qInput.value.trim());
     const hasLevel = Boolean(levelSelect && levelSelect.value);
     const hasClass = Boolean(classSelect && classSelect.value);
-    const hasPgMode = Boolean(pgModeInput && pgModeInput.checked);
+    const hasRitualOnly = Boolean(ritualOnlyInput && ritualOnlyInput.checked);
+    const hasConcentrationOnly = Boolean(concentrationOnlyInput && concentrationOnlyInput.checked);
+    const hasPgLimits = Boolean(pgLimitsInput && pgLimitsInput.checked);
 
-    clearBtn.disabled = !(hasQuery || hasLevel || hasClass || hasPgMode);
+    clearBtn.disabled = !(hasQuery || hasLevel || hasClass || hasRitualOnly || hasConcentrationOnly || hasPgLimits);
   }
 
   function clearSpellsFilters() {
@@ -239,11 +271,15 @@
     const qInput = form.querySelector('input[name="q"]');
     const levelSelect = form.querySelector('select[name="level"]');
     const classSelect = form.querySelector('select[name="class_code"]');
-    const pgModeInput = form.querySelector('input[name="pg_mode"]');
+    const ritualOnlyInput = form.querySelector('input[name="ritual_only"]');
+    const concentrationOnlyInput = form.querySelector('input[name="concentration_only"]');
+    const pgLimitsInput = form.querySelector('input[name="pg_limits"]');
     if (qInput) qInput.value = '';
     if (levelSelect) levelSelect.value = '';
     if (classSelect) classSelect.value = '';
-    if (pgModeInput) pgModeInput.checked = false;
+    if (ritualOnlyInput) ritualOnlyInput.checked = false;
+    if (concentrationOnlyInput) concentrationOnlyInput.checked = false;
+    if (pgLimitsInput) pgLimitsInput.checked = false;
     updateClearSpellsFiltersState();
 
     const submitBtn = document.getElementById('spells-filter-submit');
@@ -261,11 +297,15 @@
     const qInput = form.querySelector('input[name="q"]');
     const levelSelect = form.querySelector('select[name="level"]');
     const classSelect = form.querySelector('select[name="class_code"]');
-    const pgModeInput = form.querySelector('input[name="pg_mode"]');
+    const ritualOnlyInput = form.querySelector('input[name="ritual_only"]');
+    const concentrationOnlyInput = form.querySelector('input[name="concentration_only"]');
+    const pgLimitsInput = form.querySelector('input[name="pg_limits"]');
     if (qInput) qInput.addEventListener('input', updateClearSpellsFiltersState);
     if (levelSelect) levelSelect.addEventListener('change', updateClearSpellsFiltersState);
     if (classSelect) classSelect.addEventListener('change', updateClearSpellsFiltersState);
-    if (pgModeInput) pgModeInput.addEventListener('change', updateClearSpellsFiltersState);
+    if (ritualOnlyInput) ritualOnlyInput.addEventListener('change', updateClearSpellsFiltersState);
+    if (concentrationOnlyInput) concentrationOnlyInput.addEventListener('change', updateClearSpellsFiltersState);
+    if (pgLimitsInput) pgLimitsInput.addEventListener('change', updateClearSpellsFiltersState);
 
     updateClearSpellsFiltersState();
   });

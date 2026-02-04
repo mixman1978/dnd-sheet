@@ -236,38 +236,127 @@ def _class_code_from_name_it(name_it: str | None) -> str | None:
 
 
 def _max_spell_level_for_class_level(class_code: str, level: int) -> int | None:
-    try:
-        with connect() as conn:
-            ensure_schema(conn)
-            row = conn.execute(
-                """
-                SELECT spell_slots_json, spell_slots, slot_level
-                FROM class_levels
-                WHERE class_code = ? AND level = ?
-                """,
-                (class_code, int(level)),
-            ).fetchone()
-            if not row:
-                return None
+    code = (class_code or "").strip().lower()
+    lv = clamp_int(level, 1, 1, 20)
 
-            slots_json = row["spell_slots_json"]
-            if slots_json:
-                slots = json.loads(slots_json)
-                if isinstance(slots, list):
-                    max_level = 0
-                    for idx, n in enumerate(slots, start=1):
-                        if int(n or 0) > 0:
-                            max_level = idx
-                    return max_level
+    if code in {"bard", "cleric", "druid", "sorcerer", "wizard"}:
+        if lv >= 17:
+            return 9
+        if lv >= 15:
+            return 8
+        if lv >= 13:
+            return 7
+        if lv >= 11:
+            return 6
+        if lv >= 9:
+            return 5
+        if lv >= 7:
+            return 4
+        if lv >= 5:
+            return 3
+        if lv >= 3:
+            return 2
+        return 1
 
-            pact_slots = int(row["spell_slots"] or 0)
-            pact_slot_level = int(row["slot_level"] or 0)
-            if pact_slots > 0 and pact_slot_level > 0:
-                return pact_slot_level
-    except Exception:
-        return None
+    if code in {"paladin", "ranger"}:
+        if lv >= 17:
+            return 5
+        if lv >= 13:
+            return 4
+        if lv >= 9:
+            return 3
+        if lv >= 5:
+            return 2
+        if lv >= 2:
+            return 1
+        return 0
 
-    return 0
+    if code == "warlock":
+        if lv >= 9:
+            return 5
+        if lv >= 7:
+            return 4
+        if lv >= 5:
+            return 3
+        if lv >= 3:
+            return 2
+        return 1
+
+    return None
+
+
+def _parse_bool_flag(raw: str | None) -> bool:
+    return (raw or "").strip().lower() in {"1", "true", "on", "yes"}
+
+
+def _collect_pg_spellcasting_entries(pg: dict) -> list[tuple[str, int, str]]:
+    entries: dict[str, tuple[int, str]] = {}
+
+    def add_entry(code_raw: str | None, level_raw: Any, label_raw: str | None = None) -> None:
+        code = (code_raw or "").strip().lower()
+        if not code:
+            return
+        level = clamp_int(level_raw, 1, 1, 20)
+        label = (label_raw or "").strip() or code
+        prev = entries.get(code)
+        if not prev or level > prev[0]:
+            entries[code] = (level, label)
+
+    main_label = (pg.get("classe") or "").strip()
+    if main_label:
+        add_entry(_class_code_from_name_it(main_label), pg.get("level"), main_label)
+
+    for key in ("classes", "spell_classes", "multiclass"):
+        data = pg.get(key)
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, dict):
+                    code = (item.get("class_code") or item.get("code") or "").strip().lower()
+                    label = (
+                        item.get("name_it")
+                        or item.get("name")
+                        or item.get("label")
+                        or item.get("classe")
+                        or item.get("class")
+                    )
+                    if not code and label:
+                        code = (_class_code_from_name_it(str(label)) or "").strip().lower()
+                    add_entry(code, item.get("class_level") or item.get("level") or item.get("lvl"), str(label or ""))
+                elif isinstance(item, str):
+                    code = item.strip().lower()
+                    add_entry(code, pg.get("level"), code)
+        elif isinstance(data, dict):
+            nested_classes = data.get("classes")
+            if isinstance(nested_classes, list):
+                for item in nested_classes:
+                    if not isinstance(item, dict):
+                        continue
+                    code = (item.get("class_code") or item.get("code") or "").strip().lower()
+                    label = item.get("name_it") or item.get("name") or item.get("classe") or item.get("class")
+                    if not code and label:
+                        code = (_class_code_from_name_it(str(label)) or "").strip().lower()
+                    add_entry(code, item.get("class_level") or item.get("level") or item.get("lvl"), str(label or ""))
+            else:
+                for maybe_code, maybe_level in data.items():
+                    if isinstance(maybe_level, (int, str)):
+                        add_entry(str(maybe_code), maybe_level, str(maybe_code))
+
+    return [(code, lv, label) for code, (lv, label) in entries.items()]
+
+
+def _compute_pg_spell_limits(pg: dict) -> tuple[set[str], int | None, list[str]]:
+    entries = _collect_pg_spellcasting_entries(pg)
+    allowed_codes: set[str] = {code for code, _, _ in entries if code}
+    levels: list[int] = []
+    labels: list[str] = []
+    for class_code, class_level, label in entries:
+        max_level = _max_spell_level_for_class_level(class_code, class_level)
+        if max_level is not None:
+            levels.append(max_level)
+        if label and label not in labels:
+            labels.append(label)
+
+    return allowed_codes, (max(levels) if levels else None), labels
 
 
 def create_app() -> Flask:
@@ -521,7 +610,9 @@ def create_app() -> Flask:
         q = (request.args.get("q") or "").strip()
         level_raw = (request.args.get("level") or "").strip()
         class_code = (request.args.get("class_code") or "").strip().lower()
-        pg_mode = (request.args.get("pg_mode") or "").strip() in {"1", "true", "on"}
+        ritual_only = (request.args.get("ritual_only") or "") == "1"
+        concentration_only = (request.args.get("concentration_only") or "") == "1"
+        pg_limits = _parse_bool_flag(request.args.get("pg_limits") or request.args.get("pg_mode"))
         page_raw = (request.args.get("page") or "1").strip()
         if class_code not in class_options:
             class_code = ""
@@ -531,16 +622,20 @@ def create_app() -> Flask:
         page = int(page_raw) if page_raw.isdigit() and int(page_raw) > 0 else 1
 
         effective_class_code = class_code or None
+        effective_class_codes = None
         pg_filter_max_spell_level = None
         pg_filter_class_label = None
-        if pg_mode:
-            pg_filter_class_label = (pg.get("classe") or "").strip() or None
-            pg_class_code = _class_code_from_name_it(pg_filter_class_label)
-            if pg_class_code:
-                effective_class_code = pg_class_code
-                pg_filter_max_spell_level = _max_spell_level_for_class_level(pg_class_code, int(pg.get("level") or 1))
+        if pg_limits and character_id:
+            allowed_class_codes, pg_filter_max_spell_level, pg_labels = _compute_pg_spell_limits(pg)
+            if allowed_class_codes:
+                effective_class_codes = sorted(allowed_class_codes)
+            else:
+                # PG presente ma classi non risolvibili: non mostrare risultati fuori limite.
+                effective_class_code = "__no_class__"
+            if pg_labels:
+                pg_filter_class_label = ", ".join(pg_labels)
 
-        has_filters = bool(q or level is not None or class_code or pg_mode)
+        has_filters = bool(q or level is not None or class_code or pg_limits or ritual_only or concentration_only)
         page_size = 30
         has_prev = page > 1
         has_next = False
@@ -549,7 +644,10 @@ def create_app() -> Flask:
                 q=q,
                 level=level,
                 class_code=effective_class_code,
+                class_codes=effective_class_codes,
                 max_level=pg_filter_max_spell_level,
+                ritual_only=ritual_only,
+                concentration_only=concentration_only,
                 limit=page_size + 1,
                 offset=(page - 1) * page_size,
             )
@@ -567,7 +665,9 @@ def create_app() -> Flask:
             level=level,
             class_code=class_code,
             class_options=class_options,
-            pg_mode=pg_mode,
+            ritual_only=ritual_only,
+            concentration_only=concentration_only,
+            pg_limits=pg_limits,
             pg_filter_class_label=pg_filter_class_label,
             pg_filter_max_spell_level=pg_filter_max_spell_level,
             page=page,
@@ -590,7 +690,9 @@ def create_app() -> Flask:
                 q=request.form.get("q") or "",
                 level=request.form.get("level") or "",
                 class_code=request.form.get("class_code") or "",
-                pg_mode=request.form.get("pg_mode") or "",
+                ritual_only=request.form.get("ritual_only") or "",
+                concentration_only=request.form.get("concentration_only") or "",
+                pg_limits=request.form.get("pg_limits") or request.form.get("pg_mode") or "",
                 page=request.form.get("page") or "1",
             )
         )
@@ -607,7 +709,9 @@ def create_app() -> Flask:
                 q=request.form.get("q") or "",
                 level=request.form.get("level") or "",
                 class_code=request.form.get("class_code") or "",
-                pg_mode=request.form.get("pg_mode") or "",
+                ritual_only=request.form.get("ritual_only") or "",
+                concentration_only=request.form.get("concentration_only") or "",
+                pg_limits=request.form.get("pg_limits") or request.form.get("pg_mode") or "",
                 page=request.form.get("page") or "1",
             )
         )

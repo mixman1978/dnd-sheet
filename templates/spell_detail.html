@@ -19,6 +19,12 @@
       Livello {{ spell.level }}
     {% endif %}
     · {{ spell.school }}
+    {% if spell.ritual %}
+      <span class="badge rounded-pill text-bg-secondary ms-1" title="Rituale">R</span>
+    {% endif %}
+    {% if spell.concentration %}
+      <span class="badge rounded-pill text-bg-secondary ms-1" title="Concentrazione">C</span>
+    {% endif %}
   </div>
 </div>
 

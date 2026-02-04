@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Iterable
+from typing import Iterable, Sequence
 
 from engine.db import connect, ensure_schema
 
@@ -14,6 +14,8 @@ def _rows_to_spells(rows: Iterable) -> list[dict]:
             "name": str(r["name_it"]),
             "level": int(r["level"]),
             "school": str(r["school"]),
+            "ritual": bool(r["ritual"]) if "ritual" in r.keys() else False,
+            "concentration": bool(r["concentration"]) if "concentration" in r.keys() else False,
         }
         if "class_codes" in r.keys():
             item["class_codes"] = r["class_codes"] or ""
@@ -25,7 +27,10 @@ def search_spells(
     q: str,
     level: int | None = None,
     class_code: str | None = None,
+    class_codes: Sequence[str] | None = None,
     max_level: int | None = None,
+    ritual_only: bool = False,
+    concentration_only: bool = False,
     limit: int = 20,
     offset: int = 0,
 ) -> list[dict]:
@@ -43,19 +48,46 @@ def search_spells(
     if max_level is not None:
         where.append("s.level <= ?")
         params.append(int(max_level))
+    if ritual_only:
+        where.append("s.ritual = 1")
+    if concentration_only:
+        where.append("s.concentration = 1")
 
     if class_code:
         where.append(
             "EXISTS (SELECT 1 FROM spell_classes sc_filter WHERE sc_filter.spell_id = s.id AND sc_filter.class_code = ?)"
         )
         params.append(class_code)
+    if class_codes:
+        unique_codes: list[str] = []
+        seen: set[str] = set()
+        for raw in class_codes:
+            code = (raw or "").strip().lower()
+            if code and code not in seen:
+                unique_codes.append(code)
+                seen.add(code)
+        if unique_codes:
+            placeholders = ", ".join("?" for _ in unique_codes)
+            where.append(
+                "EXISTS (SELECT 1 FROM spell_classes sc_filter_list WHERE sc_filter_list.spell_id = s.id AND sc_filter_list.class_code IN ("
+                + placeholders
+                + "))"
+            )
+            params.extend(unique_codes)
 
     with connect() as conn:
         ensure_schema(conn)
         where_sql = f"WHERE {' AND '.join(where)}" if where else ""
         rows = conn.execute(
             f"""
-            SELECT s.id, s.name_it, s.level, s.school, group_concat(DISTINCT sc_all.class_code) AS class_codes
+            SELECT
+                s.id,
+                s.name_it,
+                s.level,
+                s.school,
+                s.ritual,
+                s.concentration,
+                group_concat(DISTINCT sc_all.class_code) AS class_codes
             FROM spells s
             LEFT JOIN spell_classes sc_all ON sc_all.spell_id = s.id
             {where_sql}
@@ -79,6 +111,8 @@ def list_by_character(character_id: int) -> list[dict]:
                 s.name_it,
                 s.level,
                 s.school,
+                s.ritual,
+                s.concentration,
                 group_concat(DISTINCT sc.class_code) AS class_codes
             FROM character_spells cs
             JOIN spells s ON s.id = cs.spell_id
