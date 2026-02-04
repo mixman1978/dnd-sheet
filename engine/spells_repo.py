@@ -26,6 +26,7 @@ def search_spells(
     level: int | None = None,
     class_code: str | None = None,
     limit: int = 20,
+    offset: int = 0,
 ) -> list[dict]:
     params: list = []
     where: list[str] = []
@@ -56,9 +57,9 @@ def search_spells(
             {where_sql}
             GROUP BY s.id
             ORDER BY s.level ASC, s.name_it ASC
-            LIMIT ?
+            LIMIT ? OFFSET ?
             """,
-            (*params, int(limit)),
+            (*params, int(limit), int(offset)),
         ).fetchall()
 
     return _rows_to_spells(rows)

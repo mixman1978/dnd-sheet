@@ -97,12 +97,32 @@
                     <input type="hidden" name="q" value="{{ q }}">
                     <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
                     <input type="hidden" name="class_code" value="{{ class_code }}">
+                    <input type="hidden" name="page" value="{{ page }}">
                     <button class="btn btn-sm btn-outline-primary" type="submit">Aggiungi</button>
                   </form>
                 </div>
               </div>
             {% endfor %}
           </div>
+          {% if has_prev or has_next %}
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <div class="small text-muted">Pagina {{ page }}</div>
+              <div class="d-flex gap-2">
+                {% if has_prev %}
+                  <a
+                    class="btn btn-sm btn-outline-secondary"
+                    href="{{ url_for('spells', q=q, level=(level if level is not none else ''), class_code=class_code, page=page-1) }}"
+                  >Precedente</a>
+                {% endif %}
+                {% if has_next %}
+                  <a
+                    class="btn btn-sm btn-outline-secondary"
+                    href="{{ url_for('spells', q=q, level=(level if level is not none else ''), class_code=class_code, page=page+1) }}"
+                  >Successiva</a>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
         {% endif %}
       </div>
     </div>
@@ -147,6 +167,7 @@
                     <input type="hidden" name="q" value="{{ q }}">
                     <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
                     <input type="hidden" name="class_code" value="{{ class_code }}">
+                    <input type="hidden" name="page" value="{{ page }}">
                     <button class="btn btn-sm btn-outline-danger" type="submit">Rimuovi</button>
                   </form>
                 </div>

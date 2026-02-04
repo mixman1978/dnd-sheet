@@ -467,14 +467,30 @@ def create_app() -> Flask:
         q = (request.args.get("q") or "").strip()
         level_raw = (request.args.get("level") or "").strip()
         class_code = (request.args.get("class_code") or "").strip().lower()
+        page_raw = (request.args.get("page") or "1").strip()
         if class_code not in class_options:
             class_code = ""
         level = None
         if level_raw.isdigit():
             level = int(level_raw)
+        page = int(page_raw) if page_raw.isdigit() and int(page_raw) > 0 else 1
 
         has_filters = bool(q or level is not None or class_code)
-        results = search_spells(q=q, level=level, class_code=class_code or None, limit=30) if has_filters else []
+        page_size = 30
+        has_prev = page > 1
+        has_next = False
+        if has_filters:
+            raw_results = search_spells(
+                q=q,
+                level=level,
+                class_code=class_code or None,
+                limit=page_size + 1,
+                offset=(page - 1) * page_size,
+            )
+            has_next = len(raw_results) > page_size
+            results = raw_results[:page_size]
+        else:
+            results = []
         owned = list_character_spells(character_id) if character_id else []
         characters = list_characters()
 
@@ -485,6 +501,9 @@ def create_app() -> Flask:
             level=level,
             class_code=class_code,
             class_options=class_options,
+            page=page,
+            has_prev=has_prev,
+            has_next=has_next,
             results=results,
             owned=owned,
             characters=characters,
@@ -502,6 +521,7 @@ def create_app() -> Flask:
                 q=request.form.get("q") or "",
                 level=request.form.get("level") or "",
                 class_code=request.form.get("class_code") or "",
+                page=request.form.get("page") or "1",
             )
         )
 
@@ -517,6 +537,7 @@ def create_app() -> Flask:
                 q=request.form.get("q") or "",
                 level=request.form.get("level") or "",
                 class_code=request.form.get("class_code") or "",
+                page=request.form.get("page") or "1",
             )
         )
 
