@@ -12,60 +12,70 @@
 } %}
 {% set class_badge_order = ["bard", "cleric", "druid", "paladin", "ranger", "sorcerer", "warlock", "wizard"] %}
 
-<div class="card shadow-sm mb-3">
-  <div class="card-body">
-    <div class="label mb-2">Incantesimi</div>
-    <form id="spells-filter-form" class="row g-2 align-items-end" method="get" action="{{ url_for('spells') }}">
-      <div class="col-12 col-lg-5">
-        <label class="text-muted mb-1">Cerca per nome</label>
-        <input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Es: dardo, cura, scudo">
+<div class="spells-page">
+<div class="row g-3 mb-3 align-items-stretch">
+  <div class="col-12 col-xl-8">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <div class="label mb-2">Incantesimi</div>
+        <form id="spells-filter-form" class="row g-2 align-items-end" method="get" action="{{ url_for('spells') }}">
+          <div class="col-12 col-lg-5">
+            <label class="text-muted mb-1">Cerca per nome</label>
+            <input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Es: dardo, cura, scudo">
+          </div>
+          <div class="col-6 col-lg-2">
+            <label class="text-muted mb-1">Livello</label>
+            <select class="form-select form-select-sm" name="level">
+              <option value="">Tutti</option>
+              {% for lv in range(0, 10) %}
+                <option value="{{ lv }}" {% if level is not none and level == lv %}selected{% endif %}>
+                  {% if lv == 0 %}Trucchetto{% else %}{{ lv }}{% endif %}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-6 col-lg-3">
+            <label class="text-muted mb-1">Classe</label>
+            <select class="form-select form-select-sm" name="class_code">
+              <option value="">Tutte</option>
+              {% for code in class_options %}
+                <option value="{{ code }}" {% if class_code == code %}selected{% endif %}>{{ class_labels.get(code, code) }}</option>
+              {% endfor %}
+            </select>
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" role="switch" id="pg-limits" name="pg_limits" value="1" {% if pg_limits %}checked{% endif %}>
+              <label class="form-check-label small text-muted" for="pg-limits">Usa limiti PG corrente</label>
+            </div>
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" id="ritual-only" name="ritual_only" value="1" {% if ritual_only %}checked{% endif %}>
+              <label class="form-check-label small text-muted" for="ritual-only">Solo rituali</label>
+            </div>
+            <div class="form-check mt-1">
+              <input class="form-check-input" type="checkbox" id="concentration-only" name="concentration_only" value="1" {% if concentration_only %}checked{% endif %}>
+              <label class="form-check-label small text-muted" for="concentration-only">Solo concentrazione</label>
+            </div>
+          </div>
+          <div class="col-12 col-lg-2">
+            <div class="d-grid gap-2">
+              <button id="spells-filter-submit" class="btn btn-sm btn-primary w-100" type="submit">Cerca</button>
+              <button
+                class="btn btn-sm btn-outline-secondary w-100"
+                type="button"
+                onclick="clearSpellsFilters()"
+                {% if not q and level is none and not class_code and not pg_limits and not ritual_only and not concentration_only %}disabled{% endif %}
+              >
+                Pulisci
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
-      <div class="col-6 col-lg-2">
-        <label class="text-muted mb-1">Livello</label>
-        <select class="form-select form-select-sm" name="level">
-          <option value="">Tutti</option>
-          {% for lv in range(0, 10) %}
-            <option value="{{ lv }}" {% if level is not none and level == lv %}selected{% endif %}>
-              {% if lv == 0 %}Trucchetto{% else %}{{ lv }}{% endif %}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-6 col-lg-3">
-        <label class="text-muted mb-1">Classe</label>
-        <select class="form-select form-select-sm" name="class_code">
-          <option value="">Tutte</option>
-          {% for code in class_options %}
-            <option value="{{ code }}" {% if class_code == code %}selected{% endif %}>{{ class_labels.get(code, code) }}</option>
-          {% endfor %}
-        </select>
-        <div class="form-check form-switch mt-2">
-          <input class="form-check-input" type="checkbox" role="switch" id="pg-limits" name="pg_limits" value="1" {% if pg_limits %}checked{% endif %}>
-          <label class="form-check-label small text-muted" for="pg-limits">Usa limiti PG corrente</label>
-        </div>
-        <div class="form-check mt-2">
-          <input class="form-check-input" type="checkbox" id="ritual-only" name="ritual_only" value="1" {% if ritual_only %}checked{% endif %}>
-          <label class="form-check-label small text-muted" for="ritual-only">Solo rituali</label>
-        </div>
-        <div class="form-check mt-1">
-          <input class="form-check-input" type="checkbox" id="concentration-only" name="concentration_only" value="1" {% if concentration_only %}checked{% endif %}>
-          <label class="form-check-label small text-muted" for="concentration-only">Solo concentrazione</label>
-        </div>
-      </div>
-      <div class="col-12 col-lg-2">
-        <div class="d-grid gap-2">
-          <button id="spells-filter-submit" class="btn btn-sm btn-primary w-100" type="submit">Cerca</button>
-          <button
-            class="btn btn-sm btn-outline-secondary w-100"
-            type="button"
-            onclick="clearSpellsFilters()"
-            {% if not q and level is none and not class_code and not pg_limits and not ritual_only and not concentration_only %}disabled{% endif %}
-          >
-            Pulisci
-          </button>
-        </div>
-      </div>
-    </form>
+    </div>
+  </div>
+  <div class="col-12 col-xl-4">
+    <div id="spell-slots-widget">
+      {% include "_spell_slots_widget.html" %}
+    </div>
   </div>
 </div>
 {% if pg_limits %}
@@ -83,7 +93,7 @@
 {% endif %}
 
 <div class="row g-3">
-  <div class="col-12 col-lg-6">
+  <div class="col-12 col-lg-6" id="owned-spells-panel">
     <div class="card shadow-sm">
       <div class="card-body">
         <div class="label mb-2">Risultati</div>
@@ -206,6 +216,43 @@
                     hx-target="#spell-detail-body"
                     hx-swap="innerHTML"
                   >Dettagli</button>
+                  {% if sp.level == 0 %}
+                    <form method="post" action="{{ url_for('spells_cast') }}" class="m-0">
+                      <input type="hidden" name="spell_name" value="{{ sp.name }}">
+                      <input type="hidden" name="spell_level" value="{{ sp.level }}">
+                      <input type="hidden" name="q" value="{{ q }}">
+                      <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
+                      <input type="hidden" name="class_code" value="{{ class_code }}">
+                      <input type="hidden" name="ritual_only" value="{{ '1' if ritual_only else '' }}">
+                      <input type="hidden" name="concentration_only" value="{{ '1' if concentration_only else '' }}">
+                      <input type="hidden" name="pg_limits" value="{{ '1' if pg_limits else '' }}">
+                      <input type="hidden" name="page" value="{{ page }}">
+                      <button class="btn btn-sm btn-outline-success" type="submit">Lancia</button>
+                    </form>
+                  {% elif sp.cast_levels %}
+                    <div class="d-flex align-items-center gap-1">
+                      {% for cl in sp.cast_levels %}
+                        <form method="post" action="{{ url_for('spells_cast') }}" class="m-0">
+                          <input type="hidden" name="spell_name" value="{{ sp.name }}">
+                          <input type="hidden" name="spell_level" value="{{ sp.level }}">
+                          <input type="hidden" name="cast_choice" value="{{ cl.value }}">
+                          <input type="hidden" name="q" value="{{ q }}">
+                          <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
+                          <input type="hidden" name="class_code" value="{{ class_code }}">
+                          <input type="hidden" name="ritual_only" value="{{ '1' if ritual_only else '' }}">
+                          <input type="hidden" name="concentration_only" value="{{ '1' if concentration_only else '' }}">
+                          <input type="hidden" name="pg_limits" value="{{ '1' if pg_limits else '' }}">
+                          <input type="hidden" name="page" value="{{ page }}">
+                          <button
+                            class="btn btn-sm rounded-pill {% if cl.rest == 'short' %}{% if cl.remaining|int > 0 %}btn-info{% else %}btn-outline-danger{% endif %}{% else %}{% if cl.remaining|int > 0 %}btn-success{% else %}btn-outline-danger{% endif %}{% endif %}"
+                            type="submit"
+                            title="{% if cl.rest == 'short' %}Riposo breve{% else %}Riposo lungo{% endif %} · {{ cl.remaining }} disponibili"
+                            {% if cl.remaining|int <= 0 %}disabled{% endif %}
+                          >{{ cl.label }}</button>
+                        </form>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
                   <form method="post" action="{{ url_for('spells_remove') }}" class="m-0">
                     <input type="hidden" name="spell_id" value="{{ sp.id }}">
                     <input type="hidden" name="q" value="{{ q }}">
@@ -242,6 +289,50 @@
 </div>
 
 <script>
+  async function refreshSpellSlotsWidget() {
+    const target = document.getElementById('spell-slots-widget');
+    if (!target) return;
+    const response = await fetch("{{ url_for('spell_slots_widget') }}", { headers: { "X-Requested-With": "XMLHttpRequest" } });
+    if (!response.ok) return;
+    target.innerHTML = await response.text();
+  }
+
+  async function refreshOwnedSpellsPanel() {
+    const target = document.getElementById('owned-spells-panel');
+    if (!target) return;
+    const response = await fetch(window.location.pathname + window.location.search, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+    if (!response.ok) return;
+    const html = await response.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const fresh = doc.getElementById('owned-spells-panel');
+    if (!fresh) return;
+    target.innerHTML = fresh.innerHTML;
+  }
+
+  async function submitSpellSlotsFormAjax(form) {
+    const body = new FormData(form);
+    body.set('next', window.location.pathname + window.location.search);
+    const response = await fetch(form.action, {
+      method: 'POST',
+      body,
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    });
+    if (!response.ok) {
+      window.location.reload();
+      return;
+    }
+    await refreshSpellSlotsWidget();
+    await refreshOwnedSpellsPanel();
+  }
+
+  document.addEventListener('submit', function (event) {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    if (!form.classList.contains('slot-ajax-form')) return;
+    event.preventDefault();
+    submitSpellSlotsFormAjax(form);
+  });
+
   function updateClearSpellsFiltersState() {
     const form = document.getElementById('spells-filter-form');
     if (!form) return;
@@ -311,4 +402,5 @@
   });
 </script>
 
+</div>
 {% endblock %}

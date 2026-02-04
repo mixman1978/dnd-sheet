@@ -1,0 +1,95 @@
+<div class="card shadow-sm h-100">
+  <div class="card-body py-2 px-2">
+    <div class="label mb-1">Slot Incantesimi</div>
+    {% if has_spell_slots_widget %}
+      {% if spell_slot_rows %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-1 small">
+            <thead>
+              <tr>
+                <th>Livello</th>
+                <th>Slot</th>
+                <th class="text-end">Controlli</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in spell_slot_rows %}
+                <tr>
+                  <td>{{ row.level }}&deg;</td>
+                  <td class="mono">{{ row.current }} / {{ row.max }}</td>
+                  <td>
+                    <div class="d-flex justify-content-end gap-1">
+                      <form method="post" action="{{ url_for('update_spell_slots') }}" class="m-0 slot-ajax-form">
+                        <input type="hidden" name="character_id" value="{{ current_char_id }}">
+                        <input type="hidden" name="slot_type" value="standard">
+                        <input type="hidden" name="slot_level" value="{{ row.level }}">
+                        <input type="hidden" name="delta" value="-1">
+                        <input type="hidden" name="next" value="{{ current_path }}">
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-2" type="submit" {% if row.current <= 0 %}disabled{% endif %}>-</button>
+                      </form>
+                      <form method="post" action="{{ url_for('update_spell_slots') }}" class="m-0 slot-ajax-form">
+                        <input type="hidden" name="character_id" value="{{ current_char_id }}">
+                        <input type="hidden" name="slot_type" value="standard">
+                        <input type="hidden" name="slot_level" value="{{ row.level }}">
+                        <input type="hidden" name="delta" value="1">
+                        <input type="hidden" name="next" value="{{ current_path }}">
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-2" type="submit" {% if row.current >= row.max %}disabled{% endif %}>+</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+
+      {% if pact_slots_max > 0 %}
+        <div class="border rounded p-2 bg-white small mb-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              Slot Patto (livello {{ pact_slot_level }})
+              <span class="mono ms-2">{{ pact_slots_current }} / {{ pact_slots_max }}</span>
+            </div>
+            <div class="d-flex gap-1">
+              <form method="post" action="{{ url_for('update_spell_slots') }}" class="m-0 slot-ajax-form">
+                <input type="hidden" name="character_id" value="{{ current_char_id }}">
+                <input type="hidden" name="slot_type" value="pact">
+                <input type="hidden" name="slot_level" value="pact">
+                <input type="hidden" name="delta" value="-1">
+                <input type="hidden" name="next" value="{{ current_path }}">
+                <button class="btn btn-sm btn-outline-secondary py-0 px-2" type="submit" {% if pact_slots_current <= 0 %}disabled{% endif %}>-</button>
+              </form>
+              <form method="post" action="{{ url_for('update_spell_slots') }}" class="m-0 slot-ajax-form">
+                <input type="hidden" name="character_id" value="{{ current_char_id }}">
+                <input type="hidden" name="slot_type" value="pact">
+                <input type="hidden" name="slot_level" value="pact">
+                <input type="hidden" name="delta" value="1">
+                <input type="hidden" name="next" value="{{ current_path }}">
+                <button class="btn btn-sm btn-outline-secondary py-0 px-2" type="submit" {% if pact_slots_current >= pact_slots_max %}disabled{% endif %}>+</button>
+              </form>
+            </div>
+          </div>
+          <div class="small text-muted mt-1">Riposo breve ripristina gli slot Patto.</div>
+        </div>
+      {% endif %}
+
+      <div class="d-flex gap-1">
+        <form method="post" action="{{ url_for('rest_spell_slots') }}" class="m-0 slot-ajax-form">
+          <input type="hidden" name="character_id" value="{{ current_char_id }}">
+          <input type="hidden" name="rest_type" value="short">
+          <input type="hidden" name="next" value="{{ current_path }}">
+          <button class="btn btn-sm btn-outline-secondary" type="submit">Riposo breve</button>
+        </form>
+        <form method="post" action="{{ url_for('rest_spell_slots') }}" class="m-0 slot-ajax-form">
+          <input type="hidden" name="character_id" value="{{ current_char_id }}">
+          <input type="hidden" name="rest_type" value="long">
+          <input type="hidden" name="next" value="{{ current_path }}">
+          <button class="btn btn-sm btn-outline-primary" type="submit">Riposo lungo</button>
+        </form>
+      </div>
+    {% else %}
+      <div class="text-muted small">Nessuno slot disponibile.</div>
+    {% endif %}
+  </div>
+</div>

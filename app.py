@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from urllib.parse import urlsplit
 from typing import Any
 from flask import (
     Flask,
@@ -173,6 +174,7 @@ def normalize_pg(pg: Any) -> dict:
         pg["armor_type"] = "none"
     if not ALLOWED_SHIELD_BY_CLASS.get(pg["classe"], True):
         pg["has_shield"] = False
+    recalc_spell_slots(pg)
     return pg
 
 
@@ -287,6 +289,405 @@ def _max_spell_level_for_class_level(class_code: str, level: int) -> int | None:
 
 def _parse_bool_flag(raw: str | None) -> bool:
     return (raw or "").strip().lower() in {"1", "true", "on", "yes"}
+
+
+FULL_CASTER_CODES = {"bard", "cleric", "druid", "sorcerer", "wizard"}
+HALF_CASTER_CODES = {"paladin", "ranger"}
+
+FULL_CASTER_SLOTS_BY_LEVEL: dict[int, dict[str, int]] = {
+    1: {"1": 2},
+    2: {"1": 3},
+    3: {"1": 4, "2": 2},
+    4: {"1": 4, "2": 3},
+    5: {"1": 4, "2": 3, "3": 2},
+    6: {"1": 4, "2": 3, "3": 3},
+    7: {"1": 4, "2": 3, "3": 3, "4": 1},
+    8: {"1": 4, "2": 3, "3": 3, "4": 2},
+    9: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 1},
+    10: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 2},
+    11: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 2, "6": 1},
+    12: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 2, "6": 1},
+    13: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 2, "6": 1, "7": 1},
+    14: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 2, "6": 1, "7": 1},
+    15: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 2, "6": 1, "7": 1, "8": 1},
+    16: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 2, "6": 1, "7": 1, "8": 1},
+    17: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 2, "6": 1, "7": 1, "8": 1, "9": 1},
+    18: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 3, "6": 1, "7": 1, "8": 1, "9": 1},
+    19: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 3, "6": 2, "7": 1, "8": 1, "9": 1},
+    20: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 3, "6": 2, "7": 2, "8": 1, "9": 1},
+}
+
+HALF_CASTER_SINGLE_CLASS_SLOTS_BY_LEVEL: dict[int, dict[str, int]] = {
+    1: {},
+    2: {"1": 2},
+    3: {"1": 3},
+    4: {"1": 3},
+    5: {"1": 4, "2": 2},
+    6: {"1": 4, "2": 2},
+    7: {"1": 4, "2": 3},
+    8: {"1": 4, "2": 3},
+    9: {"1": 4, "2": 3, "3": 2},
+    10: {"1": 4, "2": 3, "3": 2},
+    11: {"1": 4, "2": 3, "3": 3},
+    12: {"1": 4, "2": 3, "3": 3},
+    13: {"1": 4, "2": 3, "3": 3, "4": 1},
+    14: {"1": 4, "2": 3, "3": 3, "4": 1},
+    15: {"1": 4, "2": 3, "3": 3, "4": 2},
+    16: {"1": 4, "2": 3, "3": 3, "4": 2},
+    17: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 1},
+    18: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 1},
+    19: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 2},
+    20: {"1": 4, "2": 3, "3": 3, "4": 3, "5": 2},
+}
+
+CLASS_CODE_ALIASES = {
+    "bard": "bard",
+    "bardo": "bard",
+    "cleric": "cleric",
+    "chierico": "cleric",
+    "druid": "druid",
+    "druido": "druid",
+    "sorcerer": "sorcerer",
+    "stregone": "sorcerer",
+    "wizard": "wizard",
+    "mago": "wizard",
+    "warlock": "warlock",
+    "paladin": "paladin",
+    "paladino": "paladin",
+    "ranger": "ranger",
+}
+
+
+def _empty_spell_slots_dict() -> dict[str, int]:
+    return {str(i): 0 for i in range(1, 10)}
+
+
+def _class_code_from_any(value: Any) -> str | None:
+    raw = (value or "").strip().lower() if isinstance(value, str) else ""
+    if not raw:
+        return None
+    alias = CLASS_CODE_ALIASES.get(raw)
+    if alias:
+        return alias
+    if raw in FULL_CASTER_CODES or raw in HALF_CASTER_CODES or raw == "warlock":
+        return raw
+    db_code = _class_code_from_name_it(value if isinstance(value, str) else None)
+    return (db_code or "").strip().lower() or None
+
+
+def _extract_character_class_levels(character: dict) -> dict[str, int]:
+    out: dict[str, int] = {}
+    explicit_found = False
+
+    def add_entry(raw_code: Any, raw_level: Any) -> None:
+        nonlocal explicit_found
+        code = _class_code_from_any(raw_code)
+        if not code:
+            return
+        level = clamp_int(raw_level, 0, 0, 20)
+        if level <= 0:
+            return
+        explicit_found = True
+        out[code] = int(out.get(code, 0)) + level
+
+    data = character.get("classes")
+    if isinstance(data, list):
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+            add_entry(item.get("code") or item.get("class_code") or item.get("name_it") or item.get("classe"), item.get("level"))
+    elif isinstance(data, dict):
+        for key, value in data.items():
+            add_entry(key, value)
+
+    for key in ("multiclass", "spell_classes"):
+        data = character.get(key)
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, dict):
+                    add_entry(
+                        item.get("code") or item.get("class_code") or item.get("name_it") or item.get("classe") or item.get("class"),
+                        item.get("level") or item.get("class_level") or item.get("lvl"),
+                    )
+        elif isinstance(data, dict):
+            nested = data.get("classes")
+            if isinstance(nested, list):
+                for item in nested:
+                    if not isinstance(item, dict):
+                        continue
+                    add_entry(
+                        item.get("code") or item.get("class_code") or item.get("name_it") or item.get("classe") or item.get("class"),
+                        item.get("level") or item.get("class_level") or item.get("lvl"),
+                    )
+
+    if not explicit_found:
+        add_entry(character.get("classe"), character.get("level"))
+
+    return out
+
+
+def _warlock_slot_level(warlock_level: int) -> int:
+    lv = clamp_int(warlock_level, 0, 0, 20)
+    if lv <= 0:
+        return 0
+    if lv <= 2:
+        return 1
+    if lv <= 4:
+        return 2
+    if lv <= 6:
+        return 3
+    if lv <= 8:
+        return 4
+    return 5
+
+
+def _warlock_slot_count(warlock_level: int) -> int:
+    lv = clamp_int(warlock_level, 0, 0, 20)
+    if lv <= 0:
+        return 0
+    if lv == 1:
+        return 1
+    if lv <= 10:
+        return 2
+    if lv <= 16:
+        return 3
+    return 4
+
+
+def _get_slot_current(existing: dict, key: str, slot_max: int) -> int:
+    raw = existing.get(key)
+    if raw is None and key.isdigit():
+        raw = existing.get(int(key))
+    if raw is None:
+        return 0
+    return clamp_int(raw, 0, 0, slot_max)
+
+
+def recalc_spell_slots(character: dict) -> dict:
+    class_levels = _extract_character_class_levels(character)
+    non_warlock_classes = [c for c, lv in class_levels.items() if lv > 0 and c != "warlock"]
+
+    spell_slots_max = _empty_spell_slots_dict()
+    if non_warlock_classes:
+        if len(non_warlock_classes) == 1 and non_warlock_classes[0] in HALF_CASTER_CODES:
+            class_level = clamp_int(class_levels[non_warlock_classes[0]], 0, 0, 20)
+            single_half_slots = HALF_CASTER_SINGLE_CLASS_SLOTS_BY_LEVEL.get(class_level, {})
+            for key, value in single_half_slots.items():
+                spell_slots_max[key] = int(value)
+        else:
+            full_total = sum(class_levels.get(code, 0) for code in FULL_CASTER_CODES)
+            half_total = sum(class_levels.get(code, 0) for code in HALF_CASTER_CODES)
+            caster_level = clamp_int(full_total + (half_total // 2), 0, 0, 20)
+            multiclass_slots = FULL_CASTER_SLOTS_BY_LEVEL.get(caster_level, {})
+            for key, value in multiclass_slots.items():
+                spell_slots_max[key] = int(value)
+
+    existing_current = character.get("spell_slots_current")
+    if isinstance(existing_current, dict):
+        spell_slots_current = {
+            key: _get_slot_current(existing_current, key, int(spell_slots_max[key])) for key in spell_slots_max
+        }
+    else:
+        spell_slots_current = dict(spell_slots_max)
+
+    warlock_level = clamp_int(class_levels.get("warlock", 0), 0, 0, 20)
+    pact_slots_max = _warlock_slot_count(warlock_level)
+    pact_slot_level = _warlock_slot_level(warlock_level)
+    if "pact_slots_current" in character:
+        pact_slots_current = clamp_int(character.get("pact_slots_current"), 0, 0, pact_slots_max)
+    else:
+        pact_slots_current = pact_slots_max
+
+    character["spell_slots_max"] = spell_slots_max
+    character["spell_slots_current"] = spell_slots_current
+    character["pact_slot_level"] = pact_slot_level
+    character["pact_slots_max"] = pact_slots_max
+    character["pact_slots_current"] = pact_slots_current
+    return character
+
+
+def _safe_next_url(next_url: str | None) -> str:
+    raw = (next_url or "").strip()
+    if not raw:
+        return url_for("index")
+    parsed = urlsplit(raw)
+    if parsed.scheme or parsed.netloc:
+        return url_for("index")
+    if not raw.startswith("/"):
+        return url_for("index")
+    return raw
+
+
+def _persist_pg_to_session_and_db(pg: dict) -> int:
+    recalc_spell_slots(pg)
+    save_pg(pg)
+    name = (pg.get("nome") or "personaggio").strip() or "personaggio"
+    try:
+        return int(save_character_to_db(name, pg))
+    except Exception:
+        return 0
+
+
+def _build_spell_slots_view_model(pg: dict) -> dict:
+    spell_slots_max = pg.get("spell_slots_max") if isinstance(pg.get("spell_slots_max"), dict) else {}
+    spell_slots_current = pg.get("spell_slots_current") if isinstance(pg.get("spell_slots_current"), dict) else {}
+    spell_slot_rows = []
+    for lv in range(1, 10):
+        key = str(lv)
+        max_v = clamp_int(spell_slots_max.get(key, 0), 0, 0, 99)
+        if max_v <= 0:
+            continue
+        cur_v = clamp_int(spell_slots_current.get(key, max_v), max_v, 0, max_v)
+        spell_slot_rows.append({"level": lv, "current": cur_v, "max": max_v})
+
+    pact_slots_max = clamp_int(pg.get("pact_slots_max"), 0, 0, 99)
+    pact_slots_current = clamp_int(pg.get("pact_slots_current"), pact_slots_max, 0, pact_slots_max)
+    pact_slot_level = clamp_int(pg.get("pact_slot_level"), 0, 0, 9)
+    has_spell_slots_widget = bool(spell_slot_rows or pact_slots_max > 0)
+    current_char_id = _current_session_character_id() or 0
+    current_path = request.full_path[:-1] if request.full_path.endswith("?") else request.full_path
+
+    return {
+        "spell_slot_rows": spell_slot_rows,
+        "pact_slots_max": pact_slots_max,
+        "pact_slots_current": pact_slots_current,
+        "pact_slot_level": pact_slot_level,
+        "has_spell_slots_widget": has_spell_slots_widget,
+        "current_char_id": current_char_id,
+        "current_path": current_path,
+    }
+
+
+def _consume_spell_slot(pg: dict, spell_level: int) -> tuple[bool, str]:
+    required_level = clamp_int(spell_level, 0, 0, 9)
+    if required_level <= 0:
+        return True, "trucchetto (nessuno slot consumato)"
+
+    max_map = pg.get("spell_slots_max") if isinstance(pg.get("spell_slots_max"), dict) else {}
+    cur_map = pg.get("spell_slots_current") if isinstance(pg.get("spell_slots_current"), dict) else {}
+    for lv in range(required_level, 10):
+        key = str(lv)
+        max_v = clamp_int(max_map.get(key, 0), 0, 0, 99)
+        if max_v <= 0:
+            continue
+        current = clamp_int(cur_map.get(key, max_v), max_v, 0, max_v)
+        if current > 0:
+            cur_map[key] = current - 1
+            pg["spell_slots_current"] = cur_map
+            return True, f"slot livello {lv} consumato"
+
+    pact_max = clamp_int(pg.get("pact_slots_max"), 0, 0, 99)
+    pact_current = clamp_int(pg.get("pact_slots_current"), pact_max, 0, pact_max)
+    pact_slot_level = clamp_int(pg.get("pact_slot_level"), 0, 0, 9)
+    if pact_max > 0 and pact_current > 0 and pact_slot_level >= required_level:
+        pg["pact_slots_current"] = pact_current - 1
+        return True, f"slot patto livello {pact_slot_level} consumato"
+
+    return False, "nessuno slot disponibile"
+
+
+def _available_cast_options_for_spell(pg: dict, spell_level: int) -> list[dict[str, str]]:
+    level = clamp_int(spell_level, 0, 0, 9)
+    if level <= 0:
+        return [{"value": "cantrip", "label": "Trucchetto", "source": "cantrip"}]
+
+    options: list[dict[str, str]] = []
+    max_map = pg.get("spell_slots_max") if isinstance(pg.get("spell_slots_max"), dict) else {}
+    cur_map = pg.get("spell_slots_current") if isinstance(pg.get("spell_slots_current"), dict) else {}
+    for lv in range(level, 10):
+        key = str(lv)
+        max_v = clamp_int(max_map.get(key, 0), 0, 0, 99)
+        if max_v <= 0:
+            continue
+        current = clamp_int(cur_map.get(key, max_v), max_v, 0, max_v)
+        if current > 0:
+            options.append({"value": f"standard:{lv}", "label": f"{lv}°", "source": "standard"})
+
+    pact_max = clamp_int(pg.get("pact_slots_max"), 0, 0, 99)
+    pact_current = clamp_int(pg.get("pact_slots_current"), pact_max, 0, pact_max)
+    pact_slot_level = clamp_int(pg.get("pact_slot_level"), 0, 0, 9)
+    if pact_max > 0 and pact_current > 0 and pact_slot_level >= level:
+        options.append({"value": f"pact:{pact_slot_level}", "label": f"Patto {pact_slot_level}°", "source": "pact"})
+
+    return options
+
+
+def _available_cast_levels_for_spell(pg: dict, spell_level: int) -> list[dict[str, int | str]]:
+    level = clamp_int(spell_level, 0, 0, 9)
+    if level <= 0:
+        return [{"level": 0, "remaining": 999, "value": "cantrip", "label": "Cantrip", "rest": "none"}]
+
+    levels: list[dict[str, int | str]] = []
+    max_map = pg.get("spell_slots_max") if isinstance(pg.get("spell_slots_max"), dict) else {}
+    cur_map = pg.get("spell_slots_current") if isinstance(pg.get("spell_slots_current"), dict) else {}
+    pact_max = clamp_int(pg.get("pact_slots_max"), 0, 0, 99)
+    pact_current = clamp_int(pg.get("pact_slots_current"), pact_max, 0, pact_max)
+    pact_slot_level = clamp_int(pg.get("pact_slot_level"), 0, 0, 9)
+
+    for lv in range(level, 10):
+        key = str(lv)
+        max_v = clamp_int(max_map.get(key, 0), 0, 0, 99)
+        if max_v > 0:
+            current = clamp_int(cur_map.get(key, max_v), max_v, 0, max_v)
+            levels.append(
+                {"level": lv, "remaining": current, "value": f"standard:{lv}", "label": str(lv), "rest": "long"}
+            )
+
+    if pact_slot_level >= level and pact_max > 0:
+        levels.append(
+            {
+                "level": pact_slot_level,
+                "remaining": pact_current,
+                "value": f"pact:{pact_slot_level}",
+                "label": f"P{pact_slot_level}",
+                "rest": "short",
+            }
+        )
+
+    return levels
+
+
+def _consume_spell_slot_by_choice(pg: dict, spell_level: int, cast_choice: str | None) -> tuple[bool, str]:
+    level = clamp_int(spell_level, 0, 0, 9)
+    if level <= 0:
+        return True, "trucchetto (nessuno slot consumato)"
+
+    raw = (cast_choice or "").strip().lower()
+    if not raw:
+        return _consume_spell_slot(pg, level)
+
+    if raw.startswith("standard:"):
+        chosen = clamp_int(raw.split(":", 1)[1], 0, 1, 9)
+        if chosen < level:
+            return False, "livello di lancio non valido"
+        max_map = pg.get("spell_slots_max") if isinstance(pg.get("spell_slots_max"), dict) else {}
+        cur_map = pg.get("spell_slots_current") if isinstance(pg.get("spell_slots_current"), dict) else {}
+        key = str(chosen)
+        max_v = clamp_int(max_map.get(key, 0), 0, 0, 99)
+        if max_v <= 0:
+            return False, "slot standard non disponibile"
+        current = clamp_int(cur_map.get(key, max_v), max_v, 0, max_v)
+        if current <= 0:
+            return False, "slot standard esaurito"
+        cur_map[key] = current - 1
+        pg["spell_slots_current"] = cur_map
+        return True, f"slot livello {chosen} consumato"
+
+    if raw.startswith("pact:"):
+        chosen = clamp_int(raw.split(":", 1)[1], 0, 1, 9)
+        pact_max = clamp_int(pg.get("pact_slots_max"), 0, 0, 99)
+        pact_current = clamp_int(pg.get("pact_slots_current"), pact_max, 0, pact_max)
+        pact_slot_level = clamp_int(pg.get("pact_slot_level"), 0, 0, 9)
+        if chosen and pact_slot_level != chosen:
+            return False, "slot patto non disponibile a quel livello"
+        if pact_slot_level < level:
+            return False, "slot patto insufficiente"
+        if pact_current <= 0:
+            return False, "slot patto esaurito"
+        pg["pact_slots_current"] = pact_current - 1
+        return True, f"slot patto livello {pact_slot_level} consumato"
+
+    return _consume_spell_slot(pg, level)
 
 
 def _collect_pg_spellcasting_entries(pg: dict) -> list[tuple[str, int, str]]:
@@ -407,6 +808,7 @@ def create_app() -> Flask:
                 skills_filtered = skills_filtered[:choose_n]
             pg["skills_proficient"] = skills_filtered
 
+            recalc_spell_slots(pg)
             save_pg(pg)
             return redirect(url_for("index"))
 
@@ -486,7 +888,6 @@ def create_app() -> Flask:
         # Base attacks (no weapon/inventory yet)
         melee_attack_bonus = mod(totals["for"]) + (pb if pg.get("atk_prof_melee") else 0)
         ranged_attack_bonus = mod(totals["des"]) + (pb if pg.get("atk_prof_ranged") else 0)
-
         characters = list_characters()
 
         return render_template(
@@ -528,12 +929,81 @@ def create_app() -> Flask:
     def save_character():
         pg = get_pg()
         name = (pg.get("nome") or "personaggio").strip() or "personaggio"
+        recalc_spell_slots(pg)
         try:
             char_id = save_character_to_db(name, pg)
             flash(f"Salvato: {name} (#{char_id})", "success")
         except Exception:
             flash("Errore durante il salvataggio.", "danger")
         return redirect(url_for("index"))
+
+    @app.post("/character/spell_slots/update")
+    def update_spell_slots():
+        pg = get_pg()
+        session_char_id = _current_session_character_id() or 0
+        form_char_id = clamp_int(request.form.get("character_id"), 0, 0, None)
+        if form_char_id and session_char_id and form_char_id != session_char_id:
+            flash("Personaggio corrente non coerente per aggiornamento slot.", "warning")
+            return redirect(_safe_next_url(request.form.get("next")))
+
+        slot_type = (request.form.get("slot_type") or "").strip().lower()
+        delta = clamp_int(request.form.get("delta"), 0, -1, 1)
+        if delta not in (-1, 1):
+            return redirect(_safe_next_url(request.form.get("next")))
+
+        if slot_type == "standard":
+            slot_level = clamp_int(request.form.get("slot_level"), 0, 1, 9)
+            if slot_level > 0:
+                key = str(slot_level)
+                max_map = pg.get("spell_slots_max") if isinstance(pg.get("spell_slots_max"), dict) else {}
+                cur_map = pg.get("spell_slots_current") if isinstance(pg.get("spell_slots_current"), dict) else {}
+                max_v = clamp_int(max_map.get(key, 0), 0, 0, 99)
+                if max_v > 0:
+                    current = clamp_int(cur_map.get(key, max_v), max_v, 0, max_v)
+                    cur_map[key] = clamp_int(current + delta, current, 0, max_v)
+                    pg["spell_slots_current"] = cur_map
+
+        if slot_type == "pact":
+            max_v = clamp_int(pg.get("pact_slots_max"), 0, 0, 99)
+            current = clamp_int(pg.get("pact_slots_current"), max_v, 0, max_v)
+            pg["pact_slots_current"] = clamp_int(current + delta, current, 0, max_v)
+
+        _persist_pg_to_session_and_db(pg)
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return ("", 204)
+        return redirect(_safe_next_url(request.form.get("next")))
+
+    @app.post("/character/spell_slots/rest")
+    def rest_spell_slots():
+        pg = get_pg()
+        session_char_id = _current_session_character_id() or 0
+        form_char_id = clamp_int(request.form.get("character_id"), 0, 0, None)
+        if form_char_id and session_char_id and form_char_id != session_char_id:
+            flash("Personaggio corrente non coerente per riposo.", "warning")
+            return redirect(_safe_next_url(request.form.get("next")))
+
+        rest_type = (request.form.get("rest_type") or "").strip().lower()
+        if rest_type == "long":
+            max_map = pg.get("spell_slots_max") if isinstance(pg.get("spell_slots_max"), dict) else {}
+            pg["spell_slots_current"] = {
+                str(i): clamp_int(max_map.get(str(i), 0), 0, 0, 99) for i in range(1, 10)
+            }
+            pact_max = clamp_int(pg.get("pact_slots_max"), 0, 0, 99)
+            pg["pact_slots_current"] = pact_max
+            _persist_pg_to_session_and_db(pg)
+        elif rest_type == "short":
+            pact_max = clamp_int(pg.get("pact_slots_max"), 0, 0, 99)
+            pg["pact_slots_current"] = pact_max
+            _persist_pg_to_session_and_db(pg)
+
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return ("", 204)
+        return redirect(_safe_next_url(request.form.get("next")))
+
+    @app.get("/character/spell_slots/widget")
+    def spell_slots_widget():
+        pg = get_pg()
+        return render_template("_spell_slots_widget.html", pg=pg, **_build_spell_slots_view_model(pg))
 
     @app.get("/load_character/<int:char_id>")
     def load_character(char_id: int):
@@ -656,7 +1126,16 @@ def create_app() -> Flask:
         else:
             results = []
         owned = list_character_spells(character_id) if character_id else []
+        for sp in results:
+            options = _available_cast_options_for_spell(pg, int(sp.get("level") or 0))
+            sp["cast_options"] = options
+            sp["can_cast"] = bool(options)
+        for sp in owned:
+            levels = _available_cast_levels_for_spell(pg, int(sp.get("level") or 0))
+            sp["cast_levels"] = levels
+            sp["can_cast"] = bool(levels)
         characters = list_characters()
+        slots_vm = _build_spell_slots_view_model(pg)
 
         return render_template(
             "spells.html",
@@ -676,6 +1155,7 @@ def create_app() -> Flask:
             results=results,
             owned=owned,
             characters=characters,
+            **slots_vm,
         )
 
     @app.post("/spells/add")
@@ -703,6 +1183,31 @@ def create_app() -> Flask:
         spell_id = clamp_int(request.form.get("spell_id"), 0, 0, None)
         if character_id and spell_id:
             remove_spell_from_character(character_id, spell_id)
+        return redirect(
+            url_for(
+                "spells",
+                q=request.form.get("q") or "",
+                level=request.form.get("level") or "",
+                class_code=request.form.get("class_code") or "",
+                ritual_only=request.form.get("ritual_only") or "",
+                concentration_only=request.form.get("concentration_only") or "",
+                pg_limits=request.form.get("pg_limits") or request.form.get("pg_mode") or "",
+                page=request.form.get("page") or "1",
+            )
+        )
+
+    @app.post("/spells/cast")
+    def spells_cast():
+        pg = get_pg()
+        spell_name = (request.form.get("spell_name") or "Incantesimo").strip()
+        spell_level = clamp_int(request.form.get("spell_level"), 0, 0, 9)
+        cast_choice = request.form.get("cast_choice")
+        ok, detail = _consume_spell_slot_by_choice(pg, spell_level, cast_choice)
+        if ok:
+            _persist_pg_to_session_and_db(pg)
+            flash(f"Lanciato: {spell_name} ({detail})", "success")
+        else:
+            flash(f"Impossibile lanciare {spell_name}: {detail}.", "warning")
         return redirect(
             url_for(
                 "spells",

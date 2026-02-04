@@ -1,0 +1,69 @@
+:root {
+  --app-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+  /* force Bootstrap to use one font stack everywhere */
+  --bs-body-font-family: var(--app-font);
+  --bs-font-sans-serif: var(--app-font);
+}
+
+html,
+body {
+  font-family: var(--app-font) !important;
+}
+
+body {
+  font-size: 0.94rem;
+  padding-top: 64px;
+}
+
+@media (max-width: 991.98px) {
+  body {
+    padding-top: 72px;
+  }
+}
+
+/* force tricky components on Windows too */
+.navbar,
+.card,
+.dropdown-menu,
+.btn,
+.form-control,
+.form-select,
+.input-group-text,
+table,
+.table,
+.list-group,
+.badge {
+  font-family: var(--app-font) !important;
+}
+
+/* aligned numbers with same font */
+.mono {
+  font-family: inherit !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  font-weight: 700;
+}
+
+/* spells page compact layout */
+.spells-page {
+  font-size: 0.92rem;
+}
+
+.spells-page .card-body {
+  padding: 0.75rem;
+}
+
+.spells-page .list-group-item {
+  padding: 0.5rem 0.6rem;
+}
+
+.spells-page .btn.btn-sm {
+  padding: 0.2rem 0.45rem;
+}

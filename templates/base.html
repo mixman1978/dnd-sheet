@@ -6,30 +6,8 @@
   <title>{{ title or "DnD Sheet (Flask)" }}</title>
 
   <link href="{{ url_for('static', filename='vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
   <script src="{{ url_for('static', filename='vendor/htmx/htmx.min.js') }}"></script>
-    <style>
-    :root{
-      --app-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-
-      /* forza Bootstrap a usare lo stesso font OVUNQUE */
-      --bs-body-font-family: var(--app-font);
-      --bs-font-sans-serif: var(--app-font);
-    }
-
-    html, body { font-family: var(--app-font) !important; }
-
-    /* forza i componenti più “capricciosi” su Windows */
-    .navbar, .card, .dropdown-menu,
-    .btn, .form-control, .form-select, .input-group-text,
-    table, .table, .list-group, .badge {
-      font-family: var(--app-font) !important;
-    }
-
-    /* numeri allineati ma stesso font */
-    .mono { font-family: inherit !important; font-variant-numeric: tabular-nums; }
-
-    .label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; font-weight: 700; }
-  </style>
 
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
@@ -37,7 +15,7 @@
 </head>
 <body class="bg-light">
 
-<nav class="navbar navbar-dark navbar-expand-lg" style="background:#111;">
+<nav class="navbar navbar-dark navbar-expand-lg fixed-top" style="background:#111;">
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('index') }}">
       <img
