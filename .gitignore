@@ -226,6 +226,7 @@ __marimo__/
 # ---- D&D Sheet: dati locali (NON committare) ----
 db/*
 !db/.gitkeep
+!db/dnd_sheet.sqlite3
 db/datasets/
 
 # Script locali / one-off
