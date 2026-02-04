@@ -461,7 +461,8 @@ def create_app() -> Flask:
     def spells():
         pg = get_pg()
         character_id = _ensure_current_character_id()
-        class_options = ["bard", "cleric", "druid", "paladin", "ranger", "sorcerer", "warlock", "wizard"]
+        # Ordine alfabetico per label IT: Bardo, Chierico, Druido, Mago, Paladino, Ranger, Stregone, Warlock
+        class_options = ["bard", "cleric", "druid", "wizard", "paladin", "ranger", "sorcerer", "warlock"]
 
         q = (request.args.get("q") or "").strip()
         level_raw = (request.args.get("level") or "").strip()
