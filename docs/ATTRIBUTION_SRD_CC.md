@@ -1,7 +1,7 @@
 # Attribution - SRD 5.1 (CC-BY 4.0)
 
 Source repository: https://github.com/Tabyltop/CC-SRD
-Source file: db/datasets/sources/Monsters-SRD5.1-CCBY4.0License-TT.json
+Source file: Monsters-SRD5.1-CCBY4.0License-TT.json (used during import; dataset files are not distributed in this repo)
 License: https://creativecommons.org/licenses/by/4.0/legalcode
 
 This repository contains the SRD 5.1 (Creative Commons) converted to other file types and data formats, intended to support the creation of tools and resources for the TTRPG community.
