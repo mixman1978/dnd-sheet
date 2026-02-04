@@ -13,6 +13,7 @@
 {% set class_badge_order = ["bard", "cleric", "druid", "paladin", "ranger", "sorcerer", "warlock", "wizard"] %}
 
 <div class="spells-page">
+<div id="spells-ajax-alerts" class="mb-2"></div>
 <div class="row g-3 mb-3 align-items-stretch">
   <div class="col-12 col-xl-8">
     <div class="card shadow-sm h-100">
@@ -93,7 +94,7 @@
 {% endif %}
 
 <div class="row g-3">
-  <div class="col-12 col-lg-6" id="owned-spells-panel">
+  <div class="col-12 col-lg-6" id="results-panel">
     <div class="card shadow-sm">
       <div class="card-body">
         <div class="label mb-2">Risultati</div>
@@ -135,7 +136,7 @@
                     hx-target="#spell-detail-body"
                     hx-swap="innerHTML"
                   >Dettagli</button>
-                  <form method="post" action="{{ url_for('spells_add') }}" class="m-0">
+                  <form method="post" action="{{ url_for('spells_add') }}" class="m-0 spell-action-form">
                     <input type="hidden" name="spell_id" value="{{ sp.id }}">
                     <input type="hidden" name="q" value="{{ q }}">
                     <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
@@ -174,7 +175,7 @@
     </div>
   </div>
 
-  <div class="col-12 col-lg-6">
+  <div class="col-12 col-lg-6" id="owned-spells-panel">
     <div class="card shadow-sm">
       <div class="card-body">
         <div class="label mb-2">Incantesimi del personaggio</div>
@@ -217,7 +218,7 @@
                     hx-swap="innerHTML"
                   >Dettagli</button>
                   {% if sp.level == 0 %}
-                    <form method="post" action="{{ url_for('spells_cast') }}" class="m-0">
+                    <form method="post" action="{{ url_for('spells_cast') }}" class="m-0 spell-action-form">
                       <input type="hidden" name="spell_name" value="{{ sp.name }}">
                       <input type="hidden" name="spell_level" value="{{ sp.level }}">
                       <input type="hidden" name="q" value="{{ q }}">
@@ -232,7 +233,7 @@
                   {% elif sp.cast_levels %}
                     <div class="d-flex align-items-center gap-1">
                       {% for cl in sp.cast_levels %}
-                        <form method="post" action="{{ url_for('spells_cast') }}" class="m-0">
+                        <form method="post" action="{{ url_for('spells_cast') }}" class="m-0 spell-action-form">
                           <input type="hidden" name="spell_name" value="{{ sp.name }}">
                           <input type="hidden" name="spell_level" value="{{ sp.level }}">
                           <input type="hidden" name="cast_choice" value="{{ cl.value }}">
@@ -253,7 +254,7 @@
                       {% endfor %}
                     </div>
                   {% endif %}
-                  <form method="post" action="{{ url_for('spells_remove') }}" class="m-0">
+                  <form method="post" action="{{ url_for('spells_remove') }}" class="m-0 spell-action-form">
                     <input type="hidden" name="spell_id" value="{{ sp.id }}">
                     <input type="hidden" name="q" value="{{ q }}">
                     <input type="hidden" name="level" value="{{ level if level is not none else '' }}">
@@ -292,7 +293,10 @@
   async function refreshSpellSlotsWidget() {
     const target = document.getElementById('spell-slots-widget');
     if (!target) return;
-    const response = await fetch("{{ url_for('spell_slots_widget') }}", { headers: { "X-Requested-With": "XMLHttpRequest" } });
+    const response = await fetch("{{ url_for('spell_slots_widget') }}", {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+      cache: 'no-store'
+    });
     if (!response.ok) return;
     target.innerHTML = await response.text();
   }
@@ -300,7 +304,10 @@
   async function refreshOwnedSpellsPanel() {
     const target = document.getElementById('owned-spells-panel');
     if (!target) return;
-    const response = await fetch(window.location.pathname + window.location.search, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+    const response = await fetch(window.location.pathname + window.location.search, {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+      cache: 'no-store'
+    });
     if (!response.ok) return;
     const html = await response.text();
     const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -309,13 +316,42 @@
     target.innerHTML = fresh.innerHTML;
   }
 
+  async function refreshSpellsPanelsAndAlerts() {
+    const response = await fetch(window.location.pathname + window.location.search, {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+      cache: 'no-store'
+    });
+    if (!response.ok) return;
+    const html = await response.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    const resultsTarget = document.getElementById('results-panel');
+    const freshResults = doc.getElementById('results-panel');
+    if (resultsTarget && freshResults) {
+      resultsTarget.innerHTML = freshResults.innerHTML;
+    }
+
+    const ownedTarget = document.getElementById('owned-spells-panel');
+    const freshOwned = doc.getElementById('owned-spells-panel');
+    if (ownedTarget && freshOwned) {
+      ownedTarget.innerHTML = freshOwned.innerHTML;
+    }
+
+    const alertsTarget = document.getElementById('spells-ajax-alerts');
+    if (alertsTarget) {
+      const flashAlerts = Array.from(doc.querySelectorAll('main > .alert.alert-success, main > .alert.alert-warning, main > .alert.alert-danger'));
+      alertsTarget.innerHTML = flashAlerts.map((el) => el.outerHTML).join('');
+    }
+  }
+
   async function submitSpellSlotsFormAjax(form) {
     const body = new FormData(form);
     body.set('next', window.location.pathname + window.location.search);
     const response = await fetch(form.action, {
       method: 'POST',
       body,
-      headers: { "X-Requested-With": "XMLHttpRequest" }
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+      cache: 'no-store'
     });
     if (!response.ok) {
       window.location.reload();
@@ -325,12 +361,35 @@
     await refreshOwnedSpellsPanel();
   }
 
+  async function submitSpellActionFormAjax(form) {
+    const body = new FormData(form);
+    body.set('next', window.location.pathname + window.location.search);
+    const response = await fetch(form.action, {
+      method: 'POST',
+      body,
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+      cache: 'no-store'
+    });
+    if (!response.ok) {
+      window.location.reload();
+      return;
+    }
+    await refreshSpellSlotsWidget();
+    await refreshSpellsPanelsAndAlerts();
+  }
+
   document.addEventListener('submit', function (event) {
     const form = event.target;
     if (!(form instanceof HTMLFormElement)) return;
-    if (!form.classList.contains('slot-ajax-form')) return;
-    event.preventDefault();
-    submitSpellSlotsFormAjax(form);
+    if (form.classList.contains('slot-ajax-form')) {
+      event.preventDefault();
+      submitSpellSlotsFormAjax(form);
+      return;
+    }
+    if (form.classList.contains('spell-action-form')) {
+      event.preventDefault();
+      submitSpellActionFormAjax(form);
+    }
   });
 
   function updateClearSpellsFiltersState() {

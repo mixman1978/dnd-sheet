@@ -26,7 +26,6 @@
       {% if pg and (pg.nome or "")|trim %}
         <span class="text-white small">{{ pg.nome }} ({{ pg.classe }} {{ pg.level }})</span>
       {% endif %}
-      <a class="btn btn-sm btn-outline-light ms-2" href="{{ url_for('spells') }}">Incantesimi</a>
     </a>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,36 +34,89 @@
 
     <div class="collapse navbar-collapse" id="mainNavbar">
       <div class="ms-auto d-flex align-items-center gap-2 flex-nowrap py-2 py-lg-0">
+          <a class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" href="{{ url_for('index') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 2 8h1v6a1 1 0 0 0 1 1h3.5a.5.5 0 0 0 .5-.5V11h1v3.5a.5.5 0 0 0 .5.5H13a1 1 0 0 0 1-1V8h1a.5.5 0 0 0 .354-.854z"/>
+            </svg>
+            <span>Scheda</span>
+          </a>
+          <a class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" href="{{ url_for('spells') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M9.5.5a.5.5 0 0 1 .5.5v2.293l.646-.647a.5.5 0 0 1 .708.708L10.707 4H13a.5.5 0 0 1 0 1h-2.293l.647.646a.5.5 0 1 1-.708.708L10 5.707V8a.5.5 0 0 1-1 0V5.707l-.646.647a.5.5 0 1 1-.708-.708L8.293 5H6a.5.5 0 0 1 0-1h2.293l-.647-.646a.5.5 0 1 1 .708-.708L9 3.293V1a.5.5 0 0 1 .5-.5z"/>
+              <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V9.5a.5.5 0 0 0-1 0V14H2V2h4.5a.5.5 0 0 0 0-1z"/>
+            </svg>
+            <span>Incantesimi</span>
+          </a>
           <select id="navbar-character-select" class="form-select form-select-sm" style="min-width: 180px; max-width: 240px;">
             <option value="">Personaggi salvati</option>
             {% for ch in characters or [] %}
               <option value="{{ ch.id }}">{{ ch.name }}</option>
             {% endfor %}
           </select>
-          <button type="button" class="btn btn-sm btn-outline-light" onclick="loadSelectedCharacterNavbar()">Carica</button>
+          <button type="button" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" onclick="loadSelectedCharacterNavbar()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+              <path fill-rule="evenodd" d="M8 0a.5.5 0 0 1 .5.5v8.293l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 8.793V.5A.5.5 0 0 1 8 0z"/>
+              <path fill-rule="evenodd" d="M14 10.5a.5.5 0 0 1 .5.5v3A1.5 1.5 0 0 1 13 15.5H3A1.5 1.5 0 0 1 1.5 14v-3a.5.5 0 0 1 1 0v3A.5.5 0 0 0 3 14.5h10a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 1 .5-.5z"/>
+            </svg>
+            <span>Carica</span>
+          </button>
           <form method="post" action="{{ url_for('save_character') }}" class="m-0">
-            <button type="submit" class="btn btn-sm btn-primary">Salva</button>
+            <button type="submit" class="btn btn-sm btn-primary d-flex align-items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4.5L11.5 1H2zm0 1h8.5v2H2V2zm0 3h12v9H2V5zm2 2v5h8V7H4z"/>
+              </svg>
+              <span>Salva</span>
+            </button>
           </form>
           <form id="delete-character-form" method="post" action="{{ url_for('delete_character', char_id=0) }}" class="m-0" onsubmit="return submitDeleteSelectedCharacter();">
-            <button type="submit" class="btn btn-sm btn-outline-danger">Elimina</button>
+            <button type="submit" class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm4.5.5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                <path fill-rule="evenodd" d="M14 3.5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3h12v.5zM4.118 4.5 4.5 13A1.5 1.5 0 0 0 6 14.5h4a1.5 1.5 0 0 0 1.5-1.5l.382-8.5H4.118zM5.5 1h5a1 1 0 0 1 1 1v.5h-7V2a1 1 0 0 1 1-1z"/>
+              </svg>
+              <span>Elimina</span>
+            </button>
           </form>
         <div class="dropdown">
-          <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Tools
+          <button class="btn btn-sm btn-outline-light dropdown-toggle d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M9.405 1.05a1 1 0 0 1 1.19.694l.17.64a5.53 5.53 0 0 1 1.237.715l.598-.345a1 1 0 0 1 1.366.366l.8 1.385a1 1 0 0 1-.366 1.366l-.57.33a5.52 5.52 0 0 1 0 1.43l.57.33a1 1 0 0 1 .366 1.366l-.8 1.385a1 1 0 0 1-1.366.366l-.598-.345a5.52 5.52 0 0 1-1.237.715l-.17.64a1 1 0 0 1-1.19.694l-1.59-.426a1 1 0 0 1-.694-1.19l.17-.64a5.52 5.52 0 0 1-1.237-.715l-.598.345a1 1 0 0 1-1.366-.366l-.8-1.385a1 1 0 0 1 .366-1.366l.57-.33a5.52 5.52 0 0 1 0-1.43l-.57-.33a1 1 0 0 1-.366-1.366l.8-1.385a1 1 0 0 1 1.366-.366l.598.345a5.52 5.52 0 0 1 1.237-.715l.17-.64a1 1 0 0 1 1.19-.694l1.59.426zM8 10.5A2.5 2.5 0 1 0 8 5.5a2.5 2.5 0 0 0 0 5z"/>
+            </svg>
+            <span>Tools</span>
           </button>
           <div class="dropdown-menu dropdown-menu-end p-2" style="min-width: 320px;">
-            <div class="px-2 pt-1 pb-2"><a class="btn btn-sm btn-outline-primary w-100" href="{{ url_for('export_character') }}" role="button">Export JSON</a></div>
+            <div class="px-2 pt-1 pb-2">
+              <a class="btn btn-sm btn-outline-primary w-100 d-flex align-items-center justify-content-center gap-1" href="{{ url_for('export_character') }}" role="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M.5 9.9A.5.5 0 0 1 1 9.4h14a.5.5 0 0 1 .5.5V12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V9.9z"/>
+                  <path d="M7.646 1.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 1 1-.708.708L8.5 2.707V8.5a.5.5 0 0 1-1 0V2.707L6.354 3.854a.5.5 0 1 1-.708-.708l2-2z"/>
+                </svg>
+                <span>Export JSON</span>
+              </a>
+            </div>
             <div class="dropdown-divider"></div>
             <form method="post" action="{{ url_for('import_character') }}" enctype="multipart/form-data" class="px-2 pb-2">
               <label class="form-label small text-muted mb-1">Import JSON</label>
               <div class="d-grid gap-2">
                 <input class="form-control form-control-sm" type="file" name="character_file" accept=".json,application/json" required>
-                <button class="btn btn-sm btn-outline-secondary" type="submit">Import</button>
+                <button class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center gap-1" type="submit">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M.5 9.9A.5.5 0 0 1 1 9.4h14a.5.5 0 0 1 .5.5V12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V9.9z"/>
+                    <path d="M8.354 8.854a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 7.293V1.5a.5.5 0 0 1 1 0v5.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2z"/>
+                  </svg>
+                  <span>Import</span>
+                </button>
               </div>
             </form>
             <div class="dropdown-divider"></div>
             <form method="post" action="{{ url_for('purge_characters') }}" class="px-2 pb-2" onsubmit="return confirmPurgeCharacters();">
-              <button type="submit" class="btn btn-sm btn-outline-danger w-100">Pulisci PG</button>
+              <button type="submit" class="btn btn-sm btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm4.5.5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                  <path fill-rule="evenodd" d="M14 3.5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3h12v.5zM4.118 4.5 4.5 13A1.5 1.5 0 0 0 6 14.5h4a1.5 1.5 0 0 0 1.5-1.5l.382-8.5H4.118zM5.5 1h5a1 1 0 0 1 1 1v.5h-7V2a1 1 0 0 1 1-1z"/>
+                </svg>
+                <span>Pulisci PG</span>
+              </button>
             </form>
           </div>
         </div>

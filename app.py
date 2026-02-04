@@ -986,6 +986,7 @@ def create_app() -> Flask:
         # Base attacks (no weapon/inventory yet)
         melee_attack_bonus = mod(totals["for"]) + (pb if pg.get("atk_prof_melee") else 0)
         ranged_attack_bonus = mod(totals["des"]) + (pb if pg.get("atk_prof_ranged") else 0)
+        slots_vm = _build_spell_slots_view_model(pg)
         characters = list_characters()
 
         return render_template(
@@ -1008,6 +1009,13 @@ def create_app() -> Flask:
             passive_perception=passive_perception,
             melee_attack_bonus=melee_attack_bonus,
             ranged_attack_bonus=ranged_attack_bonus,
+            spell_slot_rows=slots_vm["spell_slot_rows"],
+            pact_slots_max=slots_vm["pact_slots_max"],
+            pact_slots_current=slots_vm["pact_slots_current"],
+            pact_slot_level=slots_vm["pact_slot_level"],
+            has_spell_slots_widget=slots_vm["has_spell_slots_widget"],
+            current_char_id=slots_vm["current_char_id"],
+            current_path=slots_vm["current_path"],
             speed_auto=speed_auto,
             allowed_armor=allowed_armor,
             shield_allowed=shield_allowed,

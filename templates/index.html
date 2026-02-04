@@ -128,46 +128,84 @@
 
         <hr class="my-3">
 
-        <div class="border rounded p-2 bg-white summary small">
-          <div class="label">Riepilogo</div>
-          <div class="row g-0">
-            <div class="col-12 col-md-6">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">Bonus Competenza</div>
-                <div class="mono fw-bold">+{{ pb }}</div>
-              </div>
-            </div>
-            <div class="col-12 col-md-6 ps-md-2">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">Percezione passiva</div>
-                <div class="mono fw-bold">{{ passive_perception }}</div>
-              </div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">Dado Vita</div>
-                <div class="mono fw-bold">d{{ hit_die }}</div>
-              </div>
-            </div>
-            <div class="col-12 col-md-6 ps-md-2">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">Iniziativa</div>
-                <div class="mono fw-bold">{{ "%+d"|format(initiative) }}</div>
-              </div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">Classe Armatura</div>
-                <div class="mono fw-bold">{{ ac }}</div>
-              </div>
-            </div>
-            <div class="col-12 col-md-6 ps-md-2">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">Velocit&agrave; (m)</div>
-                <div class="mono fw-bold">{{ speed_auto }}</div>
+        <div class="row g-2">
+          <div class="col-12 {% if has_spell_slots_widget %}col-lg-8{% endif %}">
+            <div class="border rounded p-2 bg-white summary small h-100">
+              <div class="label">Riepilogo</div>
+              <div class="row g-0">
+                <div class="col-12 col-md-6">
+                  <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                    <div class="text-muted">Bonus Competenza</div>
+                    <div class="mono fw-bold">+{{ pb }}</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 ps-md-2">
+                  <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                    <div class="text-muted">Percezione passiva</div>
+                    <div class="mono fw-bold">{{ passive_perception }}</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                    <div class="text-muted">Dado Vita</div>
+                    <div class="mono fw-bold">d{{ hit_die }}</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 ps-md-2">
+                  <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                    <div class="text-muted">Iniziativa</div>
+                    <div class="mono fw-bold">{{ "%+d"|format(initiative) }}</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                    <div class="text-muted">Classe Armatura</div>
+                    <div class="mono fw-bold">{{ ac }}</div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6 ps-md-2">
+                  <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                    <div class="text-muted">Velocit&agrave; (m)</div>
+                    <div class="mono fw-bold">{{ speed_auto }}</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+
+          {% if has_spell_slots_widget %}
+            <div class="col-12 col-lg-4">
+              <div class="border rounded p-2 bg-white summary small h-100">
+                <div class="label">Slot Incantesimi</div>
+                {% for row in spell_slot_rows %}
+                  <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                    <div class="text-muted">{{ row.level }}&deg;</div>
+                    <div class="mono fw-bold">{{ row.current }} / {{ row.max }}</div>
+                  </div>
+                {% endfor %}
+                {% if pact_slots_max > 0 %}
+                  <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                    <div class="text-muted">Patto (Lv {{ pact_slot_level }})</div>
+                    <div class="mono fw-bold">{{ pact_slots_current }} / {{ pact_slots_max }}</div>
+                  </div>
+                {% endif %}
+                <div class="d-flex gap-2 mt-2">
+                  <form method="post" action="{{ url_for('rest_spell_slots') }}" class="m-0">
+                    <input type="hidden" name="character_id" value="{{ current_char_id }}">
+                    <input type="hidden" name="rest_type" value="short">
+                    <input type="hidden" name="next" value="{{ current_path }}">
+                    <button class="btn btn-sm btn-outline-secondary" type="submit">Riposo breve</button>
+                  </form>
+                  <form method="post" action="{{ url_for('rest_spell_slots') }}" class="m-0">
+                    <input type="hidden" name="character_id" value="{{ current_char_id }}">
+                    <input type="hidden" name="rest_type" value="long">
+                    <input type="hidden" name="next" value="{{ current_path }}">
+                    <button class="btn btn-sm btn-outline-primary" type="submit">Riposo lungo</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          {% endif %}
         </div>
 
         <hr class="my-3">
