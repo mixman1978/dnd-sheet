@@ -6,8 +6,8 @@ A local-first D&D 5e character sheet web app (Flask), with spells, companions, a
 - SQLite (incluso in Python)
 
 ## Attribuzione / Licenze (SRD)
-Questo progetto include materiale tratto dallo SRD 5.1 / CC-BY 4.0. Vedi:
-- [docs/ATTRIBUTION_SPELLS_SRD.md](docs/ATTRIBUTION_SPELLS_SRD.md)
+Questo progetto include materiale tratto dallo SRD 5.2 / CC-BY 4.0. Vedi:
+- [docs/ATTRIBUTION_SRD_5.2.md](docs/ATTRIBUTION_SRD_5.2.md)
 - [docs/ATTRIBUTION_SRD_CC.md](docs/ATTRIBUTION_SRD_CC.md)
 
 ## Setup
