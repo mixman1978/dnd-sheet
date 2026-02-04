@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Iterable
 
 from engine.db import connect, ensure_schema
@@ -72,6 +73,55 @@ def list_by_character(character_id: int) -> list[dict]:
     return _rows_to_spells(rows)
 
 
+_ACTION_TYPE_MAP = {
+    "action": "1 azione",
+    "bonus_action": "1 azione bonus",
+    "bonus action": "1 azione bonus",
+    "reaction": "1 reazione",
+}
+
+
+def _display_casting_time(value: str | None) -> str:
+    raw = (value or "").strip()
+    if not raw:
+        return "—"
+    return _ACTION_TYPE_MAP.get(raw.lower(), raw)
+
+
+def _display_range_text(value: str | None) -> str:
+    raw = (value or "").strip()
+    if not raw:
+        return "—"
+    if raw.lower() in {"self", "incantatore"}:
+        return "Incantatore"
+    return raw
+
+
+def _clean_description(description: str | None, duration_text: str | None) -> str:
+    text = (description or "").strip()
+    if not text:
+        return "—"
+
+    # OCR residue: "ora Per ..."
+    text = re.sub(r"^\s*ora\s+(?=Per\b)", "", text, flags=re.IGNORECASE).strip()
+
+    duration = (duration_text or "").strip()
+    if duration:
+        candidates = [duration]
+        if "," in duration:
+            tail = duration.split(",")[-1].strip()
+            if tail:
+                candidates.append(tail)
+
+        for cand in candidates:
+            pat = re.compile(rf"^\s*{re.escape(cand)}(?:\s+|[:;,\-])+", flags=re.IGNORECASE)
+            if pat.match(text):
+                text = pat.sub("", text, count=1).strip()
+                break
+
+    return text or "—"
+
+
 def get_by_id(spell_id: int) -> dict | None:
     with connect() as conn:
         ensure_schema(conn)
@@ -118,12 +168,12 @@ def get_by_id(spell_id: int) -> dict | None:
         "name": row["name_it"],
         "level": int(row["level"]),
         "school": row["school"],
-        "casting_time": row["casting_time"],
-        "range_text": row["range_text"],
+        "casting_time": _display_casting_time(row["casting_time"]),
+        "range_text": _display_range_text(row["range_text"]),
         "components_text": components_text,
         "duration_text": row["duration_text"],
         "concentration": bool(row["concentration"]),
         "ritual": bool(row["ritual"]),
-        "description": row["description"],
+        "description": _clean_description(row["description"], row["duration_text"]),
         "at_higher_levels": row["at_higher_levels"],
     }
