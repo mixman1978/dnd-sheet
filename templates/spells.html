@@ -329,12 +329,18 @@
     const freshResults = doc.getElementById('results-panel');
     if (resultsTarget && freshResults) {
       resultsTarget.innerHTML = freshResults.innerHTML;
+      if (window.htmx) {
+        window.htmx.process(resultsTarget);
+      }
     }
 
     const ownedTarget = document.getElementById('owned-spells-panel');
     const freshOwned = doc.getElementById('owned-spells-panel');
     if (ownedTarget && freshOwned) {
       ownedTarget.innerHTML = freshOwned.innerHTML;
+      if (window.htmx) {
+        window.htmx.process(ownedTarget);
+      }
     }
 
     const alertsTarget = document.getElementById('spells-ajax-alerts');
