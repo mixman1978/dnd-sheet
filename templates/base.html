@@ -45,13 +45,9 @@
         alt="DnD Sheet"
         style="height:32px; width:auto; object-fit:contain; display:block;"
       >
-      <span class="text-white small">
-        {% if pg and (pg.nome or "")|trim %}
-          {{ pg.nome }} ({{ pg.classe }} {{ pg.level }})
-        {% else %}
-          DnD Sheet
-        {% endif %}
-      </span>
+      {% if pg and (pg.nome or "")|trim %}
+        <span class="text-white small">{{ pg.nome }} ({{ pg.classe }} {{ pg.level }})</span>
+      {% endif %}
       <a class="btn btn-sm btn-outline-light ms-2" href="{{ url_for('spells') }}">Incantesimi</a>
     </a>
 
