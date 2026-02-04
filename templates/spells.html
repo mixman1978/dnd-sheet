@@ -244,7 +244,7 @@
                           <input type="hidden" name="pg_limits" value="{{ '1' if pg_limits else '' }}">
                           <input type="hidden" name="page" value="{{ page }}">
                           <button
-                            class="btn btn-sm rounded-pill {% if cl.rest == 'short' %}{% if cl.remaining|int > 0 %}btn-info{% else %}btn-outline-danger{% endif %}{% else %}{% if cl.remaining|int > 0 %}btn-success{% else %}btn-outline-danger{% endif %}{% endif %}"
+                            class="btn btn-sm rounded-pill slot-level-chip {% if cl.rest == 'short' %}slot-level-chip--short{% else %}slot-level-chip--long{% endif %}{% if cl.remaining|int <= 0 %} slot-level-chip--empty{% endif %}"
                             type="submit"
                             title="{% if cl.rest == 'short' %}Riposo breve{% else %}Riposo lungo{% endif %} · {{ cl.remaining }} disponibili"
                             {% if cl.remaining|int <= 0 %}disabled{% endif %}

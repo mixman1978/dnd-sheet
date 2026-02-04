@@ -293,6 +293,11 @@ def _parse_bool_flag(raw: str | None) -> bool:
 
 FULL_CASTER_CODES = {"bard", "cleric", "druid", "sorcerer", "wizard"}
 HALF_CASTER_CODES = {"paladin", "ranger"}
+PREPARED_CASTER_ABILITY = {
+    "cleric": "sag",
+    "druid": "sag",
+    "paladin": "car",
+}
 
 FULL_CASTER_SLOTS_BY_LEVEL: dict[int, dict[str, int]] = {
     1: {"1": 2},
@@ -760,6 +765,99 @@ def _compute_pg_spell_limits(pg: dict) -> tuple[set[str], int | None, list[str]]
     return allowed_codes, (max(levels) if levels else None), labels
 
 
+def _class_level_spell_limits(class_code: str, class_level: int) -> dict[str, int | None]:
+    code = (class_code or "").strip().lower()
+    lv = clamp_int(class_level, 1, 1, 20)
+    out: dict[str, int | None] = {"max_spell_level": _max_spell_level_for_class_level(code, lv), "cantrips_known": None, "spells_known": None}
+    try:
+        with connect() as conn:
+            ensure_schema(conn)
+            row = conn.execute(
+                """
+                SELECT cantrips_known, spells_known
+                FROM class_levels
+                WHERE class_code = ? AND level = ?
+                """,
+                (code, lv),
+            ).fetchone()
+            if row:
+                out["cantrips_known"] = int(row["cantrips_known"]) if row["cantrips_known"] is not None else None
+                out["spells_known"] = int(row["spells_known"]) if row["spells_known"] is not None else None
+    except Exception:
+        pass
+    return out
+
+
+def _spell_class_codes(spell: dict) -> set[str]:
+    raw = (spell.get("class_codes") or "").strip()
+    if not raw:
+        return set()
+    return {x.strip().lower() for x in raw.split(",") if x.strip()}
+
+
+def _owned_spells_for_class(owned: list[dict], class_code: str) -> list[dict]:
+    code = (class_code or "").strip().lower()
+    out = []
+    for sp in owned:
+        codes = _spell_class_codes(sp)
+        if not codes or code in codes:
+            out.append(sp)
+    return out
+
+
+def _can_add_spell_for_pg(pg: dict, owned: list[dict], spell: dict) -> tuple[bool, str]:
+    spell_level = clamp_int(spell.get("level"), 0, 0, 9)
+    spell_codes = _spell_class_codes(spell)
+    class_levels = _extract_character_class_levels(pg)
+    if not class_levels:
+        return True, ""
+
+    candidate_codes = [code for code, lv in class_levels.items() if lv > 0]
+    if spell_codes:
+        candidate_codes = [code for code in candidate_codes if code in spell_codes]
+    if not candidate_codes:
+        return False, "Incantesimo non compatibile con la/e classe/i del PG."
+
+    reasons: list[str] = []
+    for code in candidate_codes:
+        lv = class_levels.get(code, 0)
+        limits = _class_level_spell_limits(code, lv)
+        max_spell_level = limits.get("max_spell_level")
+        if spell_level > 0 and isinstance(max_spell_level, int) and spell_level > max_spell_level:
+            reasons.append(f"{code}: livello incantesimo massimo {max_spell_level}")
+            continue
+
+        owned_for_code = _owned_spells_for_class(owned, code)
+        if spell_level == 0:
+            cantrips_known = limits.get("cantrips_known")
+            if isinstance(cantrips_known, int):
+                owned_cantrips = sum(1 for sp in owned_for_code if int(sp.get("level") or 0) == 0)
+                if owned_cantrips >= cantrips_known:
+                    reasons.append(f"{code}: limite trucchetti raggiunto ({cantrips_known})")
+                    continue
+        else:
+            spells_known = limits.get("spells_known")
+            if isinstance(spells_known, int):
+                owned_spells = sum(1 for sp in owned_for_code if int(sp.get("level") or 0) > 0)
+                if owned_spells >= spells_known:
+                    reasons.append(f"{code}: limite incantesimi conosciuti raggiunto ({spells_known})")
+                    continue
+            else:
+                prepared_ability = PREPARED_CASTER_ABILITY.get(code)
+                if prepared_ability:
+                    base_stats = pg.get("stats_base") if isinstance(pg.get("stats_base"), dict) else {}
+                    totals = total_stats(base_stats, get_lineage_bonus(pg))
+                    prepared_limit = max(1, lv + mod(clamp_int(totals.get(prepared_ability), 10, 1, 30)))
+                    owned_spells = sum(1 for sp in owned_for_code if int(sp.get("level") or 0) > 0)
+                    if owned_spells >= prepared_limit:
+                        reasons.append(f"{code}: limite incantesimi preparati raggiunto ({prepared_limit})")
+                        continue
+
+        return True, ""
+
+    return False, "; ".join(reasons) if reasons else "Limiti di apprendimento superati."
+
+
 def create_app() -> Flask:
     app = Flask(__name__)
     app.secret_key = "dev-secret-key-change-me"
@@ -1160,10 +1258,22 @@ def create_app() -> Flask:
 
     @app.post("/spells/add")
     def spells_add():
+        pg = get_pg()
         character_id = _ensure_current_character_id()
         spell_id = clamp_int(request.form.get("spell_id"), 0, 0, None)
         if character_id and spell_id:
-            add_spell_to_character(character_id, spell_id)
+            spell = get_by_id(spell_id)
+            owned = list_character_spells(character_id)
+            if any(int(sp.get("id") or 0) == spell_id for sp in owned):
+                flash("Incantesimo gia' presente nel personaggio.", "warning")
+            elif not spell:
+                flash("Incantesimo non trovato.", "warning")
+            else:
+                allowed, reason = _can_add_spell_for_pg(pg, owned, spell)
+                if allowed:
+                    add_spell_to_character(character_id, spell_id)
+                else:
+                    flash(f"Aggiunta bloccata: {reason}", "warning")
         return redirect(
             url_for(
                 "spells",

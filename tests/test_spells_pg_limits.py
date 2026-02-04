@@ -92,6 +92,82 @@ class SpellsPgLimitsTests(unittest.TestCase):
         self.assertIn('title="Rituale"', text)
         self.assertIn('title="Concentrazione"', text)
 
+    def test_add_spell_blocked_when_known_limit_reached(self):
+        flask_app = app_module.create_app()
+        flask_app.config["TESTING"] = True
+
+        pg = {"classe": "Warlock", "level": 1, "classes": [{"code": "warlock", "level": 1}]}
+        owned = [
+            {"id": 101, "name": "A", "level": 1, "school": "X", "class_codes": "warlock"},
+            {"id": 102, "name": "B", "level": 1, "school": "X", "class_codes": "warlock"},
+        ]
+        spell = {"id": 999, "name": "C", "level": 1, "school": "X", "class_codes": "warlock"}
+
+        with flask_app.test_client() as client, patch("app.get_pg", return_value=pg), patch(
+            "app._ensure_current_character_id", return_value=1
+        ), patch("app.list_character_spells", return_value=owned), patch(
+            "app.get_by_id", return_value=spell
+        ), patch(
+            "app.add_spell_to_character"
+        ) as add_mock:
+            response = client.post(
+                "/spells/add",
+                data={
+                    "spell_id": "999",
+                    "q": "",
+                    "level": "",
+                    "class_code": "",
+                    "ritual_only": "",
+                    "concentration_only": "",
+                    "pg_limits": "1",
+                    "page": "1",
+                },
+            )
+        self.assertEqual(302, response.status_code)
+        add_mock.assert_not_called()
+
+    def test_add_spell_blocked_for_druid_prepared_limit(self):
+        flask_app = app_module.create_app()
+        flask_app.config["TESTING"] = True
+
+        pg = {
+            "classe": "Druido",
+            "level": 3,
+            "classes": [{"code": "druid", "level": 3}],
+            "stats_base": {"for": 10, "des": 10, "cos": 10, "int": 10, "sag": 10, "car": 10},
+            "lineage": "Nessuno",
+        }
+        # Druid 3 + WIS mod 0 => 3 prepared spells max.
+        owned = [
+            {"id": 1, "name": "A", "level": 1, "school": "X", "class_codes": "druid"},
+            {"id": 2, "name": "B", "level": 1, "school": "X", "class_codes": "druid"},
+            {"id": 3, "name": "C", "level": 2, "school": "X", "class_codes": "druid"},
+        ]
+        spell = {"id": 999, "name": "D", "level": 1, "school": "X", "class_codes": "druid"}
+
+        with flask_app.test_client() as client, patch("app.get_pg", return_value=pg), patch(
+            "app._ensure_current_character_id", return_value=1
+        ), patch("app.list_character_spells", return_value=owned), patch(
+            "app.get_by_id", return_value=spell
+        ), patch(
+            "app.add_spell_to_character"
+        ) as add_mock:
+            response = client.post(
+                "/spells/add",
+                data={
+                    "spell_id": "999",
+                    "q": "",
+                    "level": "",
+                    "class_code": "",
+                    "ritual_only": "",
+                    "concentration_only": "",
+                    "pg_limits": "1",
+                    "page": "1",
+                },
+            )
+        self.assertEqual(302, response.status_code)
+        add_mock.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
