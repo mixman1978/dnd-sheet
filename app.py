@@ -1188,6 +1188,7 @@ def create_app() -> Flask:
         class_code = (request.args.get("class_code") or "").strip().lower()
         ritual_only = (request.args.get("ritual_only") or "") == "1"
         concentration_only = (request.args.get("concentration_only") or "") == "1"
+        include_private = (request.args.get("include_private") or "") == "1"
         pg_limits = _parse_bool_flag(request.args.get("pg_limits") or request.args.get("pg_mode"))
         page_raw = (request.args.get("page") or "1").strip()
         if class_code not in class_options:
@@ -1224,6 +1225,7 @@ def create_app() -> Flask:
                 max_level=pg_filter_max_spell_level,
                 ritual_only=ritual_only,
                 concentration_only=concentration_only,
+                include_private=include_private,
                 limit=page_size + 1,
                 offset=(page - 1) * page_size,
             )
@@ -1252,6 +1254,7 @@ def create_app() -> Flask:
             class_options=class_options,
             ritual_only=ritual_only,
             concentration_only=concentration_only,
+            include_private=include_private,
             pg_limits=pg_limits,
             pg_filter_class_label=pg_filter_class_label,
             pg_filter_max_spell_level=pg_filter_max_spell_level,
@@ -1269,8 +1272,26 @@ def create_app() -> Flask:
         pg = get_pg()
         character_id = _ensure_current_character_id()
         spell_id = clamp_int(request.form.get("spell_id"), 0, 0, None)
+        spell_origin = (request.form.get("spell_origin") or "srd").strip().lower()
         if character_id and spell_id:
-            spell = get_by_id(spell_id)
+            if spell_origin == "private":
+                spell = get_by_id(spell_id, origin="private", include_private=True)
+                if spell:
+                    flash("Le spell private non possono essere aggiunte al personaggio nel DB SRD.", "warning")
+                return redirect(
+                    url_for(
+                        "spells",
+                        q=request.form.get("q") or "",
+                        level=request.form.get("level") or "",
+                        class_code=request.form.get("class_code") or "",
+                        ritual_only=request.form.get("ritual_only") or "",
+                        concentration_only=request.form.get("concentration_only") or "",
+                        include_private=request.form.get("include_private") or "",
+                        pg_limits=request.form.get("pg_limits") or request.form.get("pg_mode") or "",
+                        page=request.form.get("page") or "1",
+                    )
+                )
+            spell = get_by_id(spell_id, origin="srd")
             owned = list_character_spells(character_id)
             if any(int(sp.get("id") or 0) == spell_id for sp in owned):
                 flash("Incantesimo gia' presente nel personaggio.", "warning")
@@ -1290,6 +1311,7 @@ def create_app() -> Flask:
                 class_code=request.form.get("class_code") or "",
                 ritual_only=request.form.get("ritual_only") or "",
                 concentration_only=request.form.get("concentration_only") or "",
+                include_private=request.form.get("include_private") or "",
                 pg_limits=request.form.get("pg_limits") or request.form.get("pg_mode") or "",
                 page=request.form.get("page") or "1",
             )
@@ -1309,6 +1331,7 @@ def create_app() -> Flask:
                 class_code=request.form.get("class_code") or "",
                 ritual_only=request.form.get("ritual_only") or "",
                 concentration_only=request.form.get("concentration_only") or "",
+                include_private=request.form.get("include_private") or "",
                 pg_limits=request.form.get("pg_limits") or request.form.get("pg_mode") or "",
                 page=request.form.get("page") or "1",
             )
@@ -1334,6 +1357,7 @@ def create_app() -> Flask:
                 class_code=request.form.get("class_code") or "",
                 ritual_only=request.form.get("ritual_only") or "",
                 concentration_only=request.form.get("concentration_only") or "",
+                include_private=request.form.get("include_private") or "",
                 pg_limits=request.form.get("pg_limits") or request.form.get("pg_mode") or "",
                 page=request.form.get("page") or "1",
             )
@@ -1341,10 +1365,19 @@ def create_app() -> Flask:
 
     @app.get("/spell/<int:spell_id>")
     def spell_detail(spell_id: int):
-        spell = get_by_id(spell_id)
+        origin = (request.args.get("origin") or "srd").strip().lower()
+        include_private = origin == "private"
+        spell = get_by_id(spell_id, origin=origin, include_private=include_private)
         if not spell:
             return ("Not found", 404)
 
+        return render_template("spell_detail.html", spell=spell)
+
+    @app.get("/spell/private/<int:spell_id>")
+    def spell_detail_private(spell_id: int):
+        spell = get_by_id(spell_id, origin="private", include_private=True)
+        if not spell:
+            return ("Not found", 404)
         return render_template("spell_detail.html", spell=spell)
 
     return app
