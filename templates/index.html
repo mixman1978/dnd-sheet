@@ -74,17 +74,56 @@
         {% endif %}
 
         <hr class="my-3">
+        <div class="label">Caratteristiche</div>
+        <div class="row g-2">
+          {% for s in STATS %}
+            <div class="col-6 col-md-2">
+              <div class="border rounded p-2 bg-white small h-100">
+                <div class="label">{{ STAT_LABEL[s] }}</div>
+                <div class="d-flex justify-content-between align-items-center mt-1">
+                  <span class="text-muted">Base</span>
+                  <input
+                    class="form-control form-control-sm mono text-end"
+                    style="max-width:72px"
+                    type="number"
+                    min="3"
+                    max="20"
+                    name="stat_{{ s }}"
+                    value="{{ sheet.base_stats[s] }}"
+                    onchange="this.form.submit()"
+                    onblur="this.form.submit()"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}"
+                  >
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-muted">+Razza</span>
+                  <span class="mono">{{ sheet.lineage_bonus.get(s, 0)|fmt_signed }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-muted">Tot</span>
+                  <span class="mono fw-bold">{{ sheet.totals[s] }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-muted">Mod</span>
+                  <span class="mono">{{ sheet.mods[s]|fmt_signed }}</span>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <hr class="my-3">
 
         <div class="row g-2">
           <div class="col-12">
             <div class="label">Abilit&agrave; (Skills)</div>
-            {% if choose_n > 0 %}
-              <div class="small text-muted">Scegli {{ choose_n }} competenze - Selezionate: {{ pg.skills_proficient|length }}/{{ choose_n }}</div>
+            {% if sheet.choose_n > 0 %}
+              <div class="small text-muted">Scegli {{ sheet.choose_n }} competenze - Selezionate: {{ pg.skills_proficient|length }}/{{ sheet.choose_n }}</div>
             {% endif %}
           </div>
           <div class="col-12">
             <div class="row g-0 small">
-              {% for row in skill_rows %}
+              {% for row in sheet.skill_rows %}
                 <div class="col-12 col-md-6 col-lg-4">
                   <div class="d-flex align-items-center justify-content-between py-1 px-1 border-bottom">
                     <div class="d-flex align-items-center gap-2">
@@ -109,7 +148,7 @@
               {% endfor %}
             </div>
             <script>
-              const LIMIT = Number("{{ choose_n|int }}");
+              const LIMIT = Number("{{ sheet.choose_n|int }}");
               function onSkillToggle(cb) {
                 if (!LIMIT) {
                   cb.form.submit();
@@ -136,37 +175,37 @@
                 <div class="col-12 col-md-6">
                   <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                     <div class="text-muted">Bonus Competenza</div>
-                    <div class="mono fw-bold">+{{ pb }}</div>
+                    <div class="mono fw-bold">{{ sheet.prof_bonus|fmt_signed }}</div>
                   </div>
                 </div>
                 <div class="col-12 col-md-6 ps-md-2">
                   <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                     <div class="text-muted">Percezione passiva</div>
-                    <div class="mono fw-bold">{{ passive_perception }}</div>
+                    <div class="mono fw-bold">{{ sheet.passive_perception }}</div>
                   </div>
                 </div>
                 <div class="col-12 col-md-6">
                   <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                     <div class="text-muted">Dado Vita</div>
-                    <div class="mono fw-bold">d{{ hit_die }}</div>
+                    <div class="mono fw-bold">d{{ sheet.hit_die }}</div>
                   </div>
                 </div>
                 <div class="col-12 col-md-6 ps-md-2">
                   <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                     <div class="text-muted">Iniziativa</div>
-                    <div class="mono fw-bold">{{ "%+d"|format(initiative) }}</div>
+                    <div class="mono fw-bold">{{ sheet.initiative|fmt_signed }}</div>
                   </div>
                 </div>
                 <div class="col-12 col-md-6">
                   <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                     <div class="text-muted">Classe Armatura</div>
-                    <div class="mono fw-bold">{{ ac }}</div>
+                    <div class="mono fw-bold">{{ sheet.ac }}</div>
                   </div>
                 </div>
                 <div class="col-12 col-md-6 ps-md-2">
                   <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                     <div class="text-muted">Velocit&agrave; (m)</div>
-                    <div class="mono fw-bold">{{ speed_auto }}</div>
+                    <div class="mono fw-bold">{{ sheet.speed_auto }}</div>
                   </div>
                 </div>
               </div>
@@ -215,10 +254,10 @@
             <div class="col-12 col-md-6 col-lg-5">
               <label class="text-muted mb-1">Armatura</label>
               <select class="form-select form-select-sm" name="armor_type" onchange="this.form.submit()">
-                {% if "none" in allowed_armor %}<option value="none" {% if pg.armor_type == "none" %}selected{% endif %}>Nessuna</option>{% endif %}
-                {% if "light" in allowed_armor %}<option value="light" {% if pg.armor_type == "light" %}selected{% endif %}>Leggera</option>{% endif %}
-                {% if "medium" in allowed_armor %}<option value="medium" {% if pg.armor_type == "medium" %}selected{% endif %}>Media</option>{% endif %}
-                {% if "heavy" in allowed_armor %}<option value="heavy" {% if pg.armor_type == "heavy" %}selected{% endif %}>Pesante</option>{% endif %}
+                {% if "none" in sheet.allowed_armor %}<option value="none" {% if pg.armor_type == "none" %}selected{% endif %}>Nessuna</option>{% endif %}
+                {% if "light" in sheet.allowed_armor %}<option value="light" {% if pg.armor_type == "light" %}selected{% endif %}>Leggera</option>{% endif %}
+                {% if "medium" in sheet.allowed_armor %}<option value="medium" {% if pg.armor_type == "medium" %}selected{% endif %}>Media</option>{% endif %}
+                {% if "heavy" in sheet.allowed_armor %}<option value="heavy" {% if pg.armor_type == "heavy" %}selected{% endif %}>Pesante</option>{% endif %}
               </select>
             </div>
             <div class="col-12 col-md-3 col-lg-3">
@@ -230,7 +269,7 @@
                   id="has-shield"
                   name="has_shield"
                   onchange="this.form.submit()"
-                  {% if not shield_allowed %}disabled{% endif %}
+                  {% if not sheet.shield_allowed %}disabled{% endif %}
                   {% if pg.has_shield %}checked{% endif %}
                 >
                 <label class="form-check-label text-muted" for="has-shield">Scudo (+2)</label>
@@ -256,14 +295,14 @@
 
         <hr class="my-3">
         <div class="row g-2">
-          <div class="col-12 {% if spell_ability %}col-lg-6{% endif %}">
+          <div class="col-12 {% if sheet.spellcasting.ability %}col-lg-6{% endif %}">
             <div class="border rounded p-2 bg-white small">
               <div class="label">Attacchi</div>
               <div class="row g-0">
                 <div class="col-12 col-md-6">
                   <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                     <div class="text-muted">Mischia</div>
-                    <div class="mono fw-bold">{{ "%+d"|format(melee_attack_bonus) }}</div>
+                    <div class="mono fw-bold">{{ "%+d"|format(sheet.melee_attack_bonus) }}</div>
                   </div>
                 </div>
                 <div class="col-12 col-md-6 ps-md-2">
@@ -284,7 +323,7 @@
                 <div class="col-12 col-md-6">
                   <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                     <div class="text-muted">Distanza</div>
-                    <div class="mono fw-bold">{{ "%+d"|format(ranged_attack_bonus) }}</div>
+                    <div class="mono fw-bold">{{ "%+d"|format(sheet.ranged_attack_bonus) }}</div>
                   </div>
                 </div>
                 <div class="col-12 col-md-6 ps-md-2">
@@ -305,7 +344,7 @@
               </div>
             </div>
           </div>
-          {% if spell_ability %}
+          {% if sheet.spellcasting.ability %}
             <div class="col-12 col-lg-6">
               <div class="border rounded p-2 bg-white">
                 <div class="label">Incantesimi</div>
@@ -313,25 +352,25 @@
                   <div class="col-12 col-md-6">
                     <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                       <div class="text-muted">Abilit&agrave; da incantatore</div>
-                      <div class="mono fw-bold">{{ spell_ability_label }}</div>
+                      <div class="mono fw-bold">{{ sheet.spellcasting.ability_label }}</div>
                     </div>
                   </div>
                   <div class="col-12 col-md-6 ps-md-2">
                     <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                       <div class="text-muted">Mod incantatore</div>
-                      <div class="mono fw-bold">{{ "%+d"|format(spell_mod) }}</div>
+                      <div class="mono fw-bold">{{ sheet.spellcasting.mod|fmt_signed }}</div>
                     </div>
                   </div>
                   <div class="col-12 col-md-6">
                     <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                       <div class="text-muted">Spell Save DC</div>
-                      <div class="mono fw-bold">{{ spell_dc }}</div>
+                      <div class="mono fw-bold">{{ sheet.spellcasting.dc }}</div>
                     </div>
                   </div>
                   <div class="col-12 col-md-6 ps-md-2">
                     <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                       <div class="text-muted">Spell Attack</div>
-                      <div class="mono fw-bold">{{ "%+d"|format(spell_attack) }}</div>
+                      <div class="mono fw-bold">{{ sheet.spellcasting.attack_bonus|fmt_signed }}</div>
                     </div>
                   </div>
                 </div>
@@ -348,7 +387,7 @@
             <div class="col-12">
               <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                 <div class="text-muted">HP Max (auto)</div>
-                <div class="mono fw-bold">{{ hpmax }}</div>
+                <div class="mono fw-bold">{{ sheet.hpmax }}</div>
               </div>
             </div>
             <div class="col-12">
@@ -371,41 +410,10 @@
             </div>
           </div>
         </div>
-        <div class="label">Caratteristiche</div>
-        <div class="row g-2">
-          {% for s in STATS %}
-            <div class="col-6">
-              <div class="border rounded p-2 bg-white">
-                <div class="label">{{ STAT_LABEL[s] }}</div>
-
-                <div class="d-flex justify-content-between align-items-center mt-1">
-                  <input class="form-control form-control-sm mono text-end" style="max-width:80px"
-                    type="number" min="3" max="20" name="stat_{{ s }}" value="{{ pg.stats_base[s] }}"
-                    onchange="this.form.submit()" onblur="this.form.submit()"
-                    onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
-
-                  <span class="small text-muted">bonus razza: {{ "%+d"|format(bonus.get(s, 0)) }}</span>
-                </div>
-
-                <div class="mt-2">
-                  <div class="small text-muted">Totale</div>
-                  <div class="value mono">{{ totals[s] }}</div>
-                </div>
-
-                <div class="small text-muted">
-                  Mod: <span class="mono value">{{ "%+d"|format((totals[s]-10)//2) }}</span>
-                </div>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-
-        <hr class="my-3">
-
         <div class="border rounded p-2 bg-white">
           <div class="label">Tiri Salvezza</div>
           <div class="row g-1 small">
-            {% for r in saving_rows %}
+            {% for r in sheet.saving_rows %}
               <div class="col-6">
                 <div class="d-flex justify-content-between">
                   <span>{{ STAT_LABEL[r.stat] }}</span>

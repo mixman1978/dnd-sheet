@@ -3,16 +3,20 @@ from .rules import HIT_DIE_BY_CLASS, SPELLCASTING_ABILITY_BY_CLASS, SAVING_THROW
 from .db import connect, ensure_schema
 import json
 
+def ability_mod(score: int) -> int:
+    return (score - 10) // 2
+
+
+def proficiency_bonus(level: int) -> int:
+    return 2 + (max(1, int(level)) - 1) // 4
+
+
 def mod(stat_total: int) -> int:
-    return (stat_total - 10) // 2
+    return ability_mod(stat_total)
+
 
 def prof_bonus(level: int) -> int:
-    # D&D 5e: 1-4 +2, 5-8 +3, 9-12 +4, 13-16 +5, 17-20 +6
-    if level <= 4: return 2
-    if level <= 8: return 3
-    if level <= 12: return 4
-    if level <= 16: return 5
-    return 6
+    return proficiency_bonus(level)
 
 def total_stats(base_stats: dict, lineage_bonus: dict) -> dict:
     out = {}

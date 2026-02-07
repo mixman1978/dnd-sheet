@@ -33,8 +33,8 @@ from engine.rules import (
     SKILLS,
 )
 from engine.calc import (
-    mod,
-    prof_bonus,
+    ability_mod,
+    proficiency_bonus,
     total_stats,
     hp_max,
     hit_die,
@@ -97,6 +97,14 @@ def clamp_int(v: Any, default: int, min_v: int | None = None, max_v: int | None 
     if max_v is not None:
         x = min(max_v, x)
     return x
+
+
+def fmt_signed(n: Any) -> str:
+    try:
+        v = int(n)
+    except Exception:
+        return ""
+    return f"+{v}" if v >= 0 else str(v)
 
 
 def normalize_choice(v: Any, options: list[str], default: str) -> str:
@@ -176,6 +184,110 @@ def normalize_pg(pg: Any) -> dict:
         pg["has_shield"] = False
     recalc_spell_slots(pg)
     return pg
+
+
+def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choose_n: int = 0) -> dict:
+    base_stats = pg.get("stats_base") if isinstance(pg.get("stats_base"), dict) else dict(DEFAULT_PG["stats_base"])
+    lineage_bonus = get_lineage_bonus(pg)
+    totals = total_stats(base_stats, lineage_bonus)
+    mods = {s: ability_mod(int(totals.get(s, 10))) for s in STATS}
+    pb = proficiency_bonus(pg.get("level") or 1)
+
+    initiative = mods["des"]
+    dex_mod = mods["des"]
+    armor_type = pg.get("armor_type", "none")
+    if armor_type == "medium":
+        dex_to_ac = min(dex_mod, 2)
+    elif armor_type == "heavy":
+        dex_to_ac = 0
+    else:
+        dex_to_ac = dex_mod
+    ac = 10 + dex_to_ac + (2 if pg.get("has_shield") else 0) + int(pg.get("ac_bonus", 0))
+
+    st_prof = set(saving_throws(pg.get("classe")))
+    saves: dict[str, int] = {}
+    saving_rows = []
+    for s in STATS:
+        b = mods[s] + (pb if s in st_prof else 0)
+        saves[s] = b
+        saving_rows.append(
+            {
+                "stat": s,
+                "label": STAT_LABEL[s],
+                "bonus": b,
+                "proficient": s in st_prof,
+            }
+        )
+
+    con_mod = mods["cos"]
+    hpmax = int(hp_max(pg.get("level") or 1, pg.get("classe"), con_mod, "medio"))
+
+    allowed_armor = ALLOWED_ARMOR_BY_CLASS.get(pg.get("classe"), ["none", "light", "medium", "heavy"])
+    shield_allowed = ALLOWED_SHIELD_BY_CLASS.get(pg.get("classe"), True)
+
+    spell_ability = spellcasting_ability(pg.get("classe"))
+    spell_mod = mods.get(spell_ability) if spell_ability else None
+    spell_dc = (8 + pb + spell_mod) if spell_mod is not None else None
+    spell_attack = (pb + spell_mod) if spell_mod is not None else None
+    spellcasting = {
+        "ability": spell_ability,
+        "ability_label": STAT_LABEL.get(spell_ability) if spell_ability else None,
+        "mod": spell_mod,
+        "dc": spell_dc,
+        "attack_bonus": spell_attack,
+    }
+
+    prof_set = set(pg.get("skills_proficient") or [])
+    all_skills = sorted(SKILLS.keys())
+    skills: dict[str, int] = {}
+    skill_rows = []
+    allowed = allowed_skills or sorted(SKILLS.keys())
+    for sk in all_skills:
+        stat = SKILLS[sk]
+        proficient = sk in prof_set
+        bonus_val = mods[stat] + (pb if proficient else 0)
+        skills[sk] = bonus_val
+        skill_rows.append(
+            {
+                "name": sk,
+                "stat": stat,
+                "stat_label": STAT_LABEL[stat],
+                "bonus": bonus_val,
+                "proficient": proficient,
+                "selectable": sk in allowed,
+            }
+        )
+
+    passive_perception = 10 + skills.get("Percezione", mods["sag"] + (pb if "Percezione" in prof_set else 0))
+
+    melee_attack_bonus = mods["for"] + (pb if pg.get("atk_prof_melee") else 0)
+    ranged_attack_bonus = mods["des"] + (pb if pg.get("atk_prof_ranged") else 0)
+
+    return {
+        "base_stats": base_stats,
+        "lineage_bonus": lineage_bonus,
+        "totals": totals,
+        "mods": mods,
+        "prof_bonus": pb,
+        "saves": saves,
+        "skills": skills,
+        "saving_rows": saving_rows,
+        "skill_rows": skill_rows,
+        "passive_perception": passive_perception,
+        "spellcasting": spellcasting,
+        "initiative": initiative,
+        "ac": ac,
+        "dex_mod": dex_mod,
+        "hpmax": hpmax,
+        "melee_attack_bonus": melee_attack_bonus,
+        "ranged_attack_bonus": ranged_attack_bonus,
+        "allowed_armor": allowed_armor,
+        "shield_allowed": shield_allowed,
+        "choose_n": int(choose_n or 0),
+        "allowed_skills": allowed,
+        "speed_auto": 9,
+        "hit_die": hit_die(pg.get("classe")),
+    }
 
 
 def get_pg() -> dict:
@@ -847,7 +959,7 @@ def _can_add_spell_for_pg(pg: dict, owned: list[dict], spell: dict) -> tuple[boo
                 if prepared_ability:
                     base_stats = pg.get("stats_base") if isinstance(pg.get("stats_base"), dict) else {}
                     totals = total_stats(base_stats, get_lineage_bonus(pg))
-                    prepared_limit = max(1, lv + mod(clamp_int(totals.get(prepared_ability), 10, 1, 30)))
+                    prepared_limit = max(1, lv + ability_mod(clamp_int(totals.get(prepared_ability), 10, 1, 30)))
                     owned_spells = sum(1 for sp in owned_for_code if int(sp.get("level") or 0) > 0)
                     if owned_spells >= prepared_limit:
                         reasons.append(f"{code}: limite incantesimi preparati raggiunto ({prepared_limit})")
@@ -865,6 +977,10 @@ def create_app() -> Flask:
     # Garantisce che lo schema esista all'avvio.
     with connect() as conn:
         ensure_schema(conn)
+
+    @app.template_filter("fmt_signed")
+    def _fmt_signed_filter(value: Any) -> str:
+        return fmt_signed(value)
 
     @app.route("/", methods=["GET", "POST"])
     def index():
@@ -910,47 +1026,6 @@ def create_app() -> Flask:
             save_pg(pg)
             return redirect(url_for("index"))
 
-        bonus = get_lineage_bonus(pg)
-        totals = total_stats(pg["stats_base"], bonus)
-        pb = prof_bonus(pg["level"])
-        initiative = mod(totals["des"])
-        dex_mod = mod(totals["des"])
-        armor_type = pg.get("armor_type", "none")
-        if armor_type == "medium":
-            dex_to_ac = min(dex_mod, 2)
-        elif armor_type == "heavy":
-            dex_to_ac = 0
-        else:
-            dex_to_ac = dex_mod
-        ac = 10 + dex_to_ac + (2 if pg.get("has_shield") else 0) + int(pg.get("ac_bonus", 0))
-        speed_auto = 9
-        st_prof = set(saving_throws(pg["classe"]))
-        saving_rows = []
-        for s in STATS:
-            b = mod(totals[s]) + (pb if s in st_prof else 0)
-            saving_rows.append(
-                {
-                    "stat": s,
-                    "label": STAT_LABEL[s],
-                    "bonus": b,
-                    "proficient": s in st_prof,
-                }
-            )
-        con_mod = mod(totals["cos"])
-        hpmax = int(hp_max(pg["level"], pg["classe"], con_mod, "medio"))
-
-        allowed_armor = ALLOWED_ARMOR_BY_CLASS.get(pg["classe"], ["none", "light", "medium", "heavy"])
-        shield_allowed = ALLOWED_SHIELD_BY_CLASS.get(pg["classe"], True)
-
-        # Spellcasting summary (only for classes that cast spells)
-        spell_ability = spellcasting_ability(pg["classe"])
-        spell_ability_label = STAT_LABEL.get(spell_ability) if spell_ability else None
-        spell_mod = mod(totals[spell_ability]) if spell_ability else None
-        spell_dc = (8 + pb + spell_mod) if spell_mod is not None else None
-        spell_attack = (pb + spell_mod) if spell_mod is not None else None
-
-        mezzelfo_opts = [(s, STAT_LABEL[s]) for s in STATS if s != "car"]
-
         sc = class_skill_choices(pg["classe"]) or {}
         choose_n = int(sc.get("choose") or 0)
         allowed_skills = sc.get("from") or sorted(SKILLS.keys())
@@ -961,54 +1036,17 @@ def create_app() -> Flask:
             pg["skills_proficient"] = skills_filtered
             save_pg(pg)
 
-        prof_set = set(pg["skills_proficient"])
-        all_skills = sorted(SKILLS.keys())
-        skill_rows = []
-        for sk in all_skills:
-            stat = SKILLS[sk]
-            proficient = sk in prof_set
-            bonus_val = mod(totals[stat]) + (pb if proficient else 0)
-            skill_rows.append(
-                {
-                    "name": sk,
-                    "stat": stat,
-                    "stat_label": STAT_LABEL[stat],
-                    "bonus": bonus_val,
-                    "proficient": proficient,
-                    "selectable": sk in allowed_skills,
-                }
-            )
-
-        # Passive Perception: 10 + WIS mod + PB if proficient in Percezione
-        wis_mod = mod(totals["sag"])
-        passive_perception = 10 + wis_mod + (pb if "Percezione" in prof_set else 0)
-
-        # Base attacks (no weapon/inventory yet)
-        melee_attack_bonus = mod(totals["for"]) + (pb if pg.get("atk_prof_melee") else 0)
-        ranged_attack_bonus = mod(totals["des"]) + (pb if pg.get("atk_prof_ranged") else 0)
+        sheet = build_sheet_context(pg, allowed_skills=allowed_skills, choose_n=choose_n)
+        mezzelfo_opts = [(s, STAT_LABEL[s]) for s in STATS if s != "car"]
         slots_vm = _build_spell_slots_view_model(pg)
         characters = list_characters()
 
         return render_template(
             "index.html",
             pg=pg,
-            bonus=bonus,
-            totals=totals,
-            pb=pb,
-            hpmax=hpmax,
-            hit_die=hit_die(pg["classe"]),
+            sheet=sheet,
             mezzelfo_opts=mezzelfo_opts,
-            choose_n=choose_n,
-            allowed_skills=allowed_skills,
-            skill_rows=skill_rows,
-            saving_rows=saving_rows,
-            initiative=initiative,
-            ac=ac,
-            dex_mod=dex_mod,
             characters=characters,
-            passive_perception=passive_perception,
-            melee_attack_bonus=melee_attack_bonus,
-            ranged_attack_bonus=ranged_attack_bonus,
             spell_slot_rows=slots_vm["spell_slot_rows"],
             pact_slots_max=slots_vm["pact_slots_max"],
             pact_slots_current=slots_vm["pact_slots_current"],
@@ -1016,14 +1054,6 @@ def create_app() -> Flask:
             has_spell_slots_widget=slots_vm["has_spell_slots_widget"],
             current_char_id=slots_vm["current_char_id"],
             current_path=slots_vm["current_path"],
-            speed_auto=speed_auto,
-            allowed_armor=allowed_armor,
-            shield_allowed=shield_allowed,
-            spell_ability=spell_ability,
-            spell_ability_label=spell_ability_label,
-            spell_mod=spell_mod,
-            spell_dc=spell_dc,
-            spell_attack=spell_attack,
             STATS=STATS,
             STAT_LABEL=STAT_LABEL,
             CLASSES=CLASSES,
