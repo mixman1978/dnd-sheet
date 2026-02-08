@@ -75,6 +75,52 @@
 
         <hr class="my-3">
         <div class="label">Caratteristiche</div>
+        <div class="d-flex gap-3 small mb-2 align-items-center">
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="stats_method"
+              id="stats-method-manual"
+              value="manual"
+              {% if pg.stats_method == "manual" %}checked{% endif %}
+              onchange="this.form.submit()"
+            >
+            <label class="form-check-label" for="stats-method-manual">Manuale</label>
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="stats_method"
+              id="stats-method-standard"
+              value="standard"
+              {% if pg.stats_method == "standard" %}checked{% endif %}
+              onchange="this.form.submit()"
+            >
+            <label class="form-check-label" for="stats-method-standard">Array standard</label>
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="stats_method"
+              id="stats-method-point-buy"
+              value="point_buy"
+              {% if pg.stats_method == "point_buy" %}checked{% endif %}
+              onchange="this.form.submit()"
+            >
+            <label class="form-check-label" for="stats-method-point-buy">Point Buy</label>
+          </div>
+          {% if pg.stats_method in ["standard", "point_buy"] %}
+            <button type="submit" class="btn btn-sm btn-primary ms-2">Applica</button>
+          {% endif %}
+        </div>
+        {% if pg.stats_method == "point_buy" %}
+          <div class="small text-muted mb-2">
+            Point Buy: spesi {{ point_buy_spent }} / {{ point_buy_total }} (rimasti {{ point_buy_remaining }})
+          </div>
+        {% endif %}
         <div class="row g-2">
           {% for s in STATS %}
             <div class="col-6 col-md-2">
@@ -82,18 +128,41 @@
                 <div class="label">{{ STAT_LABEL[s] }}</div>
                 <div class="d-flex justify-content-between align-items-center mt-1">
                   <span class="text-muted">Base</span>
-                  <input
-                    class="form-control form-control-sm mono text-end"
-                    style="max-width:72px"
-                    type="number"
-                    min="3"
-                    max="20"
-                    name="stat_{{ s }}"
-                    value="{{ sheet.base_stats[s] }}"
-                    onchange="this.form.submit()"
-                    onblur="this.form.submit()"
-                    onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}"
-                  >
+                  {% if pg.stats_method == "standard" %}
+                    <select
+                      class="form-select form-select-sm mono text-end"
+                      style="max-width:72px"
+                      name="std_stat_{{ s }}"
+                      data-std-select="1"
+                    >
+                      {% for v in standard_array_values %}
+                        <option value="{{ v }}" {% if standard_assignment[s] == v %}selected{% endif %}>{{ v }}</option>
+                      {% endfor %}
+                    </select>
+                  {% elif pg.stats_method == "point_buy" %}
+                    <select
+                      class="form-select form-select-sm mono text-end"
+                      style="max-width:72px"
+                      name="pb_stat_{{ s }}"
+                    >
+                      {% for v in point_buy_values %}
+                        <option value="{{ v }}" {% if point_buy_assignment[s] == v %}selected{% endif %}>{{ v }}</option>
+                      {% endfor %}
+                    </select>
+                  {% else %}
+                    <input
+                      class="form-control form-control-sm mono text-end"
+                      style="max-width:72px"
+                      type="number"
+                      min="1"
+                      max="30"
+                      name="stat_{{ s }}"
+                      value="{{ sheet.base_stats[s] }}"
+                      onchange="this.form.submit()"
+                      onblur="this.form.submit()"
+                      onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}"
+                    >
+                  {% endif %}
                 </div>
                 <div class="d-flex justify-content-between align-items-center">
                   <span class="text-muted">+Razza</span>
@@ -161,6 +230,38 @@
                 }
                 cb.form.submit();
               }
+            </script>
+            <script>
+              (function () {
+                function updateStdOptions() {
+                  const selects = Array.from(document.querySelectorAll('select[data-std-select="1"]'));
+                  if (!selects.length) return;
+
+                  selects.forEach((sel) => {
+                    const myValue = sel.value;
+                    const usedElsewhere = new Set(
+                      selects
+                        .filter((other) => other !== sel)
+                        .map((other) => other.value)
+                        .filter((v) => v !== "" && v !== null)
+                    );
+
+                    Array.from(sel.options).forEach((opt) => {
+                      opt.disabled = false;
+                      if (usedElsewhere.has(opt.value) && opt.value !== myValue) {
+                        opt.disabled = true;
+                      }
+                    });
+                  });
+                }
+
+                document.addEventListener("DOMContentLoaded", function () {
+                  const selects = document.querySelectorAll('select[data-std-select="1"]');
+                  if (!selects.length) return;
+                  updateStdOptions();
+                  selects.forEach((sel) => sel.addEventListener("change", updateStdOptions));
+                });
+              })();
             </script>
           </div>
         </div>
@@ -295,7 +396,7 @@
 
         <hr class="my-3">
         <div class="row g-2">
-          <div class="col-12 {% if sheet.spellcasting.ability %}col-lg-6{% endif %}">
+          <div class="col-12 {% if sheet.spellcasting.casting_ability %}col-lg-6{% endif %}">
             <div class="border rounded p-2 bg-white small">
               <div class="label">Attacchi</div>
               <div class="row g-0">
@@ -344,7 +445,7 @@
               </div>
             </div>
           </div>
-          {% if sheet.spellcasting.ability %}
+          {% if sheet.spellcasting.casting_ability %}
             <div class="col-12 col-lg-6">
               <div class="border rounded p-2 bg-white">
                 <div class="label">Incantesimi</div>
@@ -364,13 +465,13 @@
                   <div class="col-12 col-md-6">
                     <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                       <div class="text-muted">Spell Save DC</div>
-                      <div class="mono fw-bold">{{ sheet.spellcasting.dc }}</div>
+                      <div class="mono fw-bold">{{ sheet.spellcasting.spell_dc }}</div>
                     </div>
                   </div>
                   <div class="col-12 col-md-6 ps-md-2">
                     <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                       <div class="text-muted">Spell Attack</div>
-                      <div class="mono fw-bold">{{ sheet.spellcasting.attack_bonus|fmt_signed }}</div>
+                      <div class="mono fw-bold">{{ sheet.spellcasting.spell_attack_bonus|fmt_signed }}</div>
                     </div>
                   </div>
                 </div>

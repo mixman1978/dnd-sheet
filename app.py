@@ -55,6 +55,7 @@ DEFAULT_PG = {
     "classe": "Guerriero",
     "level": 1,
     "alignment": "Neutrale",
+    "stats_method": "manual",
     "stats_base": {"for": 10, "des": 10, "cos": 10, "int": 10, "sag": 10, "car": 10},
     "lineage_extra_stats": [None, None],  # solo Mezzelfo
     "skills_proficient": [],
@@ -69,6 +70,10 @@ DEFAULT_PG = {
     "atk_prof_melee": False,
     "atk_prof_ranged": False,
 }
+
+STANDARD_ARRAY_VALUES = [15, 14, 13, 12, 10, 8]
+POINT_BUY_TOTAL = 27
+POINT_BUY_COST = {8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9}
 
 # Defense proficiencies (minimal mapping)
 ALLOWED_ARMOR_BY_CLASS = {
@@ -152,12 +157,13 @@ def normalize_pg(pg: Any) -> dict:
     pg["lineage"] = normalize_choice(pg.get("lineage"), LINEAGES, "Nessuno")
     pg["classe"] = normalize_choice(pg.get("classe"), CLASSES, "Warlock")
     pg["alignment"] = normalize_choice(pg.get("alignment"), ALIGNMENTS, "Neutrale")
+    pg["stats_method"] = normalize_choice(pg.get("stats_method"), ["manual", "standard", "point_buy"], "manual")
     pg["level"] = clamp_int(pg.get("level"), 1, 1, 20)
 
     if not isinstance(pg.get("stats_base"), dict):
         pg["stats_base"] = dict(DEFAULT_PG["stats_base"])
     for s in STATS:
-        pg["stats_base"][s] = clamp_int(pg["stats_base"].get(s), 10, 3, 20)
+        pg["stats_base"][s] = clamp_int(pg["stats_base"].get(s), 10, 1, 30)
 
     if not isinstance(pg.get("skills_proficient"), list):
         pg["skills_proficient"] = []
@@ -184,6 +190,34 @@ def normalize_pg(pg: Any) -> dict:
         pg["has_shield"] = False
     recalc_spell_slots(pg)
     return pg
+
+
+def standard_array_assignment(base_stats: dict) -> dict[str, int]:
+    values = [int(base_stats.get(s, 0)) for s in STATS]
+    if len(set(values)) == 6 and sorted(values) == sorted(STANDARD_ARRAY_VALUES):
+        return {s: int(base_stats.get(s, 10)) for s in STATS}
+    return {s: STANDARD_ARRAY_VALUES[idx] for idx, s in enumerate(STATS)}
+
+
+def point_buy_assignment(base_stats: dict) -> dict[str, int]:
+    assignment: dict[str, int] = {}
+    for s in STATS:
+        assignment[s] = clamp_int(base_stats.get(s), 8, 8, 15)
+    return assignment
+
+
+def point_buy_cost(stats: dict) -> int | None:
+    total = 0
+    for s in STATS:
+        try:
+            value = int(stats.get(s))
+        except Exception:
+            return None
+        cost = POINT_BUY_COST.get(value)
+        if cost is None:
+            return None
+        total += cost
+    return total
 
 
 def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choose_n: int = 0) -> dict:
@@ -230,9 +264,12 @@ def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choos
     spell_dc = (8 + pb + spell_mod) if spell_mod is not None else None
     spell_attack = (pb + spell_mod) if spell_mod is not None else None
     spellcasting = {
+        "casting_ability": spell_ability,
         "ability": spell_ability,
         "ability_label": STAT_LABEL.get(spell_ability) if spell_ability else None,
         "mod": spell_mod,
+        "spell_dc": spell_dc,
+        "spell_attack_bonus": spell_attack,
         "dc": spell_dc,
         "attack_bonus": spell_attack,
     }
@@ -258,7 +295,9 @@ def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choos
             }
         )
 
-    passive_perception = 10 + skills.get("Percezione", mods["sag"] + (pb if "Percezione" in prof_set else 0))
+    perception_bonus = skills.get("Percezione", mods["sag"] + (pb if "Percezione" in prof_set else 0))
+    skills["perception"] = perception_bonus
+    passive_perception = 10 + skills["perception"]
 
     melee_attack_bonus = mods["for"] + (pb if pg.get("atk_prof_melee") else 0)
     ranged_attack_bonus = mods["des"] + (pb if pg.get("atk_prof_ranged") else 0)
@@ -978,23 +1017,155 @@ def create_app() -> Flask:
     with connect() as conn:
         ensure_schema(conn)
 
-    @app.template_filter("fmt_signed")
-    def _fmt_signed_filter(value: Any) -> str:
-        return fmt_signed(value)
+    app.jinja_env.filters["fmt_signed"] = fmt_signed
 
     @app.route("/", methods=["GET", "POST"])
     def index():
         pg = get_pg()
+
+        def _render_index(
+            pg_view: dict,
+            pb_assignment_override: dict[str, int] | None = None,
+            persist_skill_cleanup: bool = True,
+        ):
+            standard_assignment = standard_array_assignment(pg_view["stats_base"])
+            point_buy_values = pb_assignment_override or point_buy_assignment(pg_view["stats_base"])
+            spent = point_buy_cost(point_buy_values)
+            point_buy_spent = spent if spent is not None else 0
+            point_buy_remaining = POINT_BUY_TOTAL - point_buy_spent
+
+            sc = class_skill_choices(pg_view["classe"]) or {}
+            choose_n = int(sc.get("choose") or 0)
+            allowed_skills = sc.get("from") or sorted(SKILLS.keys())
+            skills_filtered = [sk for sk in pg_view["skills_proficient"] if sk in allowed_skills]
+            if choose_n > 0 and len(skills_filtered) > choose_n:
+                skills_filtered = skills_filtered[:choose_n]
+            if skills_filtered != pg_view["skills_proficient"]:
+                pg_view["skills_proficient"] = skills_filtered
+                if persist_skill_cleanup:
+                    save_pg(pg_view)
+
+            sheet = build_sheet_context(pg_view, allowed_skills=allowed_skills, choose_n=choose_n)
+            mezzelfo_opts = [(s, STAT_LABEL[s]) for s in STATS if s != "car"]
+            slots_vm = _build_spell_slots_view_model(pg_view)
+            characters = list_characters()
+
+            return render_template(
+                "index.html",
+                pg=pg_view,
+                sheet=sheet,
+                standard_array_values=STANDARD_ARRAY_VALUES,
+                standard_assignment=standard_assignment,
+                point_buy_values=sorted(POINT_BUY_COST.keys()),
+                point_buy_assignment=point_buy_values,
+                point_buy_total=POINT_BUY_TOTAL,
+                point_buy_spent=point_buy_spent,
+                point_buy_remaining=point_buy_remaining,
+                mezzelfo_opts=mezzelfo_opts,
+                characters=characters,
+                spell_slot_rows=slots_vm["spell_slot_rows"],
+                pact_slots_max=slots_vm["pact_slots_max"],
+                pact_slots_current=slots_vm["pact_slots_current"],
+                pact_slot_level=slots_vm["pact_slot_level"],
+                has_spell_slots_widget=slots_vm["has_spell_slots_widget"],
+                current_char_id=slots_vm["current_char_id"],
+                current_path=slots_vm["current_path"],
+                STATS=STATS,
+                STAT_LABEL=STAT_LABEL,
+                CLASSES=CLASSES,
+                LINEAGES=LINEAGES,
+                ALIGNMENTS=ALIGNMENTS,
+            )
 
         if request.method == "POST":
             pg["nome"] = (request.form.get("nome") or pg.get("nome") or "personaggio").strip()
             pg["lineage"] = normalize_choice(request.form.get("lineage"), LINEAGES, pg["lineage"])
             pg["classe"] = normalize_choice(request.form.get("classe"), CLASSES, pg["classe"])
             pg["alignment"] = normalize_choice(request.form.get("alignment"), ALIGNMENTS, pg["alignment"])
+            pg["stats_method"] = normalize_choice(
+                request.form.get("stats_method"),
+                ["manual", "standard", "point_buy"],
+                pg["stats_method"],
+            )
             pg["level"] = clamp_int(request.form.get("level"), pg["level"], 1, 20)
 
-            for s in STATS:
-                pg["stats_base"][s] = clamp_int(request.form.get(f"stat_{s}"), pg["stats_base"][s], 3, 20)
+            if pg["stats_method"] == "standard":
+                raw_standard = {s: request.form.get(f"std_stat_{s}") for s in STATS}
+                # Transitional submit after method toggle: persist only the method, then render selects.
+                if all(v in (None, "") for v in raw_standard.values()):
+                    save_pg(pg)
+                    return redirect(url_for("index"))
+
+                selected_values = []
+                parsed_stats: dict[str, int] = {}
+                for s in STATS:
+                    raw = raw_standard[s]
+                    if raw is None or raw == "":
+                        flash("Array standard non valido: assegna un valore a tutte le caratteristiche.", "danger")
+                        return redirect(url_for("index"))
+                    try:
+                        value = int(raw)
+                    except Exception:
+                        flash("Array standard non valido: valori non numerici.", "danger")
+                        return redirect(url_for("index"))
+                    if value not in STANDARD_ARRAY_VALUES:
+                        flash("Array standard non valido: usa solo 15,14,13,12,10,8.", "danger")
+                        return redirect(url_for("index"))
+                    parsed_stats[s] = value
+                    selected_values.append(value)
+
+                if len(set(selected_values)) != 6 or sorted(selected_values) != sorted(STANDARD_ARRAY_VALUES):
+                    flash("Array standard non valido: ogni valore va usato una sola volta.", "danger")
+                    return redirect(url_for("index"))
+
+                for s in STATS:
+                    pg["stats_base"][s] = parsed_stats[s]
+            elif pg["stats_method"] == "point_buy":
+                raw_point_buy = {s: request.form.get(f"pb_stat_{s}") for s in STATS}
+                # Transitional submit after method toggle: persist only the method, then render selects.
+                if all(v in (None, "") for v in raw_point_buy.values()):
+                    save_pg(pg)
+                    return redirect(url_for("index"))
+
+                parsed_stats = point_buy_assignment(pg["stats_base"])
+                for s in STATS:
+                    raw = raw_point_buy[s]
+                    if raw is None or raw == "":
+                        flash("Point buy non valido: assegna un valore a tutte le caratteristiche.", "danger")
+                        preview_pg = json.loads(json.dumps(pg, ensure_ascii=False))
+                        preview_pg["stats_base"] = dict(parsed_stats)
+                        return _render_index(preview_pg, pb_assignment_override=parsed_stats, persist_skill_cleanup=False)
+                    try:
+                        value = int(raw)
+                    except Exception:
+                        flash("Point buy non valido: valori non numerici.", "danger")
+                        preview_pg = json.loads(json.dumps(pg, ensure_ascii=False))
+                        preview_pg["stats_base"] = dict(parsed_stats)
+                        return _render_index(preview_pg, pb_assignment_override=parsed_stats, persist_skill_cleanup=False)
+                    if value < 8 or value > 15:
+                        flash("Point buy non valido: ogni caratteristica deve essere tra 8 e 15.", "danger")
+                        preview_pg = json.loads(json.dumps(pg, ensure_ascii=False))
+                        preview_pg["stats_base"] = dict(parsed_stats)
+                        return _render_index(preview_pg, pb_assignment_override=parsed_stats, persist_skill_cleanup=False)
+                    parsed_stats[s] = value
+
+                spent = point_buy_cost(parsed_stats)
+                if spent is None:
+                    flash("Point buy non valido: valori fuori tabella costi.", "danger")
+                    preview_pg = json.loads(json.dumps(pg, ensure_ascii=False))
+                    preview_pg["stats_base"] = dict(parsed_stats)
+                    return _render_index(preview_pg, pb_assignment_override=parsed_stats, persist_skill_cleanup=False)
+                if spent > POINT_BUY_TOTAL:
+                    flash("Point buy non valido: superi 27 punti.", "danger")
+                    preview_pg = json.loads(json.dumps(pg, ensure_ascii=False))
+                    preview_pg["stats_base"] = dict(parsed_stats)
+                    return _render_index(preview_pg, pb_assignment_override=parsed_stats, persist_skill_cleanup=False)
+
+                for s in STATS:
+                    pg["stats_base"][s] = parsed_stats[s]
+            else:
+                for s in STATS:
+                    pg["stats_base"][s] = clamp_int(request.form.get(f"stat_{s}"), pg["stats_base"][s], 1, 30)
 
             pg["hp_current"] = clamp_int(request.form.get("hp_current"), pg.get("hp_current", 0), 0, 999)
             pg["hp_temp"] = clamp_int(request.form.get("hp_temp"), pg.get("hp_temp", 0), 0, 999)
@@ -1025,41 +1196,7 @@ def create_app() -> Flask:
             recalc_spell_slots(pg)
             save_pg(pg)
             return redirect(url_for("index"))
-
-        sc = class_skill_choices(pg["classe"]) or {}
-        choose_n = int(sc.get("choose") or 0)
-        allowed_skills = sc.get("from") or sorted(SKILLS.keys())
-        skills_filtered = [sk for sk in pg["skills_proficient"] if sk in allowed_skills]
-        if choose_n > 0 and len(skills_filtered) > choose_n:
-            skills_filtered = skills_filtered[:choose_n]
-        if skills_filtered != pg["skills_proficient"]:
-            pg["skills_proficient"] = skills_filtered
-            save_pg(pg)
-
-        sheet = build_sheet_context(pg, allowed_skills=allowed_skills, choose_n=choose_n)
-        mezzelfo_opts = [(s, STAT_LABEL[s]) for s in STATS if s != "car"]
-        slots_vm = _build_spell_slots_view_model(pg)
-        characters = list_characters()
-
-        return render_template(
-            "index.html",
-            pg=pg,
-            sheet=sheet,
-            mezzelfo_opts=mezzelfo_opts,
-            characters=characters,
-            spell_slot_rows=slots_vm["spell_slot_rows"],
-            pact_slots_max=slots_vm["pact_slots_max"],
-            pact_slots_current=slots_vm["pact_slots_current"],
-            pact_slot_level=slots_vm["pact_slot_level"],
-            has_spell_slots_widget=slots_vm["has_spell_slots_widget"],
-            current_char_id=slots_vm["current_char_id"],
-            current_path=slots_vm["current_path"],
-            STATS=STATS,
-            STAT_LABEL=STAT_LABEL,
-            CLASSES=CLASSES,
-            LINEAGES=LINEAGES,
-            ALIGNMENTS=ALIGNMENTS,
-        )
+        return _render_index(pg)
 
     @app.post("/save_character")
     def save_character():

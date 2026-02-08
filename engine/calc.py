@@ -1,5 +1,5 @@
 # engine/calc.py
-from .rules import HIT_DIE_BY_CLASS, SPELLCASTING_ABILITY_BY_CLASS, SAVING_THROWS_BY_CLASS
+from .rules import HIT_DIE_BY_CLASS, SPELLCASTING_ABILITY_BY_CLASS, SAVING_THROWS_BY_CLASS, STATS
 from .db import connect, ensure_schema
 import json
 
@@ -20,8 +20,10 @@ def prof_bonus(level: int) -> int:
 
 def total_stats(base_stats: dict, lineage_bonus: dict) -> dict:
     out = {}
-    for k, v in base_stats.items():
-        out[k] = int(v) + int(lineage_bonus.get(k, 0))
+    for stat in STATS:
+        base_val = int(base_stats.get(stat, 10))
+        bonus_val = int(lineage_bonus.get(stat, 0))
+        out[stat] = base_val + bonus_val
     return out
 
 def _normalize_class_name(classe) -> str:
