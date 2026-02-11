@@ -36,8 +36,6 @@ from engine.calc import (
     ability_mod,
     proficiency_bonus,
     total_stats,
-    hp_max,
-    hit_die,
     class_skill_choices,
     saving_throws,
     spellcasting_ability,
@@ -86,6 +84,21 @@ ALLOWED_SHIELD_BY_CLASS = {
     "Mago": False,
     "Chierico": True,
     "Bardo": False,
+}
+
+HIT_DIE_BY_CLASS = {
+    "Barbaro": 12,
+    "Guerriero": 10,
+    "Paladino": 10,
+    "Ranger": 10,
+    "Bardo": 8,
+    "Chierico": 8,
+    "Druido": 8,
+    "Monaco": 8,
+    "Ladro": 8,
+    "Warlock": 8,
+    "Stregone": 6,
+    "Mago": 6,
 }
 
 def new_pg() -> dict:
@@ -220,6 +233,14 @@ def point_buy_cost(stats: dict) -> int | None:
     return total
 
 
+def hp_max_average(level: int, con_mod: int, hit_die: int) -> int:
+    if level <= 0:
+        return 0
+    first = hit_die + con_mod
+    per_level = ((hit_die // 2) + 1) + con_mod
+    return first + max(0, level - 1) * per_level
+
+
 def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choose_n: int = 0) -> dict:
     base_stats = pg.get("stats_base") if isinstance(pg.get("stats_base"), dict) else dict(DEFAULT_PG["stats_base"])
     lineage_bonus = get_lineage_bonus(pg)
@@ -254,7 +275,10 @@ def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choos
         )
 
     con_mod = mods["cos"]
-    hpmax = int(hp_max(pg.get("level") or 1, pg.get("classe"), con_mod, "medio"))
+    class_name = pg.get("classe")
+    class_hit_die = HIT_DIE_BY_CLASS.get(class_name) if isinstance(class_name, str) else None
+    level = int(pg.get("level") or 1)
+    hp_max_auto = hp_max_average(level, con_mod, class_hit_die) if class_hit_die else None
 
     allowed_armor = ALLOWED_ARMOR_BY_CLASS.get(pg.get("classe"), ["none", "light", "medium", "heavy"])
     shield_allowed = ALLOWED_SHIELD_BY_CLASS.get(pg.get("classe"), True)
@@ -317,7 +341,15 @@ def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choos
         "initiative": initiative,
         "ac": ac,
         "dex_mod": dex_mod,
-        "hpmax": hpmax,
+        "hpmax": hp_max_auto,
+        "hp": {
+            "max_auto": hp_max_auto,
+            "current": pg.get("hp_current", 0),
+            "temp": pg.get("hp_temp", 0),
+            "hit_die": class_hit_die,
+            "con_mod": con_mod,
+            "per_level_avg": ((class_hit_die // 2) + 1) if class_hit_die else None,
+        },
         "melee_attack_bonus": melee_attack_bonus,
         "ranged_attack_bonus": ranged_attack_bonus,
         "allowed_armor": allowed_armor,
@@ -325,7 +357,7 @@ def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choos
         "choose_n": int(choose_n or 0),
         "allowed_skills": allowed,
         "speed_auto": 9,
-        "hit_die": hit_die(pg.get("classe")),
+        "hit_die": class_hit_die,
     }
 
 
