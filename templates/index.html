@@ -355,6 +355,27 @@
 
       <div class="col-12 col-lg-4">
         <div class="border rounded p-2 bg-white small mb-2">
+          <div class="label">Consultazione Rapida Mostri</div>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-primary w-100"
+            data-bs-toggle="modal"
+            data-bs-target="#quickMonstersModal"
+          >
+            Apri elenco ({{ quick_monsters|length }})
+          </button>
+          {% if quick_monsters %}
+            <div class="small text-muted mt-2">
+              {% for qm in quick_monsters[:3] %}
+                <span class="me-2">{{ qm.name }}</span>
+              {% endfor %}
+              {% if quick_monsters|length > 3 %}+{{ quick_monsters|length - 3 }} altri{% endif %}
+            </div>
+          {% else %}
+            <div class="small text-muted mt-2">Aggiungi i mostri dal dettaglio Bestiario.</div>
+          {% endif %}
+        </div>
+        <div class="border rounded p-2 bg-white small mb-2">
           <div class="label">Vita</div>
           <div class="row g-0">
             <div class="col-12">
@@ -602,5 +623,46 @@
 
   </div>
 </form>
+
+<div class="modal fade" id="quickMonstersModal" tabindex="-1" aria-labelledby="quickMonstersModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="quickMonstersModalLabel">Consultazione Rapida Mostri</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+      </div>
+      <div class="modal-body">
+        {% if quick_monsters %}
+          <div class="list-group">
+            {% for qm in quick_monsters %}
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-semibold">{{ qm.name }}</div>
+                  <div class="small text-muted">
+                    GS {{ qm.cr if qm.cr is not none else "-" }}
+                    {% if qm.type %} · {{ qm.type }}{% endif %}
+                  </div>
+                </div>
+                <div class="d-flex gap-2">
+                  <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('bestiary_detail', monster_id=qm.id) }}" target="_blank" rel="noopener">Apri scheda</a>
+                  <form method="post" action="{{ url_for('bestiary_quick_remove', monster_id=qm.id) }}" class="m-0">
+                    <input type="hidden" name="next" value="{{ url_for('index') }}">
+                    <button class="btn btn-sm btn-outline-danger" type="submit">Rimuovi</button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted">Nessun mostro in consultazione rapida.</div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-sm btn-outline-primary" href="{{ url_for('bestiary') }}">Apri Bestiario</a>
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}

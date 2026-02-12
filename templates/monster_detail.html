@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-12">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <div class="label mb-0">Bestiario</div>
+        <h2 class="h4 mb-0">{{ monster_std.name or "Mostro" }}</h2>
+        <div class="small text-muted">
+          {% if monster_std.size %}{{ monster_std.size }}{% endif %}
+          {% if monster_std.type %} {{ monster_std.type }}{% endif %}
+          {% if monster_std.alignment %} · {{ monster_std.alignment }}{% endif %}
+          {% if monster_std.cr is not none and monster_std.cr != "" %} · CR {{ monster_std.cr }}{% endif %}
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        {% if in_quick %}
+          <form method="post" action="{{ url_for('bestiary_quick_remove', monster_id=monster_std.id) }}" class="m-0">
+            <input type="hidden" name="next" value="{{ request.full_path }}">
+            <button class="btn btn-sm btn-outline-danger" type="submit">Rimuovi da consultazione rapida</button>
+          </form>
+        {% else %}
+          <form method="post" action="{{ url_for('bestiary_quick_add', monster_id=monster_std.id) }}" class="m-0">
+            <input type="hidden" name="next" value="{{ request.full_path }}">
+            <button class="btn btn-sm btn-outline-primary" type="submit">Aggiungi a consultazione rapida</button>
+          </form>
+        {% endif %}
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('bestiary') }}">Torna al bestiario</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="label mb-2">Statistiche</div>
+        <div class="row g-2 small">
+          <div class="col-12 col-md-4">
+            <div class="border rounded p-2 bg-white">
+              <div class="text-muted">CA</div>
+              <div class="mono fw-bold">{{ monster_std.ac if monster_std.ac is not none else "-" }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="border rounded p-2 bg-white">
+              <div class="text-muted">PF</div>
+              <div class="mono fw-bold">{{ monster_std.hp if monster_std.hp is not none else "-" }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="border rounded p-2 bg-white">
+              <div class="text-muted">Velocita</div>
+              <div class="mono fw-bold">{{ monster_std.speed or "-" }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-2 mt-1">
+          <div class="col-2"><div class="border rounded p-2 bg-white text-center"><div class="small text-muted">FOR</div><div class="mono fw-bold">{{ monster_std.str if monster_std.str is not none else "-" }}</div></div></div>
+          <div class="col-2"><div class="border rounded p-2 bg-white text-center"><div class="small text-muted">DES</div><div class="mono fw-bold">{{ monster_std.dex if monster_std.dex is not none else "-" }}</div></div></div>
+          <div class="col-2"><div class="border rounded p-2 bg-white text-center"><div class="small text-muted">COS</div><div class="mono fw-bold">{{ monster_std.con if monster_std.con is not none else "-" }}</div></div></div>
+          <div class="col-2"><div class="border rounded p-2 bg-white text-center"><div class="small text-muted">INT</div><div class="mono fw-bold">{{ monster_std.int if monster_std.int is not none else "-" }}</div></div></div>
+          <div class="col-2"><div class="border rounded p-2 bg-white text-center"><div class="small text-muted">SAG</div><div class="mono fw-bold">{{ monster_std.wis if monster_std.wis is not none else "-" }}</div></div></div>
+          <div class="col-2"><div class="border rounded p-2 bg-white text-center"><div class="small text-muted">CAR</div><div class="mono fw-bold">{{ monster_std.cha if monster_std.cha is not none else "-" }}</div></div></div>
+        </div>
+
+        <div class="row g-2 mt-1 small">
+          <div class="col-12 col-lg-6">
+            <div class="border rounded p-2 bg-white">
+              <div class="text-muted">Sensi</div>
+              <div>{{ monster_std.senses or "-" }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-lg-6">
+            <div class="border rounded p-2 bg-white">
+              <div class="text-muted">Linguaggi</div>
+              <div>{{ monster_std.languages or "-" }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% for section in monster_sections %}
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="label mb-2">{{ section.title }}</div>
+          {% if section.kind == "items" %}
+            <ul class="list-unstyled mb-0 small">
+              {% for item in section["items"] %}
+                <li class="mb-1">
+                  {% if item.name %}<span class="fw-semibold">{{ item.name }}</span>{% endif %}
+                  {% if item.name and item.desc %}: {% endif %}
+                  {{ item.desc }}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="small" style="white-space: pre-wrap;">{{ section.text }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

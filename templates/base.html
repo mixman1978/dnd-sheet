@@ -47,6 +47,13 @@
             </svg>
             <span>Incantesimi</span>
           </a>
+          <a class="btn btn-sm btn-outline-light d-flex align-items-center gap-1" href="{{ url_for('bestiary') }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 1.5a6.5 6.5 0 1 0 0 13h5.5a1 1 0 0 0 1-1V8A6.5 6.5 0 0 0 8 1.5zm0 1A5.5 5.5 0 0 1 13.5 8v5.5H8A5.5 5.5 0 0 1 8 2.5z"/>
+              <path d="M8 4a.5.5 0 0 1 .5.5V8h2a.5.5 0 0 1 0 1H8a.5.5 0 0 1-.5-.5v-4A.5.5 0 0 1 8 4z"/>
+            </svg>
+            <span>Bestiario</span>
+          </a>
           <select id="navbar-character-select" class="form-select form-select-sm" style="min-width: 180px; max-width: 240px;">
             <option value="">Personaggi salvati</option>
             {% for ch in characters or [] %}

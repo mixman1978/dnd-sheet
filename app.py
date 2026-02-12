@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 from urllib.parse import urlsplit
 from typing import Any
 from flask import (
@@ -71,6 +72,7 @@ DEFAULT_PG = {
     "atk_prof_melee": False,
     "atk_prof_ranged": False,
     "attacks": [{}, {}, {}, {}, {}, {}],
+    "quick_monsters": [],
 }
 
 STANDARD_ARRAY_VALUES = [15, 14, 13, 12, 10, 8]
@@ -568,6 +570,20 @@ def normalize_pg(pg: Any) -> dict:
     while len(normalized_attacks) < 6:
         normalized_attacks.append(_normalize_attack_entry({}))
     pg["attacks"] = normalized_attacks
+    raw_quick_monsters = pg.get("quick_monsters")
+    quick_monsters: list[int] = []
+    if isinstance(raw_quick_monsters, list):
+        for item in raw_quick_monsters:
+            try:
+                val = int(item)
+            except Exception:
+                continue
+            if val <= 0 or val in quick_monsters:
+                continue
+            quick_monsters.append(val)
+            if len(quick_monsters) >= 12:
+                break
+    pg["quick_monsters"] = quick_monsters
 
     ensure_lineage_state(pg)
 
@@ -916,6 +932,207 @@ def _max_spell_level_for_class_level(class_code: str, level: int) -> int | None:
 
 def _parse_bool_flag(raw: str | None) -> bool:
     return (raw or "").strip().lower() in {"1", "true", "on", "yes"}
+
+
+def _table_columns(conn: sqlite3.Connection, table_name: str) -> set[str]:
+    rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+    out: set[str] = set()
+    for row in rows:
+        try:
+            name = row["name"] if isinstance(row, sqlite3.Row) else row[1]
+        except Exception:
+            name = None
+        if name:
+            out.add(str(name))
+    return out
+
+
+def _row_to_dict(row: Any) -> dict:
+    if row is None:
+        return {}
+    if isinstance(row, sqlite3.Row):
+        return dict(row)
+    if isinstance(row, dict):
+        return dict(row)
+    try:
+        return dict(row)
+    except Exception:
+        return {}
+
+
+def _resolve_bestiary_table(conn: sqlite3.Connection) -> tuple[str | None, set[str]]:
+    candidates = ["monsters", "bestiary", "creatures"]
+    for table_name in candidates:
+        try:
+            cols = _table_columns(conn, table_name)
+        except Exception:
+            cols = set()
+        if cols:
+            return table_name, cols
+    return None, set()
+
+
+def _parse_cr_sort_value(value: Any) -> float:
+    raw = str(value or "").strip().replace(",", ".")
+    if not raw:
+        return 999.0
+    if "/" in raw:
+        left, right = raw.split("/", 1)
+        try:
+            a = float(left.strip())
+            b = float(right.strip())
+            if b != 0:
+                return a / b
+        except Exception:
+            return 999.0
+    try:
+        return float(raw)
+    except Exception:
+        return 999.0
+
+
+def _monster_json_to_items(value: Any) -> list[dict[str, str]] | None:
+    if isinstance(value, list):
+        data = value
+    elif isinstance(value, str):
+        text = value.strip()
+        if not text or text[0] not in "[{":
+            return None
+        try:
+            parsed = json.loads(text)
+        except Exception:
+            return None
+        data = parsed if isinstance(parsed, list) else [parsed]
+    elif isinstance(value, dict):
+        data = [value]
+    else:
+        return None
+
+    out: list[dict[str, str]] = []
+    for item in data:
+        if isinstance(item, dict):
+            name = (
+                item.get("name")
+                or item.get("title")
+                or item.get("nome")
+                or item.get("ability")
+                or item.get("trait")
+                or ""
+            )
+            desc = (
+                item.get("desc")
+                or item.get("description")
+                or item.get("text")
+                or item.get("value")
+                or item.get("details")
+                or ""
+            )
+            out.append({"name": str(name or "").strip(), "desc": str(desc or "").strip()})
+        else:
+            text = str(item or "").strip()
+            if text:
+                out.append({"name": "", "desc": text})
+    return out or None
+
+
+def _build_monster_sections(monster: dict) -> list[dict[str, Any]]:
+    section_map = [
+        ("description", "Descrizione"),
+        ("traits_json", "Tratti"),
+        ("traits", "Tratti"),
+        ("special_abilities_json", "Abilita speciali"),
+        ("special_abilities", "Abilita speciali"),
+        ("actions_json", "Azioni"),
+        ("actions", "Azioni"),
+        ("reactions_json", "Reazioni"),
+        ("reactions", "Reazioni"),
+        ("legendary_actions_json", "Azioni leggendarie"),
+        ("legendary_actions", "Azioni leggendarie"),
+    ]
+    sections: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for key, title in section_map:
+        if key not in monster:
+            continue
+        if key in seen:
+            continue
+        seen.add(key)
+        raw = monster.get(key)
+        if raw is None:
+            continue
+        raw_text = str(raw).strip() if isinstance(raw, str) else ""
+        if isinstance(raw, str) and not raw_text:
+            continue
+        items = _monster_json_to_items(raw)
+        if items:
+            sections.append({"title": title, "kind": "items", "items": items, "text": ""})
+        else:
+            text = raw_text if isinstance(raw, str) else str(raw)
+            if text.strip():
+                sections.append({"title": title, "kind": "text", "items": [], "text": text})
+    return sections
+
+
+def _quick_monster_ids(pg: dict) -> list[int]:
+    raw = pg.get("quick_monsters")
+    out: list[int] = []
+    if not isinstance(raw, list):
+        return out
+    for item in raw:
+        try:
+            monster_id = int(item)
+        except Exception:
+            continue
+        if monster_id <= 0 or monster_id in out:
+            continue
+        out.append(monster_id)
+        if len(out) >= 12:
+            break
+    return out
+
+
+def _load_quick_monsters(pg: dict) -> list[dict[str, Any]]:
+    ids = _quick_monster_ids(pg)
+    if not ids:
+        return []
+    with connect() as conn:
+        ensure_schema(conn)
+        table_name, cols = _resolve_bestiary_table(conn)
+        if not table_name:
+            return []
+        name_col = "name_it" if "name_it" in cols else ("name" if "name" in cols else None)
+        cr_col = "cr" if "cr" in cols else ("challenge_rating" if "challenge_rating" in cols else None)
+        type_col = "type" if "type" in cols else None
+        if not name_col:
+            return []
+        placeholders = ",".join(["?"] * len(ids))
+        select_cols = ["id", name_col]
+        if cr_col:
+            select_cols.append(cr_col)
+        if type_col:
+            select_cols.append(type_col)
+        rows = conn.execute(
+            f"SELECT {', '.join(select_cols)} FROM {table_name} WHERE id IN ({placeholders})",
+            tuple(ids),
+        ).fetchall()
+        by_id: dict[int, dict[str, Any]] = {}
+        for row in rows:
+            item = _row_to_dict(row)
+            try:
+                row_id = int(item.get("id"))
+            except Exception:
+                continue
+            by_id[row_id] = {
+                "id": row_id,
+                "name": item.get(name_col),
+                "cr": item.get(cr_col) if cr_col else None,
+                "type": item.get(type_col) if type_col else None,
+            }
+    out: list[dict[str, Any]] = []
+    for monster_id in ids:
+        if monster_id in by_id:
+            out.append(by_id[monster_id])
+    return out
 
 
 FULL_CASTER_CODES = {"bard", "cleric", "druid", "sorcerer", "wizard"}
@@ -1525,6 +1742,7 @@ def create_app() -> Flask:
             mezzelfo_opts = [(s, STAT_LABEL[s]) for s in STATS if s != "car"]
             slots_vm = _build_spell_slots_view_model(pg_view)
             characters = list_characters()
+            quick_monsters = _load_quick_monsters(pg_view)
 
             return render_template(
                 "index.html",
@@ -1546,6 +1764,7 @@ def create_app() -> Flask:
                 has_spell_slots_widget=slots_vm["has_spell_slots_widget"],
                 current_char_id=slots_vm["current_char_id"],
                 current_path=slots_vm["current_path"],
+                quick_monsters=quick_monsters,
                 STATS=STATS,
                 STAT_LABEL=STAT_LABEL,
                 CLASSES=CLASSES,
@@ -2038,6 +2257,205 @@ def create_app() -> Flask:
                 pg_limits=request.form.get("pg_limits") or request.form.get("pg_mode") or "",
                 page=request.form.get("page") or "1",
             )
+        )
+
+    @app.get("/bestiary")
+    def bestiary():
+        pg = get_pg()
+        characters = list_characters()
+        q = (request.args.get("q") or "").strip()
+        cr = (request.args.get("cr") or "").strip()
+        page_raw = (request.args.get("page") or "1").strip()
+        page = clamp_int(page_raw, 1, 1, None)
+        page_size = 50
+
+        with connect() as conn:
+            ensure_schema(conn)
+            table_name, cols = _resolve_bestiary_table(conn)
+            if not table_name:
+                return render_template(
+                    "bestiary.html",
+                    pg=pg,
+                    characters=characters,
+                    monsters=[],
+                    q=q,
+                    cr=cr,
+                    page=page,
+                    has_prev=False,
+                    has_next=False,
+                    total=0,
+                    table_found=False,
+                    cr_options=[],
+                    name_col=None,
+                    cr_col=None,
+                    type_col=None,
+                )
+
+            name_col = "name_it" if "name_it" in cols else ("name" if "name" in cols else None)
+            cr_col = "cr" if "cr" in cols else ("challenge_rating" if "challenge_rating" in cols else None)
+            type_col = "type" if "type" in cols else None
+
+            if not name_col:
+                return render_template(
+                    "bestiary.html",
+                    pg=pg,
+                    characters=characters,
+                    monsters=[],
+                    q=q,
+                    cr=cr,
+                    page=page,
+                    has_prev=False,
+                    has_next=False,
+                    total=0,
+                    table_found=False,
+                    cr_options=[],
+                    name_col=None,
+                    cr_col=None,
+                    type_col=None,
+                )
+
+            select_cols = ["id", name_col]
+            if cr_col:
+                select_cols.append(cr_col)
+            if type_col:
+                select_cols.append(type_col)
+
+            where_parts: list[str] = []
+            params: list[Any] = []
+            if q:
+                where_parts.append(f"{name_col} LIKE ?")
+                params.append(f"%{q}%")
+            if cr and cr_col:
+                where_parts.append(f"{cr_col} = ?")
+                params.append(cr)
+
+            where_sql = f" WHERE {' AND '.join(where_parts)}" if where_parts else ""
+
+            count_row = conn.execute(
+                f"SELECT COUNT(*) AS c FROM {table_name}{where_sql}",
+                tuple(params),
+            ).fetchone()
+            total = int((count_row["c"] if isinstance(count_row, sqlite3.Row) else count_row[0]) or 0)
+
+            offset = (page - 1) * page_size
+            rows = conn.execute(
+                f"SELECT {', '.join(select_cols)} FROM {table_name}{where_sql} "
+                f"ORDER BY {name_col} ASC LIMIT ? OFFSET ?",
+                tuple(params + [page_size, offset]),
+            ).fetchall()
+            monsters = [_row_to_dict(r) for r in rows]
+
+            cr_options: list[str] = []
+            if cr_col:
+                cr_rows = conn.execute(f"SELECT DISTINCT {cr_col} AS cr_value FROM {table_name}").fetchall()
+                cr_values = [
+                    str((r["cr_value"] if isinstance(r, sqlite3.Row) else r[0]) or "").strip()
+                    for r in cr_rows
+                ]
+                cr_options = sorted(
+                    [v for v in cr_values if v],
+                    key=lambda v: (_parse_cr_sort_value(v), v),
+                )
+
+        has_prev = page > 1
+        has_next = (page * page_size) < total
+        return render_template(
+            "bestiary.html",
+            pg=pg,
+            characters=characters,
+            monsters=monsters,
+            q=q,
+            cr=cr,
+            page=page,
+            has_prev=has_prev,
+            has_next=has_next,
+            total=total,
+            table_found=True,
+            cr_options=cr_options,
+            name_col=name_col,
+            cr_col=cr_col,
+            type_col=type_col,
+        )
+
+    @app.post("/bestiary/quick/add/<int:monster_id>")
+    def bestiary_quick_add(monster_id: int):
+        pg = get_pg()
+        quick = _quick_monster_ids(pg)
+        if monster_id > 0 and monster_id not in quick:
+            quick.append(monster_id)
+            pg["quick_monsters"] = quick[:12]
+            _persist_pg_to_session_and_db(pg)
+        return redirect(_safe_next_url(request.form.get("next") or request.referrer))
+
+    @app.post("/bestiary/quick/remove/<int:monster_id>")
+    def bestiary_quick_remove(monster_id: int):
+        pg = get_pg()
+        quick = [x for x in _quick_monster_ids(pg) if x != monster_id]
+        pg["quick_monsters"] = quick
+        _persist_pg_to_session_and_db(pg)
+        return redirect(_safe_next_url(request.form.get("next") or request.referrer))
+
+    @app.get("/bestiary/<int:monster_id>")
+    def bestiary_detail(monster_id: int):
+        pg = get_pg()
+        characters = list_characters()
+        with connect() as conn:
+            ensure_schema(conn)
+            table_name, cols = _resolve_bestiary_table(conn)
+            if not table_name:
+                return ("Bestiario non disponibile", 404)
+
+            row = conn.execute(f"SELECT * FROM {table_name} WHERE id = ?", (monster_id,)).fetchone()
+            if not row:
+                return ("Mostro non trovato", 404)
+            monster = _row_to_dict(row)
+
+        def pick(*names: str) -> Any:
+            for key in names:
+                if key in monster and monster.get(key) not in (None, ""):
+                    return monster.get(key)
+            return None
+
+        stats = monster.get("stats_json")
+        stats_map: dict[str, Any] = {}
+        if isinstance(stats, str) and stats.strip().startswith("{"):
+            try:
+                parsed = json.loads(stats)
+                if isinstance(parsed, dict):
+                    stats_map = parsed
+            except Exception:
+                stats_map = {}
+
+        monster_std = {
+            "id": monster.get("id"),
+            "name": pick("name_it", "name"),
+            "cr": pick("cr", "challenge_rating"),
+            "size": pick("size"),
+            "type": pick("type"),
+            "alignment": pick("alignment"),
+            "ac": pick("ac", "armor_class"),
+            "hp": pick("hp", "hit_points"),
+            "speed": pick("speed_text", "speed"),
+            "senses": pick("senses_text", "senses"),
+            "languages": pick("languages_text", "languages"),
+            "str": pick("str", "strength", "for") or stats_map.get("str"),
+            "dex": pick("dex", "dexterity", "des") or stats_map.get("dex"),
+            "con": pick("con", "constitution", "cos") or stats_map.get("con"),
+            "int": pick("int", "intelligence") or stats_map.get("int"),
+            "wis": pick("wis", "wisdom", "sag") or stats_map.get("wis"),
+            "cha": pick("cha", "charisma", "car") or stats_map.get("cha"),
+        }
+        monster_sections = _build_monster_sections(monster)
+        quick_ids = set(_quick_monster_ids(pg))
+        return render_template(
+            "monster_detail.html",
+            pg=pg,
+            characters=characters,
+            monster=monster,
+            monster_std=monster_std,
+            monster_sections=monster_sections,
+            in_quick=(monster_id in quick_ids),
+            available_columns=sorted(cols),
         )
 
     @app.get("/spell/<int:spell_id>")
