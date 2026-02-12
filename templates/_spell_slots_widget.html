@@ -1,4 +1,4 @@
-<div class="card shadow-sm h-100">
+<div class="card shadow-sm{% if slots_widget_fill_height is not defined or slots_widget_fill_height %} h-100{% endif %}">
   <div class="card-body py-2 px-2">
     <div class="label mb-1">Slot Incantesimi</div>
     {% if has_spell_slots_widget %}

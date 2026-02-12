@@ -59,6 +59,8 @@ DEFAULT_PG = {
     "skills_proficient": [],
     "hp_current": 0,
     "hp_temp": 0,
+    "hp_max_mode": "average",
+    "hp_max_manual": None,
     # Combat basics (phase 2 foundation)
     "armor_id": "none",
     "armor_type": "none",
@@ -376,7 +378,7 @@ def _normalize_attack_entry(raw: Any) -> dict[str, str]:
     base = {"weapon_id": "", "custom_name": "", "custom_dice": "", "custom_kind": "melee", "damage_type": ""}
     if isinstance(raw, dict):
         base.update({k: _clean_text(raw.get(k), 60) for k in base.keys()})
-    if base["weapon_id"] not in WEAPONS:
+    if base["weapon_id"] not in WEAPONS and base["weapon_id"] != "custom":
         base["weapon_id"] = ""
     if base["custom_kind"] not in ("melee", "ranged"):
         base["custom_kind"] = "melee"
@@ -413,7 +415,24 @@ def _damage_expr(dice: str, mod: int) -> str:
 
 def _attack_view_model(entry: dict[str, str], class_name: str, mods: dict[str, int], pb: int) -> dict[str, Any]:
     weapon_id = entry.get("weapon_id", "")
-    weapon = WEAPONS.get(weapon_id) if weapon_id else None
+    weapon = WEAPONS.get(weapon_id) if weapon_id and weapon_id != "custom" else None
+
+    if weapon_id == "":
+        return {
+            "weapon_id": "",
+            "name": "-",
+            "to_hit": None,
+            "damage": "",
+            "damage_display": "-",
+            "damage_type": "",
+            "proficient": True,
+            "ability_used": "for",
+            "kind": "melee",
+            "is_custom": False,
+            "custom_name": "",
+            "custom_dice": "",
+            "custom_kind": "melee",
+        }
 
     if weapon:
         proficient = is_weapon_proficient(class_name, weapon_id, weapon)
@@ -520,6 +539,12 @@ def normalize_pg(pg: Any) -> dict:
 
     pg["hp_current"] = clamp_int(pg.get("hp_current"), 0, 0, 999)
     pg["hp_temp"] = clamp_int(pg.get("hp_temp"), 0, 0, 999)
+    pg["hp_max_mode"] = normalize_choice(pg.get("hp_max_mode"), ["average", "manual"], "average")
+    raw_hp_max_manual = pg.get("hp_max_manual")
+    if raw_hp_max_manual is None or (isinstance(raw_hp_max_manual, str) and raw_hp_max_manual.strip() == ""):
+        pg["hp_max_manual"] = None
+    else:
+        pg["hp_max_manual"] = clamp_int(raw_hp_max_manual, 1, 1, 999)
     pg["speed"] = clamp_int(pg.get("speed"), 9, 0, 60)
     armor_type = pg.get("armor_type")
     if armor_type not in ("none", "light", "medium", "heavy"):
@@ -672,6 +697,12 @@ def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choos
     class_hit_die = HIT_DIE_BY_CLASS.get(class_name) if isinstance(class_name, str) else None
     level = int(pg.get("level") or 1)
     hp_max_auto = hp_max_average(level, con_mod, class_hit_die) if class_hit_die else None
+    hp_mode = str(pg.get("hp_max_mode") or "average")
+    hp_max_manual = pg.get("hp_max_manual")
+    if hp_mode == "manual":
+        hp_max_effective = int(hp_max_manual) if hp_max_manual is not None else None
+    else:
+        hp_max_effective = hp_max_auto
 
     spell_ability = spellcasting_ability(pg.get("classe"))
     spell_mod = mods.get(spell_ability) if spell_ability else None
@@ -713,7 +744,7 @@ def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choos
     skills["perception"] = perception_bonus
     passive_perception = 10 + skills["perception"]
 
-    weapon_options = [{"id": "", "label": "Personalizzata (manuale)"}]
+    weapon_options = [{"id": "", "label": "—"}, {"id": "custom", "label": "Personalizzata (manuale)"}]
     proficient_weapons = [w for w in WEAPONS.values() if is_weapon_proficient(str(class_name or ""), str(w["id"]), w)]
     for weapon in sorted(proficient_weapons, key=lambda x: str(x["name_it"])):
         weapon_options.append({"id": weapon["id"], "label": _weapon_option_label(weapon)})
@@ -750,9 +781,12 @@ def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choos
             "armor_name": armor["name"],
             "armor_category": armor["category"],
         },
-        "hpmax": hp_max_auto,
+        "hpmax": hp_max_effective,
         "hp": {
             "max_auto": hp_max_auto,
+            "max_effective": hp_max_effective,
+            "mode": hp_mode,
+            "max_manual": hp_max_manual,
             "current": pg.get("hp_current", 0),
             "temp": pg.get("hp_temp", 0),
             "hit_die": class_hit_die,
@@ -1611,6 +1645,12 @@ def create_app() -> Flask:
 
             pg["hp_current"] = clamp_int(request.form.get("hp_current"), pg.get("hp_current", 0), 0, 999)
             pg["hp_temp"] = clamp_int(request.form.get("hp_temp"), pg.get("hp_temp", 0), 0, 999)
+            pg["hp_max_mode"] = normalize_choice(request.form.get("hp_max_mode"), ["average", "manual"], pg.get("hp_max_mode", "average"))
+            hp_max_manual_raw = (request.form.get("hp_max_manual") or "").strip()
+            if pg["hp_max_mode"] == "manual":
+                pg["hp_max_manual"] = None if hp_max_manual_raw == "" else clamp_int(hp_max_manual_raw, 1, 1, 999)
+            else:
+                pg["hp_max_manual"] = None
             pg["speed"] = clamp_int(request.form.get("speed"), pg.get("speed", 9), 0, 60)
             armor_id = request.form.get("armor_id") or pg.get("armor_id") or "none"
             if armor_id not in ARMORS:
@@ -1739,7 +1779,12 @@ def create_app() -> Flask:
     @app.get("/character/spell_slots/widget")
     def spell_slots_widget():
         pg = get_pg()
-        return render_template("_spell_slots_widget.html", pg=pg, **_build_spell_slots_view_model(pg))
+        return render_template(
+            "_spell_slots_widget.html",
+            pg=pg,
+            slots_widget_fill_height=False,
+            **_build_spell_slots_view_model(pg),
+        )
 
     @app.get("/load_character/<int:char_id>")
     def load_character(char_id: int):
@@ -1874,10 +1919,12 @@ def create_app() -> Flask:
             sp["can_cast"] = bool(levels)
         characters = list_characters()
         slots_vm = _build_spell_slots_view_model(pg)
+        sheet = build_sheet_context(pg)
 
         return render_template(
             "spells.html",
             pg=pg,
+            spellcasting=sheet.get("spellcasting", {}),
             q=q,
             level=level,
             class_code=class_code,

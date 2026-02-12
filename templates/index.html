@@ -351,8 +351,101 @@
           {% endif %}
         </div>
 
-        <hr class="my-3">
-        <div class="border rounded p-2 bg-white small">
+      </div>
+
+      <div class="col-12 col-lg-4">
+        <div class="border rounded p-2 bg-white small mb-2">
+          <div class="label">Vita</div>
+          <div class="row g-0">
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">PF Massimi (effettivi)</div>
+                <div class="mono fw-bold">{% if sheet.hp.max_effective is none %}-{% else %}{{ sheet.hp.max_effective }}{% endif %}</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted small">PF Massimi (auto)</div>
+                <div class="mono text-muted small">{{ sheet.hp.max_auto if sheet.hp.max_auto is not none else "-" }}</div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">Modalit&agrave; PF Max</div>
+                <select class="form-select form-select-sm" style="max-width:200px" name="hp_max_mode" onchange="this.form.submit()">
+                  <option value="average" {% if sheet.hp.mode == "average" %}selected{% endif %}>Media (automatico)</option>
+                  <option value="manual" {% if sheet.hp.mode == "manual" %}selected{% endif %}>Tiro (manuale)</option>
+                </select>
+              </div>
+            </div>
+            {% if sheet.hp.mode == "manual" %}
+              <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                  <div class="text-muted">PF Max (manuale)</div>
+                  <input class="form-control form-control-sm mono text-end" style="max-width:120px"
+                    type="number" min="1" max="999" name="hp_max_manual"
+                    placeholder="es. 12" value="{{ sheet.hp.max_manual if sheet.hp.max_manual is not none else '' }}"
+                    onchange="this.form.submit()" onblur="this.form.submit()"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
+                </div>
+                {% if sheet.hp.max_manual is none %}
+                  <div class="small text-warning mt-1">Inserisci il PF Max tirato.</div>
+                {% endif %}
+              </div>
+            {% endif %}
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">Dado Vita / Media</div>
+                <div class="mono">
+                  {% if sheet.hp.hit_die %}
+                    d{{ sheet.hp.hit_die }} / {{ sheet.hp.per_level_avg }}
+                  {% else %}
+                    -
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              {% set hp_over = (sheet.hp.max_effective is not none) and (sheet.hp.current|int > sheet.hp.max_effective|int) %}
+              {% set hp_excess = (sheet.hp.current|int - sheet.hp.max_effective|int) if hp_over else 0 %}
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted {% if hp_over %}text-danger{% endif %}">
+                  HP Attuali
+                  {% if hp_over %}
+                    <span class="badge text-bg-danger ms-2">+{{ hp_excess }} oltre max</span>
+                  {% endif %}
+                </div>
+                <input class="form-control form-control-sm mono text-end {% if hp_over %}border-danger text-danger{% endif %}" style="max-width:120px"
+                  type="number" min="0" max="999" name="hp_current" value="{{ pg.hp_current }}"
+                  onchange="this.form.submit()" onblur="this.form.submit()"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                <div class="text-muted">HP Temp</div>
+                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
+                  type="number" min="0" max="999" name="hp_temp" value="{{ pg.hp_temp }}"
+                  onchange="this.form.submit()" onblur="this.form.submit()"
+                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="border rounded p-2 bg-white">
+          <div class="label">Tiri Salvezza</div>
+          <div class="row g-1 small">
+            {% for r in sheet.saving_rows %}
+              <div class="col-6">
+                <div class="d-flex justify-content-between">
+                  <span>{{ STAT_LABEL[r.stat] }}</span>
+                  <span class="mono">{{ "%+d"|format(r.bonus) }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="border rounded p-2 bg-white small mt-2">
           <div class="label">Difesa</div>
           <div class="row g-2 align-items-end">
             <div class="col-12 col-md-6 col-lg-5">
@@ -399,74 +492,9 @@
             </div>
           </div>
         </div>
-
-      </div>
-
-      <div class="col-12 col-lg-4">
-        <div class="border rounded p-2 bg-white small mb-2">
-          <div class="label">Vita</div>
-          <div class="row g-0">
-            <div class="col-12">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">PF Massimi (auto)</div>
-                <div class="mono fw-bold">{{ sheet.hp.max_auto if sheet.hp.max_auto is not none else "-" }}</div>
-              </div>
-            </div>
-            <div class="col-12">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">Dado Vita / Media</div>
-                <div class="mono">
-                  {% if sheet.hp.hit_die %}
-                    d{{ sheet.hp.hit_die }} / {{ sheet.hp.per_level_avg }}
-                  {% else %}
-                    -
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-            <div class="col-12">
-              {% set hp_over = (sheet.hp.max_auto is not none) and (sheet.hp.current|int > sheet.hp.max_auto|int) %}
-              {% set hp_excess = (sheet.hp.current|int - sheet.hp.max_auto|int) if hp_over else 0 %}
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted {% if hp_over %}text-danger{% endif %}">
-                  HP Attuali
-                  {% if hp_over %}
-                    <span class="badge text-bg-danger ms-2">+{{ hp_excess }} oltre max</span>
-                  {% endif %}
-                </div>
-                <input class="form-control form-control-sm mono text-end {% if hp_over %}border-danger text-danger{% endif %}" style="max-width:120px"
-                  type="number" min="0" max="999" name="hp_current" value="{{ pg.hp_current }}"
-                  onchange="this.form.submit()" onblur="this.form.submit()"
-                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
-              </div>
-            </div>
-            <div class="col-12">
-              <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                <div class="text-muted">HP Temp</div>
-                <input class="form-control form-control-sm mono text-end" style="max-width:120px"
-                  type="number" min="0" max="999" name="hp_temp" value="{{ pg.hp_temp }}"
-                  onchange="this.form.submit()" onblur="this.form.submit()"
-                  onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}">
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="border rounded p-2 bg-white">
-          <div class="label">Tiri Salvezza</div>
-          <div class="row g-1 small">
-            {% for r in sheet.saving_rows %}
-              <div class="col-6">
-                <div class="d-flex justify-content-between">
-                  <span>{{ STAT_LABEL[r.stat] }}</span>
-                  <span class="mono">{{ "%+d"|format(r.bonus) }}</span>
-                </div>
-              </div>
-            {% endfor %}
-          </div>
-        </div>
         <div class="border rounded p-2 bg-white small mt-2">
           <div class="label">Attacchi</div>
-          <table class="table table-sm align-middle mb-0">
+          <table class="table table-sm align-middle mb-0 small">
             <thead>
               <tr>
                 <th style="width:60%;">ARMA</th>
@@ -474,13 +502,12 @@
                 <th style="width:25%;">DANNI / TIPO</th>
               </tr>
             </thead>
-            <tbody>
-              {% for i in range(6) %}
-                {% set atk = sheet.attacks_rows[i] %}
-                {% set form_atk = pg.attacks[i] %}
-                {% set is_custom = (not form_atk.weapon_id) %}
-                {% set custom_used = (form_atk.custom_name or form_atk.custom_dice or form_atk.damage_type) %}
-                {% set show_custom_fields = (i < 2) or is_custom %}
+            <tbody style="line-height:1.1;">
+                {% for i in range(6) %}
+                  {% set atk = sheet.attacks_rows[i] %}
+                  {% set form_atk = pg.attacks[i] %}
+                  {% set is_custom = (form_atk.weapon_id == "custom") %}
+                  {% set show_custom_fields = is_custom %}
                 <tr>
                   <td class="px-1 py-0">
                     <select class="form-select form-select-sm" style="padding-top:2px;padding-bottom:2px" name="atk{{ i }}_weapon_id" onchange="this.form.submit()">
@@ -489,7 +516,7 @@
                       {% endfor %}
                     </select>
                     {% if show_custom_fields %}
-                      <div class="input-group input-group-sm mt-1">
+                      <div class="input-group input-group-sm mt-0 pt-0">
                         <input
                           class="form-control"
                           type="text"
@@ -528,12 +555,12 @@
                     {% endif %}
                   </td>
                   <td class="text-end mono fw-bold px-1 py-0">
-                    {{ atk.to_hit|fmt_signed }}
+                    {% if atk.to_hit is none %}-{% else %}{{ atk.to_hit|fmt_signed }}{% endif %}
                     {% if not atk.proficient %}
                       <span class="badge text-bg-warning ms-1">non competente</span>
                     {% endif %}
                   </td>
-                  <td class="mono px-1 py-0">{{ atk.damage_display }}</td>
+                  <td class="mono px-1 py-0 {% if atk.damage_display == '-' %}text-muted{% endif %}">{{ atk.damage_display }}</td>
                 </tr>
               {% endfor %}
             </tbody>
