@@ -60,30 +60,49 @@ DEFAULT_PG = {
     "hp_current": 0,
     "hp_temp": 0,
     # Combat basics (phase 2 foundation)
+    "armor_id": "none",
     "armor_type": "none",
     "has_shield": False,
     "ac_bonus": 0,
     "speed": 9,
-    # Base attacks (no inventory yet)
+    # Base attacks
     "atk_prof_melee": False,
     "atk_prof_ranged": False,
+    "attacks": [{}, {}, {}, {}, {}, {}],
 }
 
 STANDARD_ARRAY_VALUES = [15, 14, 13, 12, 10, 8]
 POINT_BUY_TOTAL = 27
 POINT_BUY_COST = {8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9}
 
-# Defense proficiencies (minimal mapping)
 ALLOWED_ARMOR_BY_CLASS = {
-    "Mago": ["none"],
-    "Chierico": ["none", "light", "medium"],
+    "Barbaro": ["none", "light", "medium"],
     "Bardo": ["none", "light"],
+    "Chierico": ["none", "light", "medium"],
+    "Druido": ["none", "light", "medium"],
+    "Guerriero": ["none", "light", "medium", "heavy"],
+    "Ladro": ["none", "light"],
+    "Mago": ["none"],
+    "Monaco": ["none"],
+    "Paladino": ["none", "light", "medium", "heavy"],
+    "Ranger": ["none", "light", "medium"],
+    "Stregone": ["none"],
+    "Warlock": ["none", "light"],
 }
 
 ALLOWED_SHIELD_BY_CLASS = {
-    "Mago": False,
-    "Chierico": True,
+    "Barbaro": True,
     "Bardo": False,
+    "Chierico": True,
+    "Druido": True,
+    "Guerriero": True,
+    "Ladro": False,
+    "Mago": False,
+    "Monaco": False,
+    "Paladino": True,
+    "Ranger": True,
+    "Stregone": False,
+    "Warlock": False,
 }
 
 HIT_DIE_BY_CLASS = {
@@ -99,6 +118,203 @@ HIT_DIE_BY_CLASS = {
     "Warlock": 8,
     "Stregone": 6,
     "Mago": 6,
+}
+
+ARMORS: dict[str, dict[str, Any]] = {
+    "none": {"id": "none", "name": "Nessuna", "category": "none", "base_ac": 10, "dex_cap": None},
+    "padded": {"id": "padded", "name": "Imbottita", "category": "light", "base_ac": 11, "dex_cap": None},
+    "leather": {"id": "leather", "name": "Cuoio", "category": "light", "base_ac": 11, "dex_cap": None},
+    "studded_leather": {
+        "id": "studded_leather",
+        "name": "Cuoio borchiato",
+        "category": "light",
+        "base_ac": 12,
+        "dex_cap": None,
+    },
+    "hide": {"id": "hide", "name": "Pelle", "category": "medium", "base_ac": 12, "dex_cap": 2},
+    "chain_shirt": {"id": "chain_shirt", "name": "Cotta di maglia", "category": "medium", "base_ac": 13, "dex_cap": 2},
+    "scale_mail": {"id": "scale_mail", "name": "Corazza di scaglie", "category": "medium", "base_ac": 14, "dex_cap": 2},
+    "breastplate": {"id": "breastplate", "name": "Corazza", "category": "medium", "base_ac": 14, "dex_cap": 2},
+    "half_plate": {"id": "half_plate", "name": "Mezza armatura", "category": "medium", "base_ac": 15, "dex_cap": 2},
+    "ring_mail": {"id": "ring_mail", "name": "Cotta di anelli", "category": "heavy", "base_ac": 14, "dex_cap": 0},
+    "chain_mail": {"id": "chain_mail", "name": "Maglia", "category": "heavy", "base_ac": 16, "dex_cap": 0},
+    "splint": {"id": "splint", "name": "Armatura a strisce", "category": "heavy", "base_ac": 17, "dex_cap": 0},
+    "plate": {"id": "plate", "name": "Corazza completa", "category": "heavy", "base_ac": 18, "dex_cap": 0},
+}
+
+ARMOR_CATEGORY_LABEL = {
+    "none": "Nessuna",
+    "light": "Leggera",
+    "medium": "Media",
+    "heavy": "Pesante",
+}
+
+ARMOR_CATEGORY_ORDER = ["none", "light", "medium", "heavy"]
+
+WEAPONS: dict[str, dict[str, Any]] = {
+    "dagger": {
+        "id": "dagger",
+        "name_it": "Pugnale",
+        "category": "simple",
+        "kind": "melee",
+        "damage_dice": "1d4",
+        "damage_type": "perforante",
+        "finesse": True,
+        "thrown": True,
+        "range": "20/60",
+    },
+    "shortsword": {
+        "id": "shortsword",
+        "name_it": "Spada corta",
+        "category": "martial",
+        "kind": "melee",
+        "damage_dice": "1d6",
+        "damage_type": "perforante",
+        "finesse": True,
+        "thrown": False,
+    },
+    "rapier": {
+        "id": "rapier",
+        "name_it": "Stocco",
+        "category": "martial",
+        "kind": "melee",
+        "damage_dice": "1d8",
+        "damage_type": "perforante",
+        "finesse": True,
+        "thrown": False,
+    },
+    "longsword": {
+        "id": "longsword",
+        "name_it": "Spada lunga",
+        "category": "martial",
+        "kind": "melee",
+        "damage_dice": "1d8",
+        "damage_type": "tagliente",
+        "finesse": False,
+        "thrown": False,
+    },
+    "greatsword": {
+        "id": "greatsword",
+        "name_it": "Spadone",
+        "category": "martial",
+        "kind": "melee",
+        "damage_dice": "2d6",
+        "damage_type": "tagliente",
+        "finesse": False,
+        "thrown": False,
+    },
+    "mace": {
+        "id": "mace",
+        "name_it": "Mazza",
+        "category": "simple",
+        "kind": "melee",
+        "damage_dice": "1d6",
+        "damage_type": "contundente",
+        "finesse": False,
+        "thrown": False,
+    },
+    "quarterstaff": {
+        "id": "quarterstaff",
+        "name_it": "Bastone ferrato",
+        "category": "simple",
+        "kind": "melee",
+        "damage_dice": "1d6",
+        "damage_type": "contundente",
+        "finesse": False,
+        "thrown": False,
+    },
+    "spear": {
+        "id": "spear",
+        "name_it": "Lancia",
+        "category": "simple",
+        "kind": "melee",
+        "damage_dice": "1d6",
+        "damage_type": "perforante",
+        "finesse": False,
+        "thrown": True,
+        "range": "20/60",
+    },
+    "shortbow": {
+        "id": "shortbow",
+        "name_it": "Arco corto",
+        "category": "simple",
+        "kind": "ranged",
+        "damage_dice": "1d6",
+        "damage_type": "perforante",
+        "finesse": False,
+        "thrown": False,
+        "range": "80/320",
+    },
+    "longbow": {
+        "id": "longbow",
+        "name_it": "Arco lungo",
+        "category": "martial",
+        "kind": "ranged",
+        "damage_dice": "1d8",
+        "damage_type": "perforante",
+        "finesse": False,
+        "thrown": False,
+        "range": "150/600",
+    },
+    "light_crossbow": {
+        "id": "light_crossbow",
+        "name_it": "Balestra leggera",
+        "category": "simple",
+        "kind": "ranged",
+        "damage_dice": "1d8",
+        "damage_type": "perforante",
+        "finesse": False,
+        "thrown": False,
+        "range": "80/320",
+    },
+    "hand_crossbow": {
+        "id": "hand_crossbow",
+        "name_it": "Balestra a mano",
+        "category": "martial",
+        "kind": "ranged",
+        "damage_dice": "1d6",
+        "damage_type": "perforante",
+        "finesse": False,
+        "thrown": False,
+        "range": "30/120",
+    },
+    "dart": {
+        "id": "dart",
+        "name_it": "Dardo",
+        "category": "simple",
+        "kind": "ranged",
+        "damage_dice": "1d4",
+        "damage_type": "perforante",
+        "finesse": True,
+        "thrown": True,
+        "range": "20/60",
+    },
+    "sling": {
+        "id": "sling",
+        "name_it": "Fionda",
+        "category": "simple",
+        "kind": "ranged",
+        "damage_dice": "1d4",
+        "damage_type": "contundente",
+        "finesse": False,
+        "thrown": False,
+        "range": "30/120",
+    },
+}
+
+WEAPON_PROF_BY_CLASS: dict[str, list[str]] = {
+    "Barbaro": ["simple", "martial"],
+    "Bardo": ["simple", "hand_crossbow", "longsword", "rapier", "shortsword"],
+    "Chierico": ["simple"],
+    "Druido": ["simple"],
+    "Guerriero": ["simple", "martial"],
+    "Ladro": ["simple", "hand_crossbow", "longsword", "rapier", "shortsword"],
+    "Mago": ["dagger", "dart", "sling", "quarterstaff", "light_crossbow"],
+    "Monaco": ["simple", "shortsword"],
+    "Paladino": ["simple", "martial"],
+    "Ranger": ["simple", "martial"],
+    "Stregone": ["dagger", "dart", "sling", "quarterstaff", "light_crossbow"],
+    "Warlock": ["simple"],
 }
 
 def new_pg() -> dict:
@@ -127,6 +343,127 @@ def fmt_signed(n: Any) -> str:
 
 def normalize_choice(v: Any, options: list[str], default: str) -> str:
     return v if isinstance(v, str) and v in options else default
+
+
+def _default_armor_id_from_type(armor_type: Any) -> str:
+    return {
+        "none": "none",
+        "light": "leather",
+        "medium": "scale_mail",
+        "heavy": "chain_mail",
+    }.get(armor_type, "none")
+
+
+def _armor_option_label(armor: dict[str, Any]) -> str:
+    name = str(armor.get("name") or "")
+    category = str(armor.get("category") or "none")
+    base_ac = int(armor.get("base_ac") or 10)
+    dex_cap = armor.get("dex_cap")
+    if category == "none":
+        return f"{name} (10 + DES)"
+    if dex_cap is None:
+        return f"{name} ({base_ac} + DES)"
+    if int(dex_cap) <= 0:
+        return f"{name} ({base_ac})"
+    return f"{name} ({base_ac} + DES max {int(dex_cap)})"
+
+
+def _clean_text(v: Any, max_len: int = 60) -> str:
+    return str(v or "").strip()[:max_len]
+
+
+def _normalize_attack_entry(raw: Any) -> dict[str, str]:
+    base = {"weapon_id": "", "custom_name": "", "custom_dice": "", "custom_kind": "melee", "damage_type": ""}
+    if isinstance(raw, dict):
+        base.update({k: _clean_text(raw.get(k), 60) for k in base.keys()})
+    if base["weapon_id"] not in WEAPONS:
+        base["weapon_id"] = ""
+    if base["custom_kind"] not in ("melee", "ranged"):
+        base["custom_kind"] = "melee"
+    return base
+
+
+def is_weapon_proficient(class_name: str, weapon_id: str, weapon_obj: dict) -> bool:
+    profs = WEAPON_PROF_BY_CLASS.get(class_name, [])
+    if "simple" in profs and weapon_obj.get("category") == "simple":
+        return True
+    if "martial" in profs and weapon_obj.get("category") == "martial":
+        return True
+    return weapon_id in profs
+
+
+def _weapon_option_label(weapon: dict[str, Any]) -> str:
+    name = str(weapon.get("name_it") or "")
+    dice = str(weapon.get("damage_dice") or "")
+    dmg_type = str(weapon.get("damage_type") or "")
+    suffix = " (ranged)" if weapon.get("kind") == "ranged" else ""
+    return f"{name} — {dice} {dmg_type}{suffix}".strip()
+
+
+def _damage_expr(dice: str, mod: int) -> str:
+    d = _clean_text(dice, 20)
+    if not d:
+        return ""
+    if mod > 0:
+        return f"{d}+{mod}"
+    if mod < 0:
+        return f"{d}{mod}"
+    return d
+
+
+def _attack_view_model(entry: dict[str, str], class_name: str, mods: dict[str, int], pb: int) -> dict[str, Any]:
+    weapon_id = entry.get("weapon_id", "")
+    weapon = WEAPONS.get(weapon_id) if weapon_id else None
+
+    if weapon:
+        proficient = is_weapon_proficient(class_name, weapon_id, weapon)
+        if weapon["kind"] == "ranged":
+            ability_used = "des"
+            ability_mod_val = mods["des"]
+        elif weapon.get("finesse"):
+            ability_used = "des" if mods["des"] >= mods["for"] else "for"
+            ability_mod_val = max(mods["for"], mods["des"])
+        else:
+            ability_used = "for"
+            ability_mod_val = mods["for"]
+        to_hit = ability_mod_val + (pb if proficient else 0)
+        damage = _damage_expr(str(weapon.get("damage_dice") or ""), ability_mod_val)
+        return {
+            "weapon_id": weapon_id,
+            "name": weapon["name_it"],
+            "to_hit": to_hit,
+            "damage": damage,
+            "damage_display": f"{damage} {weapon.get('damage_type')}".strip() if damage else "-",
+            "damage_type": weapon.get("damage_type") or "",
+            "proficient": proficient,
+            "ability_used": ability_used,
+            "kind": weapon.get("kind") or "melee",
+            "is_custom": False,
+            "custom_name": entry.get("custom_name", ""),
+            "custom_dice": entry.get("custom_dice", ""),
+            "custom_kind": entry.get("custom_kind", "melee"),
+        }
+
+    custom_kind = entry.get("custom_kind") if entry.get("custom_kind") in ("melee", "ranged") else "melee"
+    ability_used = "des" if custom_kind == "ranged" else "for"
+    ability_mod_val = mods.get(ability_used, 0)
+    to_hit = ability_mod_val + pb
+    damage = _damage_expr(entry.get("custom_dice", ""), ability_mod_val)
+    return {
+        "weapon_id": "",
+        "name": entry.get("custom_name") or "Personalizzata",
+        "to_hit": to_hit,
+        "damage": damage,
+        "damage_display": f"{damage} {entry.get('damage_type')}".strip() if damage else "-",
+        "damage_type": entry.get("damage_type") or "",
+        "proficient": True,
+        "ability_used": ability_used,
+        "kind": custom_kind,
+        "is_custom": True,
+        "custom_name": entry.get("custom_name", ""),
+        "custom_dice": entry.get("custom_dice", ""),
+        "custom_kind": custom_kind,
+    }
 
 
 def ensure_lineage_state(pg: dict) -> None:
@@ -187,17 +524,32 @@ def normalize_pg(pg: Any) -> dict:
     armor_type = pg.get("armor_type")
     if armor_type not in ("none", "light", "medium", "heavy"):
         armor_type = "none"
-    pg["armor_type"] = armor_type
+    armor_id = pg.get("armor_id")
+    if not isinstance(armor_id, str) or not armor_id:
+        armor_id = _default_armor_id_from_type(armor_type)
+    if armor_id not in ARMORS:
+        armor_id = "none"
+    pg["armor_id"] = armor_id
+    pg["armor_type"] = str(ARMORS[armor_id]["category"])
     pg["has_shield"] = bool(pg.get("has_shield", False))
     pg["ac_bonus"] = clamp_int(pg.get("ac_bonus"), 0, -10, 10)
     pg["atk_prof_melee"] = bool(pg.get("atk_prof_melee", False))
     pg["atk_prof_ranged"] = bool(pg.get("atk_prof_ranged", False))
+    raw_attacks = pg.get("attacks")
+    normalized_attacks: list[dict[str, str]] = []
+    if isinstance(raw_attacks, list):
+        for item in raw_attacks[:6]:
+            normalized_attacks.append(_normalize_attack_entry(item))
+    while len(normalized_attacks) < 6:
+        normalized_attacks.append(_normalize_attack_entry({}))
+    pg["attacks"] = normalized_attacks
 
     ensure_lineage_state(pg)
 
     # Enforce armor/shield limits by class
     allowed_armor = ALLOWED_ARMOR_BY_CLASS.get(pg["classe"], ["none", "light", "medium", "heavy"])
-    if pg["armor_type"] not in allowed_armor:
+    if str(ARMORS.get(pg["armor_id"], ARMORS["none"])["category"]) not in allowed_armor:
+        pg["armor_id"] = "none"
         pg["armor_type"] = "none"
     if not ALLOWED_SHIELD_BY_CLASS.get(pg["classe"], True):
         pg["has_shield"] = False
@@ -250,14 +602,56 @@ def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choos
 
     initiative = mods["des"]
     dex_mod = mods["des"]
-    armor_type = pg.get("armor_type", "none")
-    if armor_type == "medium":
-        dex_to_ac = min(dex_mod, 2)
-    elif armor_type == "heavy":
-        dex_to_ac = 0
+    class_name = pg.get("classe")
+    allowed_armor = ALLOWED_ARMOR_BY_CLASS.get(class_name, ["none", "light", "medium", "heavy"])
+    shield_allowed = ALLOWED_SHIELD_BY_CLASS.get(class_name, True)
+    armor_id = pg.get("armor_id", "none")
+    armor = ARMORS.get(armor_id, ARMORS["none"])
+    if armor["category"] not in allowed_armor:
+        armor = ARMORS["none"]
+        armor_id = "none"
+
+    if armor_id == "none":
+        base = 10
+        dex_bonus = dex_mod
     else:
-        dex_to_ac = dex_mod
-    ac = 10 + dex_to_ac + (2 if pg.get("has_shield") else 0) + int(pg.get("ac_bonus", 0))
+        base = int(armor["base_ac"])
+        dex_cap = armor.get("dex_cap")
+        if dex_cap is None:
+            dex_bonus = dex_mod
+        else:
+            cap = int(dex_cap)
+            if cap <= 0:
+                dex_bonus = 0
+            else:
+                dex_bonus = min(dex_mod, cap)
+    shield_bonus = 2 if pg.get("has_shield") and shield_allowed else 0
+    bonus = int(pg.get("ac_bonus", 0))
+    ac = base + dex_bonus + shield_bonus + bonus
+
+    armor_options = []
+    for category in ARMOR_CATEGORY_ORDER:
+        if category not in allowed_armor:
+            continue
+        options = []
+        for item in ARMORS.values():
+            if item["category"] != category:
+                continue
+            options.append(
+                {
+                    "id": item["id"],
+                    "name": item["name"],
+                    "category": item["category"],
+                    "label": _armor_option_label(item),
+                }
+            )
+        armor_options.append(
+            {
+                "category": category,
+                "label": ARMOR_CATEGORY_LABEL.get(category, category.capitalize()),
+                "options": options,
+            }
+        )
 
     st_prof = set(saving_throws(pg.get("classe")))
     saves: dict[str, int] = {}
@@ -275,13 +669,9 @@ def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choos
         )
 
     con_mod = mods["cos"]
-    class_name = pg.get("classe")
     class_hit_die = HIT_DIE_BY_CLASS.get(class_name) if isinstance(class_name, str) else None
     level = int(pg.get("level") or 1)
     hp_max_auto = hp_max_average(level, con_mod, class_hit_die) if class_hit_die else None
-
-    allowed_armor = ALLOWED_ARMOR_BY_CLASS.get(pg.get("classe"), ["none", "light", "medium", "heavy"])
-    shield_allowed = ALLOWED_SHIELD_BY_CLASS.get(pg.get("classe"), True)
 
     spell_ability = spellcasting_ability(pg.get("classe"))
     spell_mod = mods.get(spell_ability) if spell_ability else None
@@ -323,8 +713,19 @@ def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choos
     skills["perception"] = perception_bonus
     passive_perception = 10 + skills["perception"]
 
-    melee_attack_bonus = mods["for"] + (pb if pg.get("atk_prof_melee") else 0)
-    ranged_attack_bonus = mods["des"] + (pb if pg.get("atk_prof_ranged") else 0)
+    weapon_options = [{"id": "", "label": "Personalizzata (manuale)"}]
+    proficient_weapons = [w for w in WEAPONS.values() if is_weapon_proficient(str(class_name or ""), str(w["id"]), w)]
+    for weapon in sorted(proficient_weapons, key=lambda x: str(x["name_it"])):
+        weapon_options.append({"id": weapon["id"], "label": _weapon_option_label(weapon)})
+
+    attack_entries = pg.get("attacks") if isinstance(pg.get("attacks"), list) else []
+    attack_models = []
+    for idx in range(6):
+        raw_entry = attack_entries[idx] if idx < len(attack_entries) else {}
+        entry = _normalize_attack_entry(raw_entry)
+        attack_vm = _attack_view_model(entry, str(class_name or ""), mods, pb)
+        attack_vm["slot"] = idx + 1
+        attack_models.append(attack_vm)
 
     return {
         "base_stats": base_stats,
@@ -341,6 +742,14 @@ def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choos
         "initiative": initiative,
         "ac": ac,
         "dex_mod": dex_mod,
+        "ac_breakdown": {
+            "base": base,
+            "dex_bonus": dex_bonus,
+            "shield": shield_bonus,
+            "bonus": bonus,
+            "armor_name": armor["name"],
+            "armor_category": armor["category"],
+        },
         "hpmax": hp_max_auto,
         "hp": {
             "max_auto": hp_max_auto,
@@ -350,9 +759,10 @@ def build_sheet_context(pg: dict, allowed_skills: list[str] | None = None, choos
             "con_mod": con_mod,
             "per_level_avg": ((class_hit_die // 2) + 1) if class_hit_die else None,
         },
-        "melee_attack_bonus": melee_attack_bonus,
-        "ranged_attack_bonus": ranged_attack_bonus,
+        "weapon_options": weapon_options,
+        "attacks_rows": attack_models,
         "allowed_armor": allowed_armor,
+        "armor_options": armor_options,
         "shield_allowed": shield_allowed,
         "choose_n": int(choose_n or 0),
         "allowed_skills": allowed,
@@ -1202,12 +1612,33 @@ def create_app() -> Flask:
             pg["hp_current"] = clamp_int(request.form.get("hp_current"), pg.get("hp_current", 0), 0, 999)
             pg["hp_temp"] = clamp_int(request.form.get("hp_temp"), pg.get("hp_temp", 0), 0, 999)
             pg["speed"] = clamp_int(request.form.get("speed"), pg.get("speed", 9), 0, 60)
-            armor_type = request.form.get("armor_type") or pg.get("armor_type") or "none"
-            pg["armor_type"] = armor_type if armor_type in ("none", "light", "medium", "heavy") else "none"
+            armor_id = request.form.get("armor_id") or pg.get("armor_id") or "none"
+            if armor_id not in ARMORS:
+                armor_id = "none"
+            pg["armor_id"] = armor_id
+            pg["armor_type"] = str(ARMORS[armor_id]["category"])
+            allowed_armor = ALLOWED_ARMOR_BY_CLASS.get(pg["classe"], ["none", "light", "medium", "heavy"])
+            if pg["armor_type"] not in allowed_armor:
+                pg["armor_id"] = "none"
+                pg["armor_type"] = "none"
             pg["has_shield"] = request.form.get("has_shield") is not None
+            if not ALLOWED_SHIELD_BY_CLASS.get(pg["classe"], True):
+                pg["has_shield"] = False
             pg["ac_bonus"] = clamp_int(request.form.get("ac_bonus"), pg.get("ac_bonus", 0), -10, 10)
-            pg["atk_prof_melee"] = request.form.get("atk_prof_melee") is not None
-            pg["atk_prof_ranged"] = request.form.get("atk_prof_ranged") is not None
+            attacks_from_form: list[dict[str, str]] = []
+            for i in range(6):
+                attacks_from_form.append(
+                    _normalize_attack_entry(
+                        {
+                            "weapon_id": request.form.get(f"atk{i}_weapon_id") or "",
+                            "custom_name": _clean_text(request.form.get(f"atk{i}_custom_name"), 60),
+                            "custom_dice": _clean_text(request.form.get(f"atk{i}_custom_dice"), 60),
+                            "custom_kind": request.form.get(f"atk{i}_custom_kind") or "melee",
+                            "damage_type": _clean_text(request.form.get(f"atk{i}_damage_type"), 60),
+                        }
+                    )
+                )
+            pg["attacks"] = attacks_from_form
 
             # mezzelfo extras (se presenti)
             pg["lineage_extra_stats"] = [

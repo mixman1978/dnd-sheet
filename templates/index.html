@@ -302,6 +302,9 @@
                     <div class="text-muted">Classe Armatura</div>
                     <div class="mono fw-bold">{{ sheet.ac }}</div>
                   </div>
+                  <div class="small text-muted pt-1">
+                    CA = base {{ sheet.ac_breakdown.base }} + DES {{ sheet.ac_breakdown.dex_bonus|fmt_signed }} + scudo {{ sheet.ac_breakdown.shield|fmt_signed }} + bonus {{ sheet.ac_breakdown.bonus|fmt_signed }}
+                  </div>
                 </div>
                 <div class="col-12 col-md-6 ps-md-2">
                   <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
@@ -354,11 +357,14 @@
           <div class="row g-2 align-items-end">
             <div class="col-12 col-md-6 col-lg-5">
               <label class="text-muted mb-1">Armatura</label>
-              <select class="form-select form-select-sm" name="armor_type" onchange="this.form.submit()">
-                {% if "none" in sheet.allowed_armor %}<option value="none" {% if pg.armor_type == "none" %}selected{% endif %}>Nessuna</option>{% endif %}
-                {% if "light" in sheet.allowed_armor %}<option value="light" {% if pg.armor_type == "light" %}selected{% endif %}>Leggera</option>{% endif %}
-                {% if "medium" in sheet.allowed_armor %}<option value="medium" {% if pg.armor_type == "medium" %}selected{% endif %}>Media</option>{% endif %}
-                {% if "heavy" in sheet.allowed_armor %}<option value="heavy" {% if pg.armor_type == "heavy" %}selected{% endif %}>Pesante</option>{% endif %}
+              <select class="form-select form-select-sm" name="armor_id" onchange="this.form.submit()">
+                {% for group in sheet.armor_options %}
+                  <optgroup label="{{ group.label }}">
+                    {% for armor in group.options %}
+                      <option value="{{ armor.id }}" {% if pg.armor_id == armor.id %}selected{% endif %}>{{ armor.label }}</option>
+                    {% endfor %}
+                  </optgroup>
+                {% endfor %}
               </select>
             </div>
             <div class="col-12 col-md-3 col-lg-3">
@@ -394,91 +400,6 @@
           </div>
         </div>
 
-        <hr class="my-3">
-        <div class="row g-2">
-          <div class="col-12 {% if sheet.spellcasting.casting_ability %}col-lg-6{% endif %}">
-            <div class="border rounded p-2 bg-white small">
-              <div class="label">Attacchi</div>
-              <div class="row g-0">
-                <div class="col-12 col-md-6">
-                  <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                    <div class="text-muted">Mischia</div>
-                    <div class="mono fw-bold">{{ "%+d"|format(sheet.melee_attack_bonus) }}</div>
-                  </div>
-                </div>
-                <div class="col-12 col-md-6 ps-md-2">
-                  <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                    <div class="form-check m-0">
-                      <input
-                        class="form-check-input"
-                        type="checkbox"
-                        id="atk-prof-melee"
-                        name="atk_prof_melee"
-                        onchange="this.form.submit()"
-                        {% if pg.atk_prof_melee %}checked{% endif %}
-                      >
-                      <label class="form-check-label text-muted" for="atk-prof-melee">Competente</label>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-12 col-md-6">
-                  <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                    <div class="text-muted">Distanza</div>
-                    <div class="mono fw-bold">{{ "%+d"|format(sheet.ranged_attack_bonus) }}</div>
-                  </div>
-                </div>
-                <div class="col-12 col-md-6 ps-md-2">
-                  <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                    <div class="form-check m-0">
-                      <input
-                        class="form-check-input"
-                        type="checkbox"
-                        id="atk-prof-ranged"
-                        name="atk_prof_ranged"
-                        onchange="this.form.submit()"
-                        {% if pg.atk_prof_ranged %}checked{% endif %}
-                      >
-                      <label class="form-check-label text-muted" for="atk-prof-ranged">Competente</label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          {% if sheet.spellcasting.casting_ability %}
-            <div class="col-12 col-lg-6">
-              <div class="border rounded p-2 bg-white">
-                <div class="label">Incantesimi</div>
-                <div class="row g-0 small">
-                  <div class="col-12 col-md-6">
-                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                      <div class="text-muted">Abilit&agrave; da incantatore</div>
-                      <div class="mono fw-bold">{{ sheet.spellcasting.ability_label }}</div>
-                    </div>
-                  </div>
-                  <div class="col-12 col-md-6 ps-md-2">
-                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                      <div class="text-muted">Mod incantatore</div>
-                      <div class="mono fw-bold">{{ sheet.spellcasting.mod|fmt_signed }}</div>
-                    </div>
-                  </div>
-                  <div class="col-12 col-md-6">
-                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                      <div class="text-muted">Spell Save DC</div>
-                      <div class="mono fw-bold">{{ sheet.spellcasting.spell_dc }}</div>
-                    </div>
-                  </div>
-                  <div class="col-12 col-md-6 ps-md-2">
-                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                      <div class="text-muted">Spell Attack</div>
-                      <div class="mono fw-bold">{{ sheet.spellcasting.spell_attack_bonus|fmt_signed }}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          {% endif %}
-        </div>
       </div>
 
       <div class="col-12 col-lg-4">
@@ -543,6 +464,112 @@
             {% endfor %}
           </div>
         </div>
+        <div class="border rounded p-2 bg-white small mt-2">
+          <div class="label">Attacchi</div>
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr>
+                <th style="width:60%;">ARMA</th>
+                <th class="text-end" style="width:15%;">BONUS ATT.</th>
+                <th style="width:25%;">DANNI / TIPO</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for i in range(6) %}
+                {% set atk = sheet.attacks_rows[i] %}
+                {% set form_atk = pg.attacks[i] %}
+                {% set is_custom = (not form_atk.weapon_id) %}
+                {% set custom_used = (form_atk.custom_name or form_atk.custom_dice or form_atk.damage_type) %}
+                {% set show_custom_fields = (i < 2) or is_custom %}
+                <tr>
+                  <td class="px-1 py-0">
+                    <select class="form-select form-select-sm" style="padding-top:2px;padding-bottom:2px" name="atk{{ i }}_weapon_id" onchange="this.form.submit()">
+                      {% for option in sheet.weapon_options %}
+                        <option value="{{ option.id }}" {% if form_atk.weapon_id == option.id %}selected{% endif %}>{{ option.label }}</option>
+                      {% endfor %}
+                    </select>
+                    {% if show_custom_fields %}
+                      <div class="input-group input-group-sm mt-1">
+                        <input
+                          class="form-control"
+                          type="text"
+                          name="atk{{ i }}_custom_name"
+                          maxlength="60"
+                          placeholder="Nome"
+                          value="{{ form_atk.custom_name }}"
+                          onblur="this.form.submit()"
+                          onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}"
+                        >
+                        <input
+                          class="form-control mono"
+                          type="text"
+                          name="atk{{ i }}_custom_dice"
+                          maxlength="60"
+                          placeholder="1d8"
+                          value="{{ form_atk.custom_dice }}"
+                          onblur="this.form.submit()"
+                          onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}"
+                        >
+                        <select class="form-select" name="atk{{ i }}_custom_kind" onchange="this.form.submit()">
+                          <option value="melee" {% if form_atk.custom_kind != "ranged" %}selected{% endif %}>Mischia</option>
+                          <option value="ranged" {% if form_atk.custom_kind == "ranged" %}selected{% endif %}>Distanza</option>
+                        </select>
+                        <input
+                          class="form-control"
+                          type="text"
+                          name="atk{{ i }}_damage_type"
+                          maxlength="60"
+                          placeholder="Tipo"
+                          value="{{ form_atk.damage_type }}"
+                          onblur="this.form.submit()"
+                          onkeydown="if(event.key==='Enter'){event.preventDefault(); this.form.submit();}"
+                        >
+                      </div>
+                    {% endif %}
+                  </td>
+                  <td class="text-end mono fw-bold px-1 py-0">
+                    {{ atk.to_hit|fmt_signed }}
+                    {% if not atk.proficient %}
+                      <span class="badge text-bg-warning ms-1">non competente</span>
+                    {% endif %}
+                  </td>
+                  <td class="mono px-1 py-0">{{ atk.damage_display }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% if sheet.spellcasting.casting_ability %}
+          <div class="border rounded p-2 bg-white mt-2">
+            <div class="label">Incantesimi</div>
+            <div class="row g-0 small">
+              <div class="col-12 col-md-6">
+                <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                  <div class="text-muted">Caratteristica da incantatore</div>
+                  <div class="mono fw-bold">{{ sheet.spellcasting.ability_label }}</div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 ps-md-2">
+                <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                  <div class="text-muted">Mod incantatore</div>
+                  <div class="mono fw-bold">{{ sheet.spellcasting.mod|fmt_signed }}</div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                  <div class="text-muted">CD Tiro Salvezza Incantesimi</div>
+                  <div class="mono fw-bold">{{ sheet.spellcasting.spell_dc }}</div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 ps-md-2">
+                <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                  <div class="text-muted">Bonus Attacco Incantesimi</div>
+                  <div class="mono fw-bold">{{ sheet.spellcasting.spell_attack_bonus|fmt_signed }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
       </div>
     </div>
 
